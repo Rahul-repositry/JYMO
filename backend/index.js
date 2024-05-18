@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import { globalErrorHandler } from "./controllers/error.controller.js";
 
 dotenv.config();
 
@@ -24,5 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.send("hello world");
 });
+
+app.use(globalErrorHandler);
 
 app.listen(port, () => console.log("server running on " + port + " port"));
