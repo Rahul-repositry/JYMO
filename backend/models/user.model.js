@@ -1,10 +1,22 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
+import mongooseSequence from "mongoose-sequence";
 
-const userSchema = new Schema(
+const AutoIncrement = mongooseSequence(mongoose);
+
+const userSchema = new mongoose.Schema(
   {
+    userUniqueId: {
+      type: Number,
+      unique: true,
+    },
     username: {
       type: String,
       required: true,
+    },
+    img: {
+      type: String,
+      default:
+        "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png",
     },
     email: {
       type: String,
@@ -26,7 +38,14 @@ const userSchema = new Schema(
       enum: ["gymOwner", "user"],
       required: true,
     },
-    isActive: { type: String },
+    isActive: {
+      type: String,
+    },
+    gender: {
+      type: String,
+      enum: ["male", "female", "others"],
+      required: true,
+    },
     gymId: {
       type: String,
     },
@@ -52,4 +71,9 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("user", userSchema);
+// Add the auto-increment plugin to the schema
+userSchema.plugin(AutoIncrement, { inc_field: "userUniqueId" });
+
+const User = mongoose.model("User", userSchema);
+
+export default User;
