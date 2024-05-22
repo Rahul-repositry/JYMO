@@ -1,4 +1,5 @@
-import mongoose, { Schema } from "mongoose/lib/mongoose";
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const paymentSchema = new Schema(
   {

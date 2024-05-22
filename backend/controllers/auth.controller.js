@@ -1,10 +1,38 @@
-import jwt from "jsonwebtoken";
-import bcryptjs from "bcryptjs";
-import { AsyncErrorHandler } from "../utils/AsyncErrorHandler.utils.js";
-import User from "../models/user.model.js";
-import admin from "../config/firebase.js";
+const jwt = require("jsonwebtoken");
+const bcryptjs = require("bcryptjs");
+const dotenv = require("dotenv");
+const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
+const User = require("../models/user.model.js");
+const admin = require("../config/firebase.js");
+const nodemailer = require("nodemailer");
 
-export const signup = AsyncErrorHandler(async (req, res, next) => {
+// Other code using these imports
+
+dotenv.config("");
+
+const generateToken = () => crypto.randomBytes(32).toString("hex");
+
+console.log(process.env.GMAIL_PASS);
+
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    user: "jyymmoo@gmail.com",
+    pass: process.env.GMAIL_PASS,
+  },
+});
+
+const mailOptions = (userEmail, token) => ({
+  from: "jyymmoo@gmail.com",
+  to: userEmail,
+  subject: "Password Reset Request",
+  text: `You requested a password reset. Click the link to reset your password: 
+         http://your-app.com/reset-password?token=${token}`,
+  html: `<p>You requested a password reset. Click the link to reset your password:</p>
+         <a href="http://your-app.com/reset-password?token=${token}">Reset Password</a>`,
+});
+
+const signup = AsyncErrorHandler(async (req, res, next) => {
   const { username, age, email, password, phone, birthday, role, img, gender } =
     req.body;
   const hashedPassword = bcryptjs.hashSync(String(password), 10);
@@ -26,10 +54,12 @@ export const signup = AsyncErrorHandler(async (req, res, next) => {
 
   const savedUser = await newUser.save();
 
-  res.status(201).json({ message: "User created successfully", savedUser });
+  res
+    .status(201)
+    .json({ success: true, message: "User created successfully", savedUser });
 });
 
-export const signin = AsyncErrorHandler(async (req, res, next) => {
+const signin = AsyncErrorHandler(async (req, res, next) => {
   const { email, password } = req.body;
   const validUser = await User.findOne({ email });
   if (!validUser) return next(new CustomError("Signup first", 401));
@@ -45,11 +75,11 @@ export const signin = AsyncErrorHandler(async (req, res, next) => {
       // secure: true, // helps  with encrypting the cookie and prevents it being sent on http
     })
     .status(200)
-    .json(rest);
+    .json({ success: true, message: "SignIn successfully", user: rest });
 });
 
 // Google sign-in handler
-export const google = AsyncErrorHandler(async (req, res, next) => {
+const google = AsyncErrorHandler(async (req, res, next) => {
   try {
     // Build Firebase credential with the Google ID token.
 
@@ -74,7 +104,7 @@ export const google = AsyncErrorHandler(async (req, res, next) => {
           // secure: true, // helps with encrypting the cookie and prevents it being sent on http
         })
         .status(200)
-        .json(rest);
+        .json({ success: true, message: "Signin successfully", user: rest });
     } else {
       // If the user does not exist, create a new user and send a JWT token to the client.
       const generatedPassword =
@@ -113,10 +143,103 @@ export const google = AsyncErrorHandler(async (req, res, next) => {
           // secure: true, // helps with encrypting the cookie and prevents it being sent on http
         })
         .status(200)
-        .json(rest);
+        .json({ success: true, message: "SignIn Successfully", user: rest });
     }
   } catch (error) {
     console.error("Error verifying Google ID token:", error);
     next(new CustomError("Authentication failed", 401));
   }
 });
+
+const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({
+    email: email,
+  });
+
+  if (!user) {
+    return res.status(404).json({ success: false, message: "User not found" });
+  }
+
+  if (email.includes("@")) {
+    const token = generateToken();
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+    await user.save();
+    await transporter.sendMail(mailOptions(email, token));
+  }
+
+  res.status(200).json({ success: true, message: "Reset instructions sent" });
+});
+
+const resetPassword = AsyncErrorHandler(async (req, res, next) => {
+  const { token, idToken, phoneNumber, newPassword } = req.body;
+  let user;
+
+  if (token) {
+    user = await User.findOne({
+      resetPasswordToken: token,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+  } else if (idToken) {
+    try {
+      const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+      if (!decodedToken) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Invalid ID token" });
+      }
+
+      user = await User.findOne({
+        phone: decodedToken?.phone_number,
+      });
+    } catch (error) {
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid ID token" });
+    }
+  }
+
+  if (!user) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Authentication failed try again !!" });
+  }
+  if (user.phone != phoneNumber) {
+    return res.status(401).json({
+      success: false,
+      message: "Send your own details",
+    });
+  }
+
+  user.password = bcryptjs.hashSync(newPassword, 10); // hash new password
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpires = undefined;
+  await user.save();
+
+  res.status(201).send({ success: true, message: "Password has been reset" });
+});
+//Just a verifytoken nothing in used here
+const verifyToken = AsyncErrorHandler(async (req, res, next) => {
+  let { idToken, phoneNumber } = req.body;
+
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(idToken);
+
+    // Token is valid, proceed with your logic
+    res.json({ success: true, decodedToken });
+  } catch (error) {
+    console.error("Error verifying ID token:", error);
+    res.status(401).json({ success: false, message: "Invalid token" });
+  }
+});
+
+module.exports = {
+  signup,
+  signin,
+  google,
+  forgotPassword,
+  resetPassword,
+  verifyToken,
+};

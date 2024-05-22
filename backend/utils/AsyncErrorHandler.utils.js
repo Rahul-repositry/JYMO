@@ -1,4 +1,4 @@
-export const AsyncErrorHandler = (func) => {
+const AsyncErrorHandler = (func) => {
   return async (req, res, next) => {
     try {
       await func(req, res, next);
@@ -7,3 +7,5 @@ export const AsyncErrorHandler = (func) => {
     }
   };
 };
+
+module.exports = { AsyncErrorHandler };

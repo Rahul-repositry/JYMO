@@ -1,4 +1,5 @@
-import mongoose, { Schema } from "mongoose/lib/mongoose";
+const mongoose = require("mongoose");
+const { Schema } = mongoose;
 
 const workoutSchema = new Schema(
   {
@@ -16,4 +17,5 @@ const workoutSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("workout", workoutSchema);
+const Workout = mongoose.model("workout", workoutSchema);
+module.exports = Workout;

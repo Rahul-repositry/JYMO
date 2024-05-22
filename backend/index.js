@@ -1,10 +1,12 @@
-import express from "express";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import cookieParser from "cookie-parser";
-import { globalErrorHandler } from "./controllers/error.controller.js";
-import authRoutes from "./routes/auth.route.js";
-
+const express = require("express");
+const mongoose = require("mongoose");
+const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
+const { globalErrorHandler } = require("./controllers/error.controller.js");
+const authRoutes = require("./routes/auth.route.js");
+const cors = require("cors");
+const app = express();
+const port = process.env.PORT || 3003;
 dotenv.config();
 
 mongoose
@@ -16,8 +18,13 @@ mongoose
     console.log(err);
   });
 
-const app = express();
-const port = process.env.PORT || 3003;
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URI,
+    methods: ["GET", "POST"],
+    credentials: true,
+  })
+);
 
 app.use(express.json());
 app.use(cookieParser());

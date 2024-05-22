@@ -1,4 +1,4 @@
-import CustomError from "../utils/CustomError.utils.js";
+const CustomError = require("../utils/CustomError.utils.js");
 
 const devErrors = (res, error) => {
   res.status(error.statusCode).json({
@@ -45,7 +45,7 @@ const prodErrors = (res, error) => {
   }
 };
 
-export const globalErrorHandler = (error, req, res, next) => {
+const globalErrorHandler = (error, req, res, next) => {
   error.statusCode = error.statusCode || 500;
   error.status = error.status || "error";
   if (process.env.NODE_ENV === "development") {
@@ -58,3 +58,5 @@ export const globalErrorHandler = (error, req, res, next) => {
     prodErrors(res, error);
   }
 };
+
+module.exports = { globalErrorHandler };
