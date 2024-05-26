@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const subscriptionSchema = new Schema(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
     amount: { type: Number, default: 800 },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date },

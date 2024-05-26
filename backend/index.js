@@ -4,6 +4,7 @@ const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
 const { globalErrorHandler } = require("./controllers/error.controller.js");
 const authRoutes = require("./routes/auth.route.js");
+const jymAuthRoutes = require("./routes/jymAuth.route.js");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3003;
@@ -35,6 +36,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/auth", authRoutes);
+app.use("/api/auth/jym", jymAuthRoutes);
 
 app.use(globalErrorHandler);
 

@@ -42,7 +42,6 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ["male", "female", "others"],
-      required: true,
     },
     gymId: {
       type: String,
@@ -65,6 +64,8 @@ const userSchema = new mongoose.Schema(
       enum: ["trial", "premium"],
       default: "trial",
     },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date,
   },
   { timestamps: true }
 );
@@ -72,6 +73,6 @@ const userSchema = new mongoose.Schema(
 // Add the auto-increment plugin to the schema
 userSchema.plugin(AutoIncrement, { inc_field: "userUniqueId" });
 
-const User = mongoose.model("User", userSchema);
+const User = mongoose.model("user", userSchema);
 
 module.exports = User;

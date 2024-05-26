@@ -5,14 +5,13 @@ const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const User = require("../models/user.model.js");
 const admin = require("../config/firebase.js");
 const nodemailer = require("nodemailer");
-
+const crypto = require("crypto");
+const CustomError = require("../utils/CustomError.utils.js");
 // Other code using these imports
 
 dotenv.config("");
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
-
-console.log(process.env.GMAIL_PASS);
 
 const transporter = nodemailer.createTransport({
   service: "gmail",
@@ -21,15 +20,26 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_PASS,
   },
 });
+const generateMessageId = () => {
+  return `${crypto.randomBytes(16).toString("hex")}@yourdomain.com`;
+};
+
+const generateUniqueSubject = (baseSubject) => {
+  const timestamp = new Date().getTime();
+  return `${baseSubject} - ${timestamp}`;
+};
 
 const mailOptions = (userEmail, token) => ({
   from: "jyymmoo@gmail.com",
   to: userEmail,
-  subject: "Password Reset Request",
-  text: `You requested a password reset. Click the link to reset your password: 
-         http://your-app.com/reset-password?token=${token}`,
+  subject: generateUniqueSubject("Password Reset Request"),
+  text: `You requested a Jym password reset. Click the link to reset your Jym password: 
+${process.env.FRONTEND_URI}/reset-password?token=${token}`,
   html: `<p>You requested a password reset. Click the link to reset your password:</p>
-         <a href="http://your-app.com/reset-password?token=${token}">Reset Password</a>`,
+         <a href="${process.env.FRONTEND_URI}/reset-password?token=${token}">Reset Password</a>`,
+  headers: {
+    "Message-ID": generateMessageId(),
+  },
 });
 
 const signup = AsyncErrorHandler(async (req, res, next) => {
@@ -65,8 +75,13 @@ const signin = AsyncErrorHandler(async (req, res, next) => {
   if (!validUser) return next(new CustomError("Signup first", 401));
   const validPassword = bcryptjs.compareSync(password, validUser.password);
   if (!validPassword) return next(new CustomError("invalid credentials", 401));
-  const token = jwt.sign({ id: validUser._id }, process.env.JWT_SECRET);
-  const { password: hashedPassword, ...rest } = validUser._doc;
+  const {
+    password: hashedPassword,
+    resetPasswordToken,
+    resetPasswordExpires,
+    ...rest
+  } = validUser._doc;
+  const token = jwt.sign({ user: rest }, process.env.JWT_SECRET);
   const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
   res
     .cookie("access_token", token, {
@@ -94,8 +109,9 @@ const google = AsyncErrorHandler(async (req, res, next) => {
 
     if (existingUser) {
       // If the user exists, create a JWT token and send it to the client.
-      const token = jwt.sign({ id: existingUser._id }, process.env.JWT_SECRET);
-      const { password, ...rest } = existingUser._doc;
+      const { password, resetPasswordToken, resetPasswordExpires, ...rest } =
+        existingUser._doc;
+      const token = jwt.sign({ user: rest }, process.env.JWT_SECRET);
       const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
       res
         .cookie("access_token", token, {
@@ -133,8 +149,9 @@ const google = AsyncErrorHandler(async (req, res, next) => {
       }
 
       await newUser.save();
-      const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
-      const { password, ...rest } = newUser._doc;
+      const { password, resetPasswordToken, resetPasswordExpires, ...rest } =
+        newUser._doc;
+      const token = jwt.sign({ user: rest }, process.env.JWT_SECRET);
       const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
       res
         .cookie("access_token", token, {
@@ -194,6 +211,13 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
       user = await User.findOne({
         phone: decodedToken?.phone_number,
       });
+
+      if (user.phone != phoneNumber) {
+        return res.status(401).json({
+          success: false,
+          message: "Send your own details",
+        });
+      }
     } catch (error) {
       return res
         .status(400)
@@ -206,20 +230,16 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
       .status(400)
       .json({ success: false, message: "Authentication failed try again !!" });
   }
-  if (user.phone != phoneNumber) {
-    return res.status(401).json({
-      success: false,
-      message: "Send your own details",
-    });
-  }
 
   user.password = bcryptjs.hashSync(newPassword, 10); // hash new password
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
-  await user.save();
+  const savedUser = await user.save();
+  console.log(savedUser);
 
   res.status(201).send({ success: true, message: "Password has been reset" });
 });
+
 //Just a verifytoken nothing in used here
 const verifyToken = AsyncErrorHandler(async (req, res, next) => {
   let { idToken, phoneNumber } = req.body;
@@ -235,9 +255,18 @@ const verifyToken = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
+const logout = AsyncErrorHandler(async (req, res, next) => {
+  res.clearCookie("access_token");
+  return res.json({
+    status: "success",
+    msg: "You are successfully logged out",
+  });
+});
+
 module.exports = {
   signup,
   signin,
+  logout,
   google,
   forgotPassword,
   resetPassword,
