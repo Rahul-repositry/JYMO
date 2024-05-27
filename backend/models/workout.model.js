@@ -8,14 +8,21 @@ const workoutSchema = new Schema(
     exercisePlan: [
       {
         exercise: { type: String, required: true },
-        sets: { type: Number, required: true },
-        reps: { type: Number, required: true },
-        duration: { type: Number, required: true },
+        sets: { type: Number },
+        reps: { type: Number },
+        duration: { type: Number },
       },
     ],
   },
   { timestamps: true }
 );
+
+workoutSchema.pre("save", function (next) {
+  if (this.isNew || this.isModified("dayOfWeek")) {
+    this.dayOfWeek = this.dayOfWeek.toLowerCase();
+  }
+  next();
+});
 
 const Workout = mongoose.model("workout", workoutSchema);
 module.exports = Workout;
