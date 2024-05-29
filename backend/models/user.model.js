@@ -43,27 +43,15 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["male", "female", "others"],
     },
-    gymId: {
-      type: String,
-    },
-    createdDate: {
-      type: Date,
-      default: Date.now,
-    },
-    lastPaymentDate: {
-      type: Date,
-    },
-    subscriptionStartDate: {
-      type: Date,
-    },
-    subscriptionEndDate: {
-      type: Date,
-    },
-    subscriptionType: {
-      type: String,
-      enum: ["trial", "premium"],
-      default: "trial",
-    },
+    currentJymUUId: [{ type: mongoose.Schema.Types.ObjectId, ref: "jyms" }],
+
+    recentJyms: [
+      {
+        jymId: { type: mongoose.Schema.Types.ObjectId, ref: "jyms" },
+        joinDates: [{ type: Date }],
+        quitDates: [{ type: Date }],
+      },
+    ],
     resetPasswordToken: String,
     resetPasswordExpires: Date,
   },

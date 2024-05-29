@@ -24,8 +24,19 @@ const jymSchema = new Schema(
     password: { type: String },
     geolocation: geolocationSchema,
     addressLocation: addressLocationSchema,
-    owners: [{ type: Schema.Types.ObjectId, ref: "users" }],
-    users: [{ type: Schema.Types.ObjectId, ref: "users" }],
+    owners: [{ type: Schema.Types.ObjectId, ref: "users" }], // will get updated as new owners join and quit
+    activeUsers: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: "users" },
+        joinDates: [{ type: Date }],
+      },
+    ], // will get updated as new users join
+    quittedUsers: [
+      {
+        userId: { type: Schema.Types.ObjectId, ref: "users" },
+        quitDates: [{ type: Date }],
+      },
+    ], // will get updated as new users quit
     numbers: [String], // will get updated as new users join and quit
     subscriptionFee: { type: Number, default: 1000 },
     subscriptionStartDate: { type: Date },
