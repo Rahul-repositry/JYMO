@@ -222,6 +222,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
-//make membership handler for user
+//make membership handler for user && for every route with explanation write wht to remember while writing frontend code .
 
 module.exports = { attendanceHandler };

@@ -103,6 +103,4 @@ const verifyOwnershipAndActiveUser = async (req, res, next) => {
   }
 };
 
-module.exports = verifyOwnershipAndActiveUser;
-
-module.exports = { verifyUser, verifyJym };
+module.exports = { verifyUser, verifyJym, verifyOwnershipAndActiveUser };
