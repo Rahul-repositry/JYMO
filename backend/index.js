@@ -6,6 +6,7 @@ const { globalErrorHandler } = require("./controllers/error.controller.js");
 const authRoutes = require("./routes/auth.route.js");
 const jymAuthRoutes = require("./routes/jymAuth.route.js");
 const workoutRoutes = require("./routes/workout.route.js");
+const attendanceRoutes = require("./routes/attendance.route.js");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3003;
@@ -39,6 +40,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/jym", jymAuthRoutes);
 app.use("/api/workout", workoutRoutes);
+app.use("/api/attendance", attendanceRoutes);
 app.use(globalErrorHandler);
 
 app.listen(port, () => console.log("server running on " + port + " port"));

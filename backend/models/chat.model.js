@@ -17,7 +17,7 @@ const chatSchema = new Schema(
     receiverModel: { type: String, enum: ["User", "Gym"], required: true },
     message: { type: String, required: true },
     timestamp: { type: Date, default: Date.now },
-    seenBy: [{ type: Schema.Types.ObjectId, ref: "User" }],
+    seenBy: [{ type: Schema.Types.ObjectId, ref: "users" }],
   },
   { timestamps: true }
 );

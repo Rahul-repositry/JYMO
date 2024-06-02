@@ -5,12 +5,12 @@ const { v4: uuidv4 } = require("uuid");
 const attendanceSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
-    gymId: { type: Schema.Types.ObjectId, ref: "jyms", required: true },
-    mode: { type: String, enum: ["trial", "visit", "registered"] },
+    jymId: { type: String, required: true },
+    mode: { type: String, enum: ["trial", "registered"] },
     isTrial: { type: Boolean, default: false },
     trialToken: { type: String },
     trialTokenExpiry: { type: Date },
-    checkIn: { type: Date, required: true },
+    checkIn: { type: Date, default: Date.now() },
     checkOut: { type: Date },
   },
   { timestamps: true }
@@ -24,4 +24,6 @@ attendanceSchema.pre("save", function (next) {
   next();
 });
 
-module.exports = mongoose.model("attendance", attendanceSchema);
+const Attendance = mongoose.model("attendance", attendanceSchema);
+
+module.exports = Attendance;

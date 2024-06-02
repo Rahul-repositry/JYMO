@@ -1,5 +1,6 @@
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils");
 const Workout = require("../models/workout.model.js");
+
 const createWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
   const userId = req.user._id;
   const { dayOfWeek, exercisePlan } = req.body;
