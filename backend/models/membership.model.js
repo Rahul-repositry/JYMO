@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 const membershipSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
-    amount: { type: Number, default: 800 },
+    amount: { type: Number },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date },
     status: { type: String, enum: ["active", "paused"], default: "active" },

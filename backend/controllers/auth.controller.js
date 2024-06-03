@@ -175,7 +175,7 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
   });
 
   if (!user) {
-    return res.status(404).json({ success: false, message: "User not found" });
+    return next(new CustomError("User not found", 404));
   }
 
   if (email.includes("@")) {
@@ -203,9 +203,7 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
       const decodedToken = await admin.auth().verifyIdToken(idToken);
 
       if (!decodedToken) {
-        return res
-          .status(400)
-          .json({ success: false, message: "Invalid ID token" });
+        return next(new CustomError("Invalid token", 400));
       }
 
       user = await User.findOne({
@@ -213,22 +211,15 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
       });
 
       if (user.phone != phoneNumber) {
-        return res.status(401).json({
-          success: false,
-          message: "Send your own details",
-        });
+        return next(new CustomError("Send your own details", 401));
       }
     } catch (error) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Invalid ID token" });
+      return next(new CustomError("Invalid ID token", 400));
     }
   }
 
   if (!user) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Authentication failed try again !!" });
+    return next(new CustomError("Authentication failed try again", 400));
   }
 
   user.password = bcryptjs.hashSync(newPassword, 10); // hash new password
@@ -251,7 +242,7 @@ const verifyToken = AsyncErrorHandler(async (req, res, next) => {
     res.json({ success: true, decodedToken });
   } catch (error) {
     console.error("Error verifying ID token:", error);
-    res.status(401).json({ success: false, message: "Invalid token" });
+    return next(new CustomError("Invalid token", 401));
   }
 });
 

@@ -216,10 +216,7 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   }
 
   // If user is not registered, default response
-  return res.status(200).json({
-    success: false,
-    message: "Quit Jym and Get-register again",
-  });
+  return next(new CustomError("Quit Jym and Get-register again", 200));
 });
 
 //make membership handler for user && for every route with explanation write wht to remember while writing frontend code .

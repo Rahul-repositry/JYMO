@@ -11,11 +11,7 @@ const createWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
   });
 
   if (workoutIsExists) {
-    return res.json({
-      success: "false",
-      message: "Plan already created",
-      workout: workoutIsExists,
-    });
+    return next(new CustomError("Plan already created", 409));
   }
   const workout = new Workout({ userId, dayOfWeek, exercisePlan });
 
@@ -32,9 +28,7 @@ const updateWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
     dayOfWeek: dayOfWeek.toLowerCase(),
   });
   if (!workout) {
-    return res
-      .status(404)
-      .json({ success: false, message: "Workout plan not found" });
+    return next(new CustomError("Workout plan not found ", 404));
   }
 
   // Update the workout plan
@@ -57,9 +51,7 @@ const deleteWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
     dayOfWeek: dayOfWeek.toLowerCase(),
   });
   if (!deletedWorkout) {
-    return res
-      .status(404)
-      .json({ success: false, message: "Workout plan not found" });
+    return next(new CustomError("Workout plan not found ", 404));
   }
   res.json({ success: true, message: "Workout plan deleted" });
 });

@@ -2,7 +2,7 @@ const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
 const dotenv = require("dotenv");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
-const admin = require("../config/firebase.js");
+
 const nodemailer = require("nodemailer");
 const { Jym } = require("../models/jym.model.js");
 const { JymId } = require("../models/jymId.model.js");
@@ -138,7 +138,7 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
   });
 
   if (!JymObj) {
-    return res.status(404).json({ success: false, message: "Jym not found" });
+    return next(new CustomError("Jym not found", 404));
   }
 
   if (email.includes("@")) {
@@ -164,9 +164,7 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
   }
 
   if (!jymObj) {
-    return res
-      .status(400)
-      .json({ success: false, message: "Authentication failed try again !!" });
+    return next(new CustomError("Authentication failed try again !!", 404));
   }
 
   jymObj.password = bcryptjs.hashSync(newPassword, 10); // hash new password
