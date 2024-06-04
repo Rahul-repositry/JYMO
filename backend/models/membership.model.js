@@ -8,20 +8,53 @@ const membershipSchema = new Schema(
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date },
     status: { type: String, enum: ["active", "paused"], default: "active" },
-    gateway: { type: String, enum: ["Paytm", "Razorpay"], required: true },
-    transactionId: { type: String, required: true },
-    isPaused: { type: Boolean, default: false }, // return error if enddate passed
-    pausedAt: { type: Date }, // return error if enddate passed
-    totalPausedDuration: { type: Number, default: 0 }, // in milliseconds
+    isPaused: { type: Boolean, default: false },
+    pausedAt: { type: Date },
   },
   { timestamps: true }
 );
 
 membershipSchema.pre("save", function (next) {
-  const currentDate = new Date();
-  this.endDate = new Date(currentDate.getTime() + 29 * 24 * 60 * 60 * 1000); // 30 days later (one right now)
+  if (!this.endDate) {
+    const currentDate = new Date();
+    this.endDate = new Date(currentDate.getTime() + 29 * 24 * 60 * 60 * 1000); // 30 days later
+  }
   next();
 });
+
+membershipSchema.statics.renewMembership = async function (
+  userId,
+  months,
+  oneMonthFee
+) {
+  const latestMembership = await this.findOne({ userId }).sort({ endDate: -1 });
+  const currentDate = new Date();
+
+  let newStartDate, newEndDate;
+
+  if (latestMembership && latestMembership.endDate > currentDate) {
+    newStartDate = new Date(
+      latestMembership.endDate.getTime() + 1 * 24 * 60 * 60 * 1000
+    ); // One day after the last end date
+  } else {
+    newStartDate = currentDate;
+  }
+
+  newEndDate = new Date(
+    newStartDate.getTime() + months * 30 * 24 * 60 * 60 * 1000
+  );
+
+  const newMembership = new this({
+    userId,
+    startDate: newStartDate,
+    endDate: newEndDate,
+    amount: months * oneMonthFee, // Example: assuming 1000 per month
+    status: "active",
+  });
+
+  await newMembership.save();
+  return newMembership;
+};
 
 membershipSchema.methods.pause = function () {
   if (!this.isPaused) {
@@ -31,14 +64,11 @@ membershipSchema.methods.pause = function () {
   }
 };
 
-// Instance method to resume membership
 membershipSchema.methods.resume = function () {
   if (this.isPaused) {
-    const endDate = this.endDate;
     const now = new Date();
-    const pausedDuration = endDate - this.pausedAt;
-    this.totalPausedDuration = pausedDuration;
-    this.endDate = new Date(now.getTime() + pausedDuration);
+    const pausedDuration = now.getTime() - this.pausedAt.getTime();
+    this.endDate = new Date(this.endDate.getTime() + pausedDuration);
     this.isPaused = false;
     this.pausedAt = null;
     this.status = "active";

@@ -41,45 +41,45 @@ async function updateUserJymsdetail(userId, jymId) {
 }
 
 // Function to check if the user is in a trial period
-async function isTrialPeriod(userId, jymId) {
-  const attendanceRecord = await Attendance.findOne({
-    userId: userId,
-    jymId: jymId,
-    mode: { $in: ["trial"] },
-  }).sort({ createdAt: -1 });
+// async function isTrialPeriod(userId, jymId) {
+//   const attendanceRecord = await Attendance.findOne({
+//     userId: userId,
+//     jymId: jymId,
+//     mode: { $in: ["trial"] },
+//   }).sort({ createdAt: -1 });
 
-  if (attendanceRecord) {
-    const currentDate = new Date();
-    const expiryDate = new Date(attendanceRecord.trialTokenExpiry);
+//   if (attendanceRecord) {
+//     const currentDate = new Date();
+//     const expiryDate = new Date(attendanceRecord.trialTokenExpiry);
 
-    if (currentDate > expiryDate) {
-      return "over";
-    } else {
-      return { status: "goingon", attendanceRecord };
-    }
-  }
-  return false;
-}
+//     if (currentDate > expiryDate) {
+//       return "over";
+//     } else {
+//       return { status: "goingon", attendanceRecord };
+//     }
+//   }
+//   return false;
+// }
 
-// Function to check if the user is registered
-async function isRegistered(userId, jymId) {
-  const attendanceRecord = await Attendance.findOne({
-    userId: userId,
-    jymId: jymId,
-    mode: { $in: ["registered"] },
-  }).sort({ createdAt: -1 });
+// // Function to check if the user is registered
+// async function isRegistered(userId, jymId) {
+//   const attendanceRecord = await Attendance.findOne({
+//     userId: userId,
+//     jymId: jymId,
+//     mode: { $in: ["registered"] },
+//   }).sort({ createdAt: -1 });
 
-  return !!attendanceRecord;
-}
+//   return !!attendanceRecord;
+// }
 
-// Utility function to check if two dates are the same day
-function isSameDay(date1, date2) {
-  return (
-    date1.getFullYear() === date2.getFullYear() &&
-    date1.getMonth() === date2.getMonth() &&
-    date1.getDate() === date2.getDate()
-  );
-}
+// // Utility function to check if two dates are the same day
+// function isSameDay(date1, date2) {
+//   return (
+//     date1.getFullYear() === date2.getFullYear() &&
+//     date1.getMonth() === date2.getMonth() &&
+//     date1.getDate() === date2.getDate()
+//   );
+// }
 
 // Function to mark attendance
 async function markAttendance(
@@ -125,6 +125,80 @@ async function updateOwnerJym(userId, jymId) {
     console.log("User updated successfully");
   }
 }
+
+// Utility function to get the current date
+function getCurrentDate() {
+  return new Date();
+}
+
+// Function to quit user from a gym
+const quitUserHandler = AsyncErrorHandler(async (req, res, next) => {
+  const { userId, jymId } = req.body;
+
+  // Find the gym by ID
+  const jym = await Jym.findById(jymId);
+  if (!jym) {
+    return next(new CustomError("Gym not found", 404));
+  }
+
+  // Find the user by ID
+  const user = await User.findById(userId);
+  if (!user) {
+    return next(new CustomError("User not found", 404));
+  }
+
+  // Get the current date
+  const currentDate = getCurrentDate();
+
+  // Remove user from activeUsers array and prepare to add to quittedUsers array
+  let userFoundInActiveUsers = false;
+  jym.activeUsers = jym.activeUsers.filter((activeUser) => {
+    if (activeUser.userId.toString() === userId.toString()) {
+      userFoundInActiveUsers = true;
+      return false; // Filter out the user to remove from activeUsers
+    }
+    return true;
+  });
+
+  // Add user to quittedUsers array or update quitDates if already present
+  let userFoundInQuittedUsers = false;
+  jym.quittedUsers = jym.quittedUsers.map((quittedUser) => {
+    if (quittedUser.userId.toString() === userId.toString()) {
+      userFoundInQuittedUsers = true;
+      quittedUser.quitDates.push(currentDate.toISOString());
+    }
+    return quittedUser;
+  });
+
+  if (!userFoundInQuittedUsers) {
+    jym.quittedUsers.push({
+      userId: userId,
+      quitDates: [currentDate.toISOString()],
+    });
+  }
+
+  if (!userFoundInActiveUsers) {
+    return next(
+      new CustomError("User is not currently an active user of the gym", 400)
+    );
+  }
+
+  // Update the user's recentJyms array
+  const gymIndex = user.recentJyms.findIndex(
+    (gym) => gym.jymId.toString() === jymId.toString()
+  );
+  if (gymIndex > -1) {
+    user.recentJyms[gymIndex].quitDates.push(currentDate.toISOString());
+  }
+
+  await jym.save();
+  await user.save();
+
+  res.status(200).json({
+    success: true,
+    message: "User has quit the gym and records updated successfully.",
+  });
+});
 
 //make attendance registratiton by admins
 
@@ -221,4 +295,4 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
 
 //make membership handler for user && for every route with explanation write wht to remember while writing frontend code .
 
-module.exports = { attendanceHandler };
+module.exports = { attendanceHandler, quitUserHandler };
