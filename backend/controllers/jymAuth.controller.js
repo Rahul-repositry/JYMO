@@ -63,13 +63,13 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
     password,
     numbers,
     ownerId,
-    location,
+    geolocation,
+    addressLocation,
     img,
     subscriptionFee,
   } = req.body;
   const hashedPassword = bcryptjs.hashSync(String(password), 10);
 
-  console.log("happening befor savedjym");
   const newJym = new Jym({
     name,
     jymId,
@@ -77,7 +77,8 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
     password: hashedPassword,
     numbers,
     owners: ownerId,
-    location,
+    geolocation,
+    addressLocation,
     subscriptionFee,
   });
 
@@ -86,7 +87,6 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
   }
 
   const savedJym = await newJym.save();
-  console.log("happening after savedjym");
 
   res
     .status(201)
@@ -101,7 +101,7 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
   const validPassword = bcryptjs.compareSync(password, validJym.password);
   if (!validPassword) return next(new CustomError("invalid credentials", 401));
   const token = jwt.sign({ id: validJym._id }, process.env.JWT_SECRET);
-  const { password: hashedPassword, ...rest } = validJym._doc;
+
   const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
   let jymobj;
   if (!validJym.owners.includes(ownerId)) {
@@ -120,7 +120,7 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const jymId = AsyncErrorHandler(async (req, res, next) => {
-  const { userId } = req.body;
+  const userId = req.user._id;
   const newjymId = new JymId({
     userId,
   });

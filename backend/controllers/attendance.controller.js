@@ -40,53 +40,11 @@ async function updateUserJymsdetail(userId, jymId) {
   }
 }
 
-// Function to check if the user is in a trial period
-// async function isTrialPeriod(userId, jymId) {
-//   const attendanceRecord = await Attendance.findOne({
-//     userId: userId,
-//     jymId: jymId,
-//     mode: { $in: ["trial"] },
-//   }).sort({ createdAt: -1 });
-
-//   if (attendanceRecord) {
-//     const currentDate = new Date();
-//     const expiryDate = new Date(attendanceRecord.trialTokenExpiry);
-
-//     if (currentDate > expiryDate) {
-//       return "over";
-//     } else {
-//       return { status: "goingon", attendanceRecord };
-//     }
-//   }
-//   return false;
-// }
-
-// // Function to check if the user is registered
-// async function isRegistered(userId, jymId) {
-//   const attendanceRecord = await Attendance.findOne({
-//     userId: userId,
-//     jymId: jymId,
-//     mode: { $in: ["registered"] },
-//   }).sort({ createdAt: -1 });
-
-//   return !!attendanceRecord;
-// }
-
-// // Utility function to check if two dates are the same day
-// function isSameDay(date1, date2) {
-//   return (
-//     date1.getFullYear() === date2.getFullYear() &&
-//     date1.getMonth() === date2.getMonth() &&
-//     date1.getDate() === date2.getDate()
-//   );
-// }
-
-// Function to mark attendance
 async function markAttendance(
   userId,
   jymId,
   mode,
-  trialTokenExpiry = null,
+  trialTokenExpiry = undefined,
   isTrial = false
 ) {
   const newAttendance = new Attendance({
@@ -133,7 +91,8 @@ function getCurrentDate() {
 
 // Function to quit user from a gym
 const quitUserHandler = AsyncErrorHandler(async (req, res, next) => {
-  const { userId, jymId } = req.body;
+  const userId = req.user._id;
+  const { jymId } = req.params.jymId;
 
   // Find the gym by ID
   const jym = await Jym.findById(jymId);
@@ -203,6 +162,12 @@ const quitUserHandler = AsyncErrorHandler(async (req, res, next) => {
 //make attendance registratiton by admins
 
 const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
+  const compareDates = (date1ISOString, date2ISOString) => {
+    const [year1, month1, day1] = date1ISOString.split("T")[0].split("-");
+    const [year2, month2, day2] = date2ISOString.split("T")[0].split("-");
+    return year1 === year2 && month1 === month2 && day1 === day2;
+  };
+
   let { jymId, userId: userIdFromBody } = req.body;
   let userId = userIdFromBody || req.user._id;
 
@@ -242,8 +207,10 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       });
     } else {
       // Trial period is ongoing
-      const createdAtDate = new Date(latestAttendance.createdAt);
-      const isToday = createdAtDate.toDateString() === today.toDateString();
+      const isToday = compareDates(
+        latestAttendance.createdAt,
+        today.toISOString()
+      );
 
       if (!isToday) {
         const attendanceObj = await markAttendance(
@@ -267,8 +234,10 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
     }
   } else if (latestAttendance.mode === "registered") {
     // Handle registered user attendance
-    const createdAtDate = new Date(latestAttendance.createdAt);
-    const isToday = createdAtDate.toDateString() === today.toDateString();
+    const isToday = compareDates(
+      latestAttendance.createdAt,
+      today.toISOString()
+    );
 
     if (!isToday) {
       const attendanceObj = await markAttendance(userId, jymId, "registered");
@@ -292,7 +261,5 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   // If user is not registered, default response
   return next(new CustomError("Quit Jym and Get-register again", 200));
 });
-
-//make membership handler for user && for every route with explanation write wht to remember while writing frontend code .
 
 module.exports = { attendanceHandler, quitUserHandler };

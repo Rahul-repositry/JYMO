@@ -9,12 +9,15 @@ const geolocationSchema = new Schema(
   { _id: false }
 );
 
-const addressLocationSchema = new Schema({
-  address: { type: String },
-  city: { type: String },
-  state: { type: String },
-  zipCode: { type: String },
-});
+const addressLocationSchema = new Schema(
+  {
+    address: { type: String },
+    city: { type: String },
+    state: { type: String },
+    zipCode: { type: String },
+  },
+  { _id: false }
+);
 
 const jymSchema = new Schema(
   {
@@ -37,13 +40,13 @@ const jymSchema = new Schema(
         quitDates: [{ type: Date }],
       },
     ], // will get updated as new users quit
-    numbers: [String], // will get updated as new users join and quit
-    subscriptionFee: { type: Number, default: 1000 },
+
+    subscriptionFee: { type: Number },
     subscriptionStartDate: { type: Date },
     subscriptionEndDate: { type: Date },
-    isActive: { type: Boolean, default: true },
-    createdDate: { type: Date, default: Date.now },
     resetPasswordToken: String,
+    jymoDietId: { type: Schema.Types.ObjectId, ref: "jymoDietIdForJymOwners" },
+    jymDietAmount: Number,
     resetPasswordExpires: Date,
   },
   { timestamps: true }

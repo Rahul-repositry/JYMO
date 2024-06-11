@@ -4,7 +4,7 @@ const CustomError = require("../utils/CustomError.utils.js");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 
 const membershipHandler = AsyncErrorHandler(async (req, res, next) => {
-  const { userId, amount, oneMonthFee } = req.body;
+  const { userId, amount, month } = req.body;
 
   // Check if user exists
   const user = await User.findById(userId);
@@ -16,7 +16,7 @@ const membershipHandler = AsyncErrorHandler(async (req, res, next) => {
   const newMembership = await Membership.createOrRenewMembership(
     userId,
     amount,
-    oneMonthFee
+    month
   );
 
   res.status(201).json({
@@ -27,10 +27,12 @@ const membershipHandler = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const membershipResumeHandler = AsyncErrorHandler(async (req, res, next) => {
-  const { membershipId } = req.body;
+  const { userId } = req.body;
 
   // Fetch membership
-  const membership = await Membership.findById(membershipId);
+  const membership = await Membership.findOne(userId).sort({
+    createdAt: -1,
+  });
   if (!membership) {
     return next(new CustomError("Membership not found", 404));
   }
@@ -52,10 +54,12 @@ const membershipResumeHandler = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const membershipPauseHandler = AsyncErrorHandler(async (req, res, next) => {
-  const { membershipId } = req.body;
+  const { userId } = req.body;
 
   // Fetch membership
-  const membership = await Membership.findById(membershipId);
+  const membership = await Membership.findOne(userId).sort({
+    createdAt: -1,
+  });
   if (!membership) {
     return next(new CustomError("Membership not found", 404));
   }

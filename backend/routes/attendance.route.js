@@ -3,7 +3,9 @@ const router = express.Router();
 const {
   verifyUser,
   verifyJym,
-  verifyOwnershipAndActiveUser,
+
+  verifyOwnership,
+  verifyActiveUser,
 } = require("../utils/Middleware.utils.js");
 const {
   attendanceHandler,
@@ -14,7 +16,8 @@ router.post(
   "/attendanceByAdmin",
   verifyUser,
   verifyJym,
-  verifyOwnershipAndActiveUser,
+  verifyOwnership,
+  verifyActiveUser,
   attendanceHandler
 );
 

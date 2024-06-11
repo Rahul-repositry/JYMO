@@ -22,40 +22,39 @@ membershipSchema.pre("save", function (next) {
   next();
 });
 
-membershipSchema.statics.renewMembership = async function (
+// Static method to create or renew membership
+membershipSchema.statics.createOrRenewMembership = async function (
   userId,
-  months,
-  oneMonthFee
+  amount,
+  month
 ) {
-  const latestMembership = await this.findOne({ userId }).sort({ endDate: -1 });
   const currentDate = new Date();
+  const latestMembership = await this.findOne({ userId })
+    .sort({ endDate: -1 })
+    .exec();
 
-  let newStartDate, newEndDate;
-
-  if (latestMembership && latestMembership.endDate > currentDate) {
-    newStartDate = new Date(
-      latestMembership.endDate.getTime() + 1 * 24 * 60 * 60 * 1000
-    ); // One day after the last end date
-  } else {
-    newStartDate = currentDate;
+  let startDate = currentDate;
+  if (latestMembership && currentDate > latestMembership.endDate) {
+    const gapDays = Math.floor(
+      (currentDate - latestMembership.endDate) / (24 * 60 * 60 * 1000)
+    );
+    if (gapDays > 0) {
+      startDate = new Date(
+        currentDate.getTime() - gapDays * 24 * 60 * 60 * 1000
+      );
+    }
   }
-
-  newEndDate = new Date(
-    newStartDate.getTime() + months * 30 * 24 * 60 * 60 * 1000
-  );
 
   const newMembership = new this({
     userId,
-    startDate: newStartDate,
-    endDate: newEndDate,
-    amount: months * oneMonthFee, // Example: assuming 1000 per month
-    status: "active",
+    amount,
+    startDate,
+    endDate: new Date(startDate.getTime() + month * 29 * 24 * 60 * 60 * 1000), // 30 days duration
   });
 
   await newMembership.save();
   return newMembership;
 };
-
 membershipSchema.methods.pause = function () {
   if (!this.isPaused) {
     this.isPaused = true;
