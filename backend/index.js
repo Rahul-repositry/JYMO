@@ -8,6 +8,7 @@ const jymAuthRoutes = require("./routes/jymAuth.route.js");
 const workoutRoutes = require("./routes/workout.route.js");
 const attendanceRoutes = require("./routes/attendance.route.js");
 const membershipRoutes = require("./routes/membership.route.js");
+const jymoDietRoutes = require("./routes/jymoDiet.route.js");
 const cors = require("cors");
 const app = express();
 const port = process.env.PORT || 3003;
@@ -43,6 +44,7 @@ app.use("/api/auth/jym", jymAuthRoutes);
 app.use("/api/workout", workoutRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/membership", membershipRoutes);
+app.use("/api/jymoDiet", jymoDietRoutes);
 app.use(globalErrorHandler);
 
 app.listen(port, () => console.log("server running on " + port + " port"));

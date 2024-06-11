@@ -20,6 +20,7 @@ const transporter = nodemailer.createTransport({
     pass: process.env.GMAIL_PASS,
   },
 });
+
 const generateMessageId = () => {
   return `${crypto.randomBytes(16).toString("hex")}@yourdomain.com`;
 };
@@ -127,8 +128,7 @@ const google = AsyncErrorHandler(async (req, res, next) => {
         Math.random().toString(36).slice(-8) +
         Math.random().toString(36).slice(-8);
 
-      const { username, age, email, phone, birthday, role, img, gender } =
-        req.body;
+      const { age, phone, birthday, role, img, gender } = req.body;
       const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
 
       const newUser = new User({
@@ -231,21 +231,6 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
   res.status(201).send({ success: true, message: "Password has been reset" });
 });
 
-//Just a verifytoken nothing in used here
-const verifyToken = AsyncErrorHandler(async (req, res, next) => {
-  let { idToken, phoneNumber } = req.body;
-
-  try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-
-    // Token is valid, proceed with your logic
-    res.json({ success: true, decodedToken });
-  } catch (error) {
-    console.error("Error verifying ID token:", error);
-    return next(new CustomError("Invalid token", 401));
-  }
-});
-
 const logout = AsyncErrorHandler(async (req, res, next) => {
   res.clearCookie("access_token");
   return res.json({
@@ -261,5 +246,4 @@ module.exports = {
   google,
   forgotPassword,
   resetPassword,
-  verifyToken,
 };

@@ -3,7 +3,6 @@ const { Schema } = mongoose;
 
 const jymoDietBackendUser = new Schema(
   {
-    username: { type: String, required: true },
     gmail: { type: String, required: true },
     role: {
       type: String,

@@ -5,8 +5,8 @@ const jymoDietOrderSchema = new Schema(
   {
     jymId: { type: Schema.Types.ObjectId, ref: "jyms" },
     jymoDietIdForJymOwners: { type: Schema.Types.ObjectId, ref: "jyms" },
-    isconfirmed: { type: boolean, default: false },
-    confirmedTime: { type: Date },
+    isOrderConfirmed: { type: boolean, default: false },
+    OrderConfirmedTime: { type: Date },
     payment: { type: String, enum: ["due", "paid"] },
     paymentTime: { type: Date },
     orderQuantiy: { type: Number, required: true },
@@ -16,6 +16,7 @@ const jymoDietOrderSchema = new Schema(
   },
   { timestamps: true }
 );
+
 const jymoDietOrder = mongoose.model("jymoDietOrder", jymoDietOrderSchema);
 
 module.exports = { jymoDietOrder };
