@@ -1,0 +1,85 @@
+/* background: linear-gradient(180deg, #FFB297 0%, #FCE0B2 100%); */
+
+.animated-grid-container {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  max-height: 1098px;
+  max-width: 1440px;
+  perspective: 1000px;
+  overflow: hidden;
+}
+
+.animated-grid-container::after {
+  content: "";
+  position: absolute;
+  height: 200px;
+  width: 100%;
+  bottom: 0px;
+  right: 0px;
+  background: linear-gradient(
+    179.897deg,
+    rgba(255, 255, 255, 14%) 5%,
+    #ffffff 100%
+  );
+}
+
+.grid-pattern {
+  position: absolute;
+  width: 300%;
+  height: 200%;
+  object-fit: cover;
+  background-attachment: fixed;
+  background-repeat: repeat;
+  background-position: 55% 42%;
+  transform-style: preserve-3d;
+  transform: rotateX(25deg) translate(-25%, -40%);
+  border-top: 2px solid gray;
+  animation: bg 8s linear infinite alternate none;
+}
+
+.title {
+  /** TEXT GRADIENT */
+  color: #703c81;
+  background-image: -webkit-linear-gradient(
+    -86.941deg,
+    #ffc96f 0%,
+    #ff9571 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.button p {
+  background: linear-gradient(94.07deg, #ffc96f 0%, #ff9571 100%);
+  display: inline-block;
+  padding: 10px 1rem;
+  border-radius: 10px;
+}
+
+.groupImage {
+  position: relative;
+}
+.groupImage::after {
+  content: "+99";
+  color: white;
+  position: absolute;
+  top: 0px;
+  left: 120px;
+  border: 1px solid white;
+
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: black;
+
+  padding: 6px 4px;
+}
+
+@keyframes bg {
+  100% {
+    background-position: 55% 0%;
+  }
+}
