@@ -1,0 +1,9 @@
+.howWorks .box {
+  background-size: 100% 100%;
+  background-position: 0px 0px;
+  background-image: conic-gradient(
+    from 310deg at 50% 50%,
+    #ff8a62 0%,
+    #ffe3b2 100%
+  );
+}

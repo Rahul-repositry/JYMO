@@ -1,0 +1,29 @@
+.myAimContainer {
+  background: linear-gradient(180deg, #ffb297 0%, #fce0b2 100%);
+}
+.myAimContainer .logoBox::before {
+  content: "";
+  background-color: rgb(255, 255, 255);
+  z-index: -1;
+  width: 184px;
+  height: 184px;
+  position: absolute;
+  border-radius: 1000px;
+  top: 20px;
+  left: 20px;
+}
+
+.myAimContainer a {
+  background: linear-gradient(94.07deg, #ffc96f 0%, #ff9571 100%);
+  padding: 10px 1rem;
+  border-radius: 10px;
+}
+
+@media (min-width: 768px) {
+  .myAimContainer .logoBox::before {
+    display: none;
+  }
+  .myAimContainer {
+    background: linear-gradient(90deg, #ffe6bb 51%, #ffad88 100%);
+  }
+}

@@ -1,0 +1,34 @@
+.about .title {
+  /** TEXT GRADIENT */
+  color: #703c81;
+  background-image: -webkit-linear-gradient(
+    -86.941deg,
+    #ffc96f 0%,
+    #ff9571 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  text-fill-color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+/* PrivacyPolicy.css */
+
+.about .h2Style {
+  font-weight: bold;
+  font-size: 3rem; /* This corresponds to text-3xl in Tailwind CSS */
+  text-align: start;
+  color: rgb(88, 95, 96);
+}
+
+.about .paraStyle {
+  font-size: 18px; /* This corresponds to text-xl in Tailwind CSS */
+  font-weight: 500;
+  text-align: start;
+  color: rgb(67, 66, 66);
+}
+.about ul {
+  list-style-type: disc;
+  padding-left: 20px;
+  text-align: start;
+}

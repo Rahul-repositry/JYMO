@@ -1,10 +1,17 @@
 /** @type {import('tailwindcss').Config} */
-export default {
-  content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
+module.exports = {
+  content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
       screens: {
         "custom-md400": "400px",
+        "custom-md500": "500px",
+        "custom-md800": "800px",
+        "custom-md900": "900px",
+        "custom-lg1100": "1100px",
+        standalone: {
+          raw: "(display-mode: standalone) and (max-width: 768px)",
+        },
       },
     },
   },
