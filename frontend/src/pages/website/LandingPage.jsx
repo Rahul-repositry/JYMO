@@ -1,10 +1,11 @@
-import Faq from "../components/LandingPage/FAQ/Faq.jsx";
-import Features from "../components/LandingPage/Features/Features.jsx";
-import Footer from "../components/LandingPage/Footer/Footer.jsx";
-import HeroSection from "../components/LandingPage/HeroSection/HeroSection.jsx";
-import HowWorks from "../components/LandingPage/howWorks/HowWorks.jsx";
-import MySelf from "../components/LandingPage/MyAimBox/MySelf.jsx";
-import Testimonials from "../components/LandingPage/Testimonails/Testimonials.jsx";
+import Faq from "../../components/LandingPage/FAQ/Faq.jsx";
+import Features from "../../components/LandingPage/Features/Features.jsx";
+import Footer from "../../components/LandingPage/Footer/Footer.jsx";
+import HeroSection from "../../components/LandingPage/HeroSection/HeroSection.jsx";
+import HowWorks from "../../components/LandingPage/howWorks/HowWorks.jsx";
+import MySelf from "../../components/LandingPage/MyAimBox/MySelf.jsx";
+import Testimonials from "../../components/LandingPage/Testimonails/Testimonials.jsx";
+import Landing from "../Css/Landing.css";
 
 const LandingPage = () => {
   return (

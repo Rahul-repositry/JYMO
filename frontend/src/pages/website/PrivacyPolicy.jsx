@@ -1,12 +1,12 @@
-import Footer from "../components/LandingPage/Footer/Footer";
-import Navbar from "../components/Navbar/navbar";
-import "./Css/PrivacyPolicy.css";
+import Footer from "../../components/LandingPage/Footer/Footer";
+import Navbar from "../../components/Navbar/navbar";
+import "../Css/PrivacyPolicy.css";
 
 const PrivacyPolicy = () => {
   return (
     <>
       <Navbar />
-      <div className="PrivacyPolicy flex flex-col  px-12 pb-10">
+      <div className="PrivacyPolicy flex flex-col  mx-12 pb-10">
         <div className="policyContainer">
           <div className="title text-start my-5 text-4xl font-bold leading-[1.2] sm:text-6xl  sm:py-3 lg:text-7xl">
             Privacy Policy
@@ -98,13 +98,20 @@ const PrivacyPolicy = () => {
           </p>
           <h2 className="h2Style">Google DoubleClick DART Cookie</h2>
           <br />
-          <p className="paraStyle">
+          <p
+            className="paraStyle"
+            style={{
+              wordWrap: "break-word",
+              wordBreak: "break-all",
+              overflowWrap: "break-word",
+            }}
+          >
             Google is one of a third-party vendor on our site. It also uses
             cookies, known as DART cookies, to serve ads to our site visitors
             based upon their visit to www.website.com and other sites on the
             internet. However, visitors may choose to decline the use of DART
             cookies by visiting the Google ad and content network Privacy Policy
-            at the following URL (https://policies.google.com/technologies/ads)
+            at the following URL https://policies.google.com/technologies/ads
             Our Advertising Partners
           </p>
           <br />
@@ -118,7 +125,15 @@ const PrivacyPolicy = () => {
           </p>
           <ul className="paraStyle">
             <li>Google</li>
-            <li>https://policies.google.com/technologies/ads</li>
+            <li
+              style={{
+                wordWrap: "break-word",
+                wordBreak: "break-all",
+                overflowWrap: "break-word",
+              }}
+            >
+              https://policies.google.com/technologies/ads
+            </li>
           </ul>
           <br />
           <br />

@@ -56,6 +56,7 @@ const Navbar = () => {
               <button
                 onClick={handleShowPopup}
                 className="font-bold text-white "
+                style={{ padding: "0px" }}
               >
                 Get App
               </button>

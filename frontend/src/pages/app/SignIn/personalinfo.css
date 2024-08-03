@@ -1,0 +1,23 @@
+.personalWrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.form-container {
+  flex: 1;
+  overflow-y: auto; /* Enable vertical scrolling */
+  padding: 0 1rem; /* Adjust padding as needed */
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (max-width: 768px) {
+  .form-container {
+    padding: 0 0.5rem; /* Adjust padding for smaller screens */
+  }
+}

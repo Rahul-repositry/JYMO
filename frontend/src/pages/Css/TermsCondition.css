@@ -32,3 +32,18 @@
   padding-left: 20px;
   text-align: start;
 }
+
+@media (min-width: 300px) {
+  .termsCondition .h2Style {
+    font-size: 2rem; /* This corresponds to text-3xl in Tailwind CSS */
+  }
+  .termsCondition .paraStyle {
+    font-size: 16px; /* This corresponds to text-xl in Tailwind CSS */
+  }
+}
+
+@media (min-width: 800px) {
+  .termsCondition .h2Style {
+    font-size: 2.5rem; /* This corresponds to text-3xl in Tailwind CSS */
+  }
+}

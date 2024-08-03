@@ -1,0 +1,32 @@
+/* Styles for the BirthDate component */
+.birthdate {
+  /* Add any specific styles for the birthdate container if needed */
+}
+
+.birthdate h2 {
+  /* Add any specific styles for the heading if needed */
+}
+
+.birthdate .select-field {
+  display: block;
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1.5rem;
+  font-size: 0.875rem;
+  color: #1f2937; /* Tailwind color gray-900 */
+  border: 1px solid #fb923c; /* Tailwind color orange-300 */
+  border-radius: 0.5rem;
+  background-color: #f9fafb; /* Tailwind color gray-50 */
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.birthdate .select-field:focus {
+  border-color: #ea580c; /* Tailwind color customButton */
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.3); /* Tailwind color customButton with opacity */
+}
+
+.birthdate .flex {
+  display: flex;
+  gap: 1rem;
+}

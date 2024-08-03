@@ -19,7 +19,7 @@ const HeroSection = () => {
         alt="Grid Pattern"
         className="grid-pattern -z-10 opacity-50"
       ></div>
-      <div className="Hero flex mx-auto flex-col text-start p-6 bg-transparent gap-6 sm:gap-10 pt-[5vh] custom-md400:pt-[15vh] max-w-[750px] sm:place-items-center sm:text-center lg:gap-8 lg:pt-[10vh] relative z-10">
+      <div className="Hero flex mx-auto flex-col text-start p-6 bg-transparent gap-6 sm:gap-10 pt-[5vh] custom-md400:pt-[15vh] max-w-[800px] sm:place-items-center sm:text-center lg:gap-8 lg:pt-[10vh] relative z-10">
         <div className="img w-24">
           <img src={textLogo} alt="Jymo" loading="lazy" />
         </div>

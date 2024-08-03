@@ -3,6 +3,9 @@ module.exports = {
   content: ["./src/**/*.{js,jsx,ts,tsx}"],
   theme: {
     extend: {
+      colors: {
+        customButton: "#FF8A62",
+      },
       screens: {
         "custom-md400": "400px",
         "custom-md500": "500px",

@@ -1,17 +1,3 @@
-.PrivacyPolicy .title {
-  /** TEXT GRADIENT */
-  color: #703c81;
-  background-image: -webkit-linear-gradient(
-    -86.941deg,
-    #ffc96f 0%,
-    #ff9571 100%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  text-fill-color: transparent;
-  -webkit-text-fill-color: transparent;
-}
-
 /* PrivacyPolicy.css */
 
 .PrivacyPolicy .h2Style {
@@ -27,8 +13,24 @@
   text-align: start;
   color: rgb(67, 66, 66);
 }
+
 .PrivacyPolicy ul {
   list-style-type: disc;
   padding-left: 20px;
   text-align: start;
+}
+
+@media (min-width: 300px) {
+  .PrivacyPolicy .h2Style {
+    font-size: 2rem; /* This corresponds to text-3xl in Tailwind CSS */
+  }
+  .PrivacyPolicy .paraStyle {
+    font-size: 16px; /* This corresponds to text-xl in Tailwind CSS */
+  }
+}
+
+@media (min-width: 800px) {
+  .PrivacyPolicy .h2Style {
+    font-size: 2.5rem; /* This corresponds to text-3xl in Tailwind CSS */
+  }
 }
