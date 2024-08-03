@@ -32,7 +32,7 @@ const CustomButton = ({
   };
 
   const buttonClass = `
-    relative inline-flex items-center justify-center py-2 px-4 my-6
+    relative inline-flex items-center justify-center py-2 px-4 mb-6 mt-3
     ${fullWidth ? "w-full" : "w-auto"}
     ${
       outline

@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { useSignupUserContext } from "../../../context/context";
 import { toast } from "react-toastify";
-import { motion } from "framer-motion";
 import Gauth from "../../../components/Gauth/Gauth";
 import CustomButton from "../../../components/Button/Button";
 import PhoneInput from "./components/PhoneInput.jsx";
@@ -231,7 +230,7 @@ const SignUpForm = ({ onShowPersonal }) => {
       <div className="flex flex-col items-center justify-between">
         <Link
           to="/login"
-          className="text-sm text-orange-500 hover:underline translate-y-3"
+          className="text-sm text-orange-500 underline  text-center -translate-y-2"
         >
           Already have an account?
         </Link>

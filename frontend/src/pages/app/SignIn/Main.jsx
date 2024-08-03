@@ -12,24 +12,26 @@ const Main = () => {
   };
   return (
     <SignupUserDataProvider>
-      <div className="wrapperWelcome flex justify-center">
-        <div className="welcomeBox py-10 px-4  ">
-          <h2 className="text-customButton text-4xl font-medium pl-2">
-            <span className="helloo mr-3">👋</span>Welcome !!
-          </h2>
-          <p className="text-gray-500 pt-2 ">
-            Jymo welcomes you to our platform
-          </p>
+      <div className="wrapperSignup max-w-[400px] mx-auto">
+        <div className="wrapperWelcome ">
+          <div className="welcomeBox py-10 px-4  ">
+            <h2 className="text-customButton text-4xl font-medium pl-2">
+              <span className="helloo mr-3">👋</span>Welcome !!
+            </h2>
+            <p className="text-gray-500 pt-2 ">
+              Jymo welcomes you to our platform
+            </p>
+          </div>
         </div>
-      </div>
-
-      <div>
-        {!showPersonal ? (
-          <SignUp onShowPersonal={handleShowPersonal} />
-        ) : (
-          // Include the PersonalInfo component here
-          <PersonalInfo />
-        )}
+        <hr className=" -translate-y-3 max-w-[200px] mx-auto" />
+        <div>
+          {!showPersonal ? (
+            <SignUp onShowPersonal={handleShowPersonal} />
+          ) : (
+            // Include the PersonalInfo component here
+            <PersonalInfo />
+          )}
+        </div>
       </div>
     </SignupUserDataProvider>
   );

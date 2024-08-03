@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
+
 import { toast } from "react-toastify";
 
 const SignupUserDataContext = createContext(undefined);

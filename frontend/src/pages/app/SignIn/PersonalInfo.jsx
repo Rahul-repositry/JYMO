@@ -110,7 +110,6 @@ const PersonalInfo = () => {
       if (err?.response?.data?.message) {
         let msg = err?.response?.data?.message;
         toast.error(`${msg}`);
-        console.log("err", msg);
       } else {
         toast.error("Try again later ");
       }
