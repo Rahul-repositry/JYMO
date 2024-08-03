@@ -1,4 +1,4 @@
-const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils");
+const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const Workout = require("../models/workout.model.js");
 
 const createWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {

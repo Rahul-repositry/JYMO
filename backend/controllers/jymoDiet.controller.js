@@ -1,10 +1,10 @@
-const asyncHandler = require("express-async-handler");
-const { jymoDietOrder } = require("../models/jymoDietOrder");
-const CustomError = require("../utils/CustomError");
-const { Jym } = require("../models/jym.model");
+const { jymoDietOrder } = require("../models/jymoDietOrder.model.js");
+const CustomError = require("../utils/CustomError.utils.js");
+const { Jym } = require("../models/jym.model.js");
+const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 
 // Handler for creating a new jymoDietOrder
-const createJymoOrder = asyncHandler(async (req, res, next) => {
+const createJymoOrder = AsyncErrorHandler(async (req, res, next) => {
   const { orderQuantity } = req.body;
 
   if (!req.jym) {
@@ -30,7 +30,7 @@ const createJymoOrder = asyncHandler(async (req, res, next) => {
 });
 
 // Handler for updating an existing jymoDietOrder
-const updateJymoOrder = asyncHandler(async (req, res, next) => {
+const updateJymoOrder = AsyncErrorHandler(async (req, res, next) => {
   const orderId = req.params.id;
   const { returnedQuantity, payment } = req.body; // you need to send returnquantity everytime from frontend when update required for order.
 

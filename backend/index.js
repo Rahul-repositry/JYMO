@@ -10,6 +10,7 @@ const attendanceRoutes = require("./routes/attendance.route.js");
 const membershipRoutes = require("./routes/membership.route.js");
 const jymoDietRoutes = require("./routes/jymoDiet.route.js");
 const cors = require("cors");
+
 const app = express();
 const port = process.env.PORT || 3003;
 dotenv.config();

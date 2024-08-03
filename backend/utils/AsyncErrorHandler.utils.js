@@ -3,7 +3,7 @@ const AsyncErrorHandler = (func) => {
     try {
       await func(req, res, next);
     } catch (err) {
-      console.log(err);
+      console.log("generatederr", err);
       next(err);
     }
   };

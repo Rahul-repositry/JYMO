@@ -5,7 +5,7 @@ const jymoDietOrderSchema = new Schema(
   {
     jymId: { type: Schema.Types.ObjectId, ref: "jyms" },
     jymoDietIdForJymOwners: { type: Schema.Types.ObjectId, ref: "jyms" },
-    isOrderConfirmed: { type: boolean, default: false },
+    isOrderConfirmed: { type: Boolean, default: false },
     OrderConfirmedTime: { type: Date },
     payment: { type: String, enum: ["due", "paid"] },
     paymentTime: { type: Date },

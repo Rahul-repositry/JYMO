@@ -1,9 +1,8 @@
-const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils");
-const CustomError = require("../utils/CustomError.utils");
+const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
+const CustomError = require("../utils/CustomError.utils.js");
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const CustomError = require("../utils/CustomError.utils.js");
-const jymoDietBackendUserModel = require("../models/jymoDietBackendUser.model");
+const jymoDietBackendUserModel = require("../models/jymoDietBackendUser.model.js");
 // Other code using these imports
 
 dotenv.config("");

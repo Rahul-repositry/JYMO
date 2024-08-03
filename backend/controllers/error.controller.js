@@ -25,13 +25,12 @@ const duplicateKeyErrorHandler = (err) => {
   const key = Object.keys(obj);
   const value = Object.values(obj);
   const msg = `User already exists with ${key} - ${value}. Please use another ${key}!`;
-  console.log(msg);
+  console.log("is working duplicater error control", msg);
   return new CustomError(msg, 400);
 };
 
 const prodErrors = (res, error) => {
   if (error.isOperational) {
-    console.log(error.message);
     res.status(error.statusCode).json({
       status: "fail",
       statusCode: error.statusCode,
@@ -50,6 +49,7 @@ const prodErrors = (res, error) => {
 const globalErrorHandler = (error, req, res, next) => {
   error.statusCode = error.statusCode || 500;
   error.status = error.status || "error";
+
   if (process.env.NODE_ENV === "development") {
     devErrors(res, error);
   } else if (process.env.NODE_ENV === "production") {

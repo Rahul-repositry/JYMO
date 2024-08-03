@@ -1,3 +1,8 @@
+const {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} = require("@aws-sdk/client-s3");
 const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
 const dotenv = require("dotenv");
@@ -7,9 +12,17 @@ const admin = require("../config/firebase.js");
 const nodemailer = require("nodemailer");
 const crypto = require("crypto");
 const CustomError = require("../utils/CustomError.utils.js");
+const OTP = require("../models/OTP.model.js");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const axios = require("axios");
 // Other code using these imports
 
 dotenv.config("");
+
+const bucketName = process.env.BUCKET_NAME;
+const bucketRegion = process.env.BUCKET_REGION;
+const userKey = process.env.AWSUSER_ACCESS_KEY;
+const secretKey = process.env.AWSUSER_SECRET_KEY;
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
@@ -43,31 +56,86 @@ ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
   },
 });
 
-const signup = AsyncErrorHandler(async (req, res, next) => {
-  const { username, age, email, password, phone, birthday, role, img, gender } =
-    req.body;
-  const hashedPassword = bcryptjs.hashSync(String(password), 10);
+// All phone otp fun
 
+const generateOTP = () => {
+  return crypto.randomInt(100000, 999999).toString(); // Generates a 6-digit OTP
+};
+
+const sendOTPViaFast2SMS = async (phoneNumber, otp) => {
+  const message = `Your OTP for Jymo app is ${otp}`;
+  console.log(process.env.FAST2SMS_API_KEY);
+  const response = await fast2sms.sendMessage({
+    authorization: process.env.FAST2SMS_API_KEY,
+    message: message,
+    numbers: [phoneNumber],
+  });
+  console.log("is response", response);
+  return response;
+};
+
+const getWalletDetails = async () => {
+  const walletOptions = {
+    method: "GET",
+    url: "https://www.fast2sms.com/dev/wallet",
+    headers: {
+      authorization: process.env.FAST2SMS_API_KEY,
+    },
+  };
+  const walletResponse = await axios.request(walletOptions);
+  const wallet = walletResponse.data.wallet;
+  console.log(wallet);
+  return wallet;
+};
+
+const storeOTP = async (phoneNumber, otp, idToken) => {
+  const otpDocument = new OTP({ phoneNumber, otp, idToken });
+  let doc = await otpDocument.save();
+  console.log(doc);
+};
+
+// all async handler func
+
+const signup = AsyncErrorHandler(async (req, res, next) => {
+  const {
+    username,
+    age,
+    email,
+    password,
+    phoneNumber,
+    birthday,
+    role,
+    imgKey,
+    img,
+    gender,
+  } = req.body;
+  const hashedPassword = bcryptjs.hashSync(String(password), 10);
+  console.log("body", req.body);
   const newUser = new User({
     username,
     age,
     email,
     password: hashedPassword,
-    phone,
+    phone: phoneNumber,
     birthday,
     role,
     gender,
   });
 
+  console.log({ img, newUser });
   if (img) {
     newUser.img = img;
   }
+  if (imgKey) {
+    newUser.img = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/userProfileImg/${imgKey}`;
+  }
 
   const savedUser = await newUser.save();
+  console.log("saved", savedUser);
 
   res
     .status(201)
-    .json({ success: true, message: "User created successfully", savedUser });
+    .json({ success: true, message: "User created successfully", newUser });
 });
 
 const signin = AsyncErrorHandler(async (req, res, next) => {
@@ -233,10 +301,130 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
 
 const logout = AsyncErrorHandler(async (req, res, next) => {
   res.clearCookie("access_token");
-  return res.json({
+  return res.status(200).json({
     status: "success",
     msg: "You are successfully logged out",
   });
+});
+
+// const sendOtp = AsyncErrorHandler(async (req, res, next) => {
+//   const { phoneNumber } = req.body;
+//   console.log(phoneNumber);
+//   const otp = generateOTP();
+//   const idToken = crypto.randomBytes(16).toString("hex"); // Generate a random ID token
+//   const message = `Your OTP for Jymo app is ${otp}`;
+//   console.log(process.env.FAST2SMS_API_KEY);
+//   var options = {
+//     authorization: process.env.FAST2SMS_API_KEY,
+//     message: `Your OTP for Jymo app is ${otp} `,
+//     numbers: [phoneNumber],
+//   };
+
+//   const response = await fast2sms.sendMessage(options);
+//   let authorization = process.env.FAST2SMS_API_KEY;
+//   const { wallet } = await fast2sms.getWalletBalance(authorization); //{returns {return:true, wallet: XX.XX}}
+
+//   console.log(wallet);
+
+//   // await sendOTPViaFast2SMS(phoneNumber, otp);
+//   await storeOTP(phoneNumber, otp, idToken);
+//   console.log(response, "yhi hai ");
+//   res
+//     .status(200)
+//     .json({ status: "success", msg: "OTP Successfully Sent.", idToken });
+// });
+
+const sendOtp = AsyncErrorHandler(async (req, res, next) => {
+  const { phoneNumber } = req.body;
+  console.log(phoneNumber);
+
+  const otp = generateOTP();
+  const idToken = crypto.randomBytes(16).toString("hex"); // Generate a random ID token
+
+  console.log(process.env.FAST2SMS_API_KEY);
+
+  const options = {
+    method: "GET",
+    url: "https://www.fast2sms.com/dev/bulkV2",
+    params: {
+      authorization: process.env.FAST2SMS_API_KEY,
+      variables_values: otp,
+      route: "otp",
+      flash: "0",
+      numbers: phoneNumber,
+    },
+    headers: {
+      "cache-control": "no-cache",
+    },
+  };
+
+  try {
+    const response = await axios.request(options);
+    console.log(response.data, "SMS Response");
+
+    await storeOTP(phoneNumber, otp, idToken);
+
+    res.status(200).json({
+      status: "success",
+      msg: "OTP Successfully Sent.",
+      idToken,
+    });
+  } catch (error) {
+    console.error("Error sending OTP: ", error);
+    res.status(500).json({
+      status: "error",
+      msg: "Failed to send OTP. Please try again later.",
+    });
+  }
+});
+
+const verifyOtp = AsyncErrorHandler(async (req, res, next) => {
+  const { phoneNumber, otp, idToken } = req.body;
+  const otpDocument = await OTP.findOne({ phoneNumber, otp, idToken });
+
+  if (otpDocument) {
+    await OTP.findByIdAndDelete({ _id: otpDocument._id }); // Delete the OTP document after verifying
+    res
+      .status(200)
+      .json({ status: "success", msg: "OTP Successfully verified" });
+  } else {
+    return next(new CustomError("Invalid or expired OTP", 400));
+  }
+});
+
+const putObject = AsyncErrorHandler(async (req, res, next) => {
+  const s3Client = new S3Client({
+    region: bucketRegion,
+    credentials: {
+      accessKeyId: userKey,
+      secretAccessKey: secretKey,
+    },
+  });
+
+  const key = `${crypto.randomBytes(20).toString("hex")}${Date.now()}`;
+  const command = new PutObjectCommand({
+    Bucket: "jymo",
+    Key: `userProfileImg/${key}`,
+  });
+  const url = await getSignedUrl(s3Client, command, { expiresIn: 300 });
+  res.status(200).json({ status: "success", url, key });
+});
+
+const deleteObject = AsyncErrorHandler(async (req, res, next) => {
+  const s3Client = new S3Client({
+    region: bucketRegion,
+    credentials: {
+      accessKeyId: userKey,
+      secretAccessKey: secretKey,
+    },
+  });
+  const key = req.params.key;
+  const command = new DeleteObjectCommand({
+    Bucket: "jymo",
+    Key: `userProfileImg/${key}`,
+  });
+  const url = await getSignedUrl(s3Client, command);
+  res.status(200).json({ status: "success", url, key });
 });
 
 module.exports = {
@@ -244,6 +432,10 @@ module.exports = {
   signin,
   logout,
   google,
+  sendOtp,
+  verifyOtp,
   forgotPassword,
   resetPassword,
+  deleteObject,
+  putObject,
 };

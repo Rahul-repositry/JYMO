@@ -174,6 +174,7 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
 
   res.status(201).send({ success: true, message: "Password has been reset" });
 });
+
 const logout = AsyncErrorHandler(async (req, res, next) => {
   const ownerId = req.user._id;
   const validJym = await Jym.findOne({ _id: req.jym.id });
@@ -186,7 +187,7 @@ const logout = AsyncErrorHandler(async (req, res, next) => {
   }
 
   res.clearCookie("access_jymToken");
-  return res.json({
+  return res.status(200).json({
     status: "success",
     msg: "You are successfully logged out",
   });
