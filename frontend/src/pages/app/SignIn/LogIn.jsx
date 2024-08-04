@@ -114,6 +114,9 @@ const LogIn = () => {
           className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
           onSubmit={handleSubmit}
         >
+          <div className="text-customButton text-3xl my-4 font-medium  text-center">
+            Login
+          </div>
           <div className="phone">
             <label
               htmlFor="numberOrGmail"

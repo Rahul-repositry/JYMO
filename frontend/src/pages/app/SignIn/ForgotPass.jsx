@@ -66,7 +66,7 @@ const ForgotPass = () => {
         className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
         onSubmit={handleSubmit}
       >
-        <div className="heading text-2xl font-medium text-gray-500">
+        <div className="text-customButton text-3xl my-4 font-medium  text-center">
           <h2>Forgot Password</h2>
         </div>
         <label
