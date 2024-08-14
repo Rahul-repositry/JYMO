@@ -10,11 +10,11 @@ const {
 const { verifyUser, verifyJym } = require("../utils/Middleware.utils.js");
 const router = express.Router();
 
-router.post("/signup", jymSignup);
+router.post("/signup", verifyUser, jymSignup);
 router.post("/signin", verifyUser, jymSignin);
 router.post("/jymId", verifyUser, jymId);
-router.post("/forgotPassword", forgotPassword);
-router.post("/resetPassword", resetPassword);
+router.post("/forgotPassword", verifyUser, forgotPassword);
+router.post("/resetPassword", verifyUser, resetPassword);
 router.post("/logout", verifyUser, verifyJym, logout);
 
 module.exports = router;

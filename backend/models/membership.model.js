@@ -1,77 +1,47 @@
 const mongoose = require("mongoose");
+const { jymId } = require("../controllers/jymAuth.controller");
 const { Schema } = mongoose;
 
 const membershipSchema = new Schema(
   {
+    jymId: { type: Schema.Types.ObjectId, ref: "jyms", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
+    userUniqueId: { type: Number },
     amount: { type: Number },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date },
-    status: { type: String, enum: ["active", "paused"], default: "active" },
+    status: { type: String, enum: ["active", "Inactive"], default: "active" }, //at the time whten this is set to inactive then create a attendance with inactive and remove user from user currentUUids and update quitdates in userDuration
+    isPreviousMembership: { type: Boolean, default: false }, // mentioned bcz sometime people give fee of previous month so while creating membership we can know that this is a previous month fee
     isPaused: { type: Boolean, default: false },
-    pausedAt: { type: Date },
+    pausedAt: [{ type: Date }], // Array of dates for pause events
+    resumeAt: [{ type: Date }], // Array of dates for resume events
   },
   { timestamps: true }
 );
 
-membershipSchema.pre("save", function (next) {
-  if (!this.endDate) {
-    const currentDate = new Date();
-    this.endDate = new Date(currentDate.getTime() + 29 * 24 * 60 * 60 * 1000); // 30 days later
-  }
-  next();
-});
+// write now it is getting  automatically according MAXABSENTDAYS(env variable) but if in future we can use pause and resume this will be our reference for that there waas a status paused in membership so add paused in status if you want to use this funconality
 
-// Static method to create or renew membership
-membershipSchema.statics.createOrRenewMembership = async function (
-  userId,
-  amount,
-  month
-) {
-  const currentDate = new Date();
-  const latestMembership = await this.findOne({ userId })
-    .sort({ endDate: -1 })
-    .exec();
+// membershipSchema.methods.pause = function () {
+//   if (!this.isPaused) {
+//     let date = new Date();
+//     this.isPaused = true;
+//     this.pausedAt.push(date.toISOString()); // Add the current pause date to the array
+//     this.status = "paused";
+//   }
+// };
 
-  let startDate = currentDate;
-  if (latestMembership && currentDate > latestMembership.endDate) {
-    const gapDays = Math.floor(
-      (currentDate - latestMembership.endDate) / (24 * 60 * 60 * 1000)
-    );
-    if (gapDays > 0) {
-      startDate = new Date(
-        currentDate.getTime() - gapDays * 24 * 60 * 60 * 1000
-      );
-    }
-  }
+// membershipSchema.methods.resume = function () {
+//   if (this.isPaused) {
+//     const now = new Date();
+//     const lastPausedDate = new Date(this.pausedAt[this.pausedAt.length - 1]); // Get the last paused date
+//     const pausedDuration = now.getTime() - lastPausedDate.getTime();
+//     this.endDate = new Date(this.endDate.getTime() + pausedDuration);
+//     this.isPaused = false;
+//     this.resumeAt.push(now.toISOString()); // Add the current resume date to the array
+//     this.status = "active";
+//   }
+// };
 
-  const newMembership = new this({
-    userId,
-    amount,
-    startDate,
-    endDate: new Date(startDate.getTime() + month * 29 * 24 * 60 * 60 * 1000), // 30 days duration
-  });
+const Membership = mongoose.model("membership", membershipSchema);
 
-  await newMembership.save();
-  return newMembership;
-};
-membershipSchema.methods.pause = function () {
-  if (!this.isPaused) {
-    this.isPaused = true;
-    this.pausedAt = new Date();
-    this.status = "paused";
-  }
-};
-
-membershipSchema.methods.resume = function () {
-  if (this.isPaused) {
-    const now = new Date();
-    const pausedDuration = now.getTime() - this.pausedAt.getTime();
-    this.endDate = new Date(this.endDate.getTime() + pausedDuration);
-    this.isPaused = false;
-    this.pausedAt = null;
-    this.status = "active";
-  }
-};
-
-module.exports = mongoose.model("membership", membershipSchema);
+module.exports = Membership;

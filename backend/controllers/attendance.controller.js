@@ -3,8 +3,16 @@ const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const Attendance = require("../models/attendance.model.js");
 const { Jym } = require("../models/jym.model.js");
 const User = require("../models/user.model.js");
+/**
+ there are many imperfection while trial and registering which will be solved when i will make frontend ready for it .
+ 1. like includes used as string but there is object in user and jym object .
+ 
+ 2. a new trial user property is added so when user quits chq trial user is there then make isActiveUser to false  .  vice versa if becomes activeuser.
+
+ */
 
 // Function to update user's gym information
+
 async function updateUserJymsdetail(userId, jymId) {
   const user = await User.findById(userId);
 
@@ -160,7 +168,6 @@ const quitUserHandler = AsyncErrorHandler(async (req, res, next) => {
 });
 
 //make attendance registratiton by admins
-
 const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   const compareDates = (date1ISOString, date2ISOString) => {
     const [year1, month1, day1] = date1ISOString.split("T")[0].split("-");
@@ -259,7 +266,7 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   }
 
   // If user is not registered, default response
-  return next(new CustomError("Quit Jym and Get-register again", 200));
+  return next(new CustomError("Get-register again in Jym", 200));
 });
 
 module.exports = { attendanceHandler, quitUserHandler };

@@ -9,6 +9,7 @@ const workoutRoutes = require("./routes/workout.route.js");
 const attendanceRoutes = require("./routes/attendance.route.js");
 const membershipRoutes = require("./routes/membership.route.js");
 const jymoDietRoutes = require("./routes/jymoDiet.route.js");
+const userRoutes = require("./routes/user.route.js");
 const cors = require("cors");
 
 const app = express();
@@ -27,7 +28,7 @@ mongoose
 app.use(
   cors({
     origin: process.env.FRONTEND_URI,
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "PUT"],
     credentials: true,
   })
 );
@@ -39,7 +40,7 @@ app.use(express.urlencoded({ extended: true }));
 app.get("/", (req, res) => {
   res.send("hello world");
 });
-
+app.use("/api/user", userRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/jym", jymAuthRoutes);
 app.use("/api/workout", workoutRoutes);

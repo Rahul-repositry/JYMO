@@ -58,6 +58,7 @@ const deleteWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
 
 const getAllWorkoutPlans = AsyncErrorHandler(async (req, res, next) => {
   const workoutPlans = await Workout.find({ userId: req.user._id });
+  console.log({ workoutPlans, id: req.user._id });
   res.json({ success: true, workoutPlans });
 });
 

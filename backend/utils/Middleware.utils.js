@@ -38,7 +38,13 @@ const verifyJym = (req, res, next) => {
           .status(401)
           .json({ success: false, message: "Token is not valid" });
       } else {
-        req.jym = decoded.jym;
+        console.log(decoded);
+        let decodedObj = {
+          _id: decoded.id,
+          ...decoded,
+        };
+        console.log(decodedObj);
+        req.jym = decodedObj;
 
         next();
       }
@@ -52,8 +58,8 @@ const verifyJym = (req, res, next) => {
 };
 
 const verifyOwnership = async (req, res, next) => {
-  const { userId } = req.body;
   const ownerId = req.user._id;
+  console.log(req.jym);
   const jymId = req.jym._id;
 
   try {

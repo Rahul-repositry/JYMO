@@ -5,6 +5,9 @@ const workoutSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
     dayOfWeek: { type: String, required: true },
+    title: {
+      type: String,
+    },
     exercisePlan: [
       {
         exercise: { type: String, required: true },

@@ -56,13 +56,13 @@ ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
 });
 
 const jymSignup = AsyncErrorHandler(async (req, res, next) => {
+  console.log(req.user);
   const {
     name,
     jymId,
     recoveryEmail,
     password,
     numbers,
-    ownerId,
     geolocation,
     addressLocation,
     img,
@@ -76,7 +76,7 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
     recoveryEmail,
     password: hashedPassword,
     numbers,
-    owners: ownerId,
+    owners: req.user._id,
     geolocation,
     addressLocation,
     subscriptionFee,
@@ -177,8 +177,8 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
 
 const logout = AsyncErrorHandler(async (req, res, next) => {
   const ownerId = req.user._id;
-  const validJym = await Jym.findOne({ _id: req.jym.id });
-  console.log(validJym, req.jym.id);
+  const validJym = await Jym.findOne({ _id: req.jym._id });
+
   if (!validJym) throw new Error("Jym not found");
 
   if (!validJym.owners.includes(ownerId)) {

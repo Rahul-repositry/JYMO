@@ -50,7 +50,7 @@ const mailOptions = (userEmail, token) => ({
   text: `You requested a Jym password reset. Click the link to reset your Jym password: 
 ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
   html: `<p>You requested a password reset. Click the link to reset your password:</p>
-         <a href="${process.env.FRONTEND_URI}/reset-password?token=${token}">Reset Password</a>`,
+         <a href="${process.env.FRONTEND_URI}/resetpassword?token=${token}">Reset Password</a>`,
   headers: {
     "Message-ID": generateMessageId(),
   },
@@ -139,24 +139,41 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const signin = AsyncErrorHandler(async (req, res, next) => {
-  const { email, password } = req.body;
-  const validUser = await User.findOne({ email });
+  const { password, numberOrGmail } = req.body;
+
+  // Identify if the input is an email or phone number
+  let userIdentifier;
+  if (numberOrGmail.includes("@") || numberOrGmail.includes(".")) {
+    userIdentifier = { email: numberOrGmail };
+  } else {
+    userIdentifier = { phone: numberOrGmail };
+  }
+
+  // Find user by email or phone
+  const validUser = await User.findOne(userIdentifier);
+
   if (!validUser) return next(new CustomError("Signup first", 401));
+
   const validPassword = bcryptjs.compareSync(password, validUser.password);
-  if (!validPassword) return next(new CustomError("invalid credentials", 401));
+  if (!validPassword) return next(new CustomError("Invalid credentials", 401));
+
   const {
     password: hashedPassword,
     resetPasswordToken,
     resetPasswordExpires,
     ...rest
   } = validUser._doc;
-  const token = jwt.sign({ user: rest }, process.env.JWT_SECRET);
+
+  const token = jwt.sign({ user: rest }, process.env.JWT_SECRET, {
+    expiresIn: "60d",
+  });
   const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
+
   res
     .cookie("access_token", token, {
-      httpOnly: true, // helps  prevent access to cookie through client-side scripting
+      httpOnly: true,
       expires: expiryDate,
-      // secure: true, // helps  with encrypting the cookie and prevents it being sent on http
+      // secure: true, // Uncomment this line in production to use secure cookies
     })
     .status(200)
     .json({ success: true, message: "SignIn successfully", user: rest });
@@ -175,8 +192,8 @@ const google = AsyncErrorHandler(async (req, res, next) => {
 
     // Check if the user exists in the database.
     const existingUser = await User.findOne({ email: firebaseUser.email });
-
-    if (existingUser) {
+    console.log(existingUser);
+    if (existingUser && existingUser?.phone) {
       // If the user exists, create a JWT token and send it to the client.
       const { password, resetPasswordToken, resetPasswordExpires, ...rest } =
         existingUser._doc;
@@ -191,44 +208,7 @@ const google = AsyncErrorHandler(async (req, res, next) => {
         .status(200)
         .json({ success: true, message: "Signin successfully", user: rest });
     } else {
-      // If the user does not exist, create a new user and send a JWT token to the client.
-      const generatedPassword =
-        Math.random().toString(36).slice(-8) +
-        Math.random().toString(36).slice(-8);
-
-      const { age, phone, birthday, role, img, gender } = req.body;
-      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
-
-      const newUser = new User({
-        username:
-          firebaseUser.name.split(" ").join("").toLowerCase() +
-          Math.random().toString(36).slice(-8),
-        age,
-        email: firebaseUser.email,
-        password: hashedPassword,
-        phone,
-        birthday,
-        gender,
-        role,
-      });
-
-      if (img) {
-        newUser.img = img || firebaseUser.picture;
-      }
-
-      await newUser.save();
-      const { password, resetPasswordToken, resetPasswordExpires, ...rest } =
-        newUser._doc;
-      const token = jwt.sign({ user: rest }, process.env.JWT_SECRET);
-      const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
-      res
-        .cookie("access_token", token, {
-          httpOnly: true, // helps prevent access to cookie through client-side scripting
-          expires: expiryDate,
-          // secure: true, // helps with encrypting the cookie and prevents it being sent on http
-        })
-        .status(200)
-        .json({ success: true, message: "SignIn Successfully", user: rest });
+      return next(new CustomError("Signup first to get registered", 401));
     }
   } catch (error) {
     console.error("Error verifying Google ID token:", error);
@@ -258,45 +238,25 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const resetPassword = AsyncErrorHandler(async (req, res, next) => {
-  const { token, idToken, phoneNumber, newPassword } = req.body;
-  let user;
-
-  if (token) {
-    user = await User.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
-    });
-  } else if (idToken) {
-    try {
-      const decodedToken = await admin.auth().verifyIdToken(idToken);
-
-      if (!decodedToken) {
-        return next(new CustomError("Invalid token", 400));
-      }
-
-      user = await User.findOne({
-        phone: decodedToken?.phone_number,
-      });
-
-      if (user.phone != phoneNumber) {
-        return next(new CustomError("Send your own details", 401));
-      }
-    } catch (error) {
-      return next(new CustomError("Invalid ID token", 400));
-    }
-  }
+  const { token, newPassword } = req.body;
+  console.log(req.body);
+  const user = await User.findOne({
+    resetPasswordToken: token,
+    resetPasswordExpires: { $gt: Date.now() },
+  });
 
   if (!user) {
-    return next(new CustomError("Authentication failed try again", 400));
+    return next(
+      new CustomError("Authentication failed. User is not registered.", 404)
+    );
   }
 
   user.password = bcryptjs.hashSync(newPassword, 10); // hash new password
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
-  const savedUser = await user.save();
-  console.log(savedUser);
+  await user.save();
 
-  res.status(201).send({ success: true, message: "Password has been reset" });
+  res.status(200).send({ success: true, message: "Password has been reset" });
 });
 
 const logout = AsyncErrorHandler(async (req, res, next) => {

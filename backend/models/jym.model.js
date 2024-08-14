@@ -23,25 +23,12 @@ const jymSchema = new Schema(
   {
     name: { type: String, required: true },
     recoveryEmail: { type: String, required: true },
-    jymId: { type: String, unique: true, required: true },
+    jymId: { type: String, unique: true, required: true }, // necesaary will identify uniquely and user for login
     password: { type: String },
     geolocation: geolocationSchema,
     addressLocation: addressLocationSchema,
     owners: [{ type: Schema.Types.ObjectId, ref: "users" }], // will get updated as new owners join and quit
-    activeUsers: [
-      {
-        userId: { type: Schema.Types.ObjectId, ref: "users" },
-        joinDates: [{ type: Date }],
-      },
-    ], // will get updated as new users join
-    quittedUsers: [
-      {
-        userId: { type: Schema.Types.ObjectId, ref: "users" },
-        quitDates: [{ type: Date }],
-      },
-    ], // will get updated as new users quit
-
-    subscriptionFee: { type: Number },
+    subscriptionFee: { type: String },
     subscriptionStartDate: { type: Date },
     subscriptionEndDate: { type: Date },
     resetPasswordToken: String,
