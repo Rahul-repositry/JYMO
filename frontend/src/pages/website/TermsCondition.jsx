@@ -1,5 +1,5 @@
 import Footer from "../../components/LandingPage/Footer/Footer";
-import Navbar from "../../components/Navbar/navbar";
+import Navbar from "../../components/websiteNavbar/navbar";
 import "../Css/TermsCondition.css";
 
 const TermsCondition = () => {

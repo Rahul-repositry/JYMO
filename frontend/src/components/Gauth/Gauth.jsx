@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useSignupUserContext } from "../../context/context.jsx";
 import axios from "axios";
+import { setObjectInLocalStorage } from "../../utils/helperFunc.js";
 
 export default function Gauth() {
   const navigate = useNavigate();
@@ -29,6 +30,7 @@ export default function Gauth() {
           },
           {
             headers: { "Content-Type": "application/json" },
+            withCredentials: true,
           }
         );
 
@@ -39,7 +41,8 @@ export default function Gauth() {
           return;
         }
         toast.success("Welcome To Jymo");
-        navigate("/");
+        setObjectInLocalStorage("user", response.data.user);
+        navigate("/home");
       } else if (location.pathname === "/signup") {
         updateSignupData({
           username: result.user.displayName,

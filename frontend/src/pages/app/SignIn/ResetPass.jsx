@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import CustomButton from "../../../components/Button/Button";
-import { useParams } from "react-router-dom";
 import { useLocation } from "react-router-dom";
-
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom/dist/umd/react-router-dom.development";

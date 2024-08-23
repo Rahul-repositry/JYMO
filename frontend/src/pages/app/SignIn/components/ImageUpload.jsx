@@ -5,6 +5,7 @@ import getCroppedImg from "../utilities/cropImage"; // Utility function to crop 
 import imageCompression from "browser-image-compression";
 import "./imageupload.css";
 import CustomButton from "../../../../components/Button/Button";
+import { toast } from "react-toastify";
 
 Modal.setAppElement("#root"); // Make sure to set the root element for accessibility
 
@@ -32,7 +33,9 @@ const ImageUpload = ({ setPreview }) => {
         fileInputRef.current.value = null;
       };
     } else {
-      alert("Please select a valid image file (jpeg, jpg, png) under 5MB.");
+      toast.error(
+        "Please select a valid image file (jpeg, jpg, png) under 5MB."
+      );
     }
   };
 

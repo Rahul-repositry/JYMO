@@ -1,0 +1,26 @@
+.homeContainer .attendanceBox::after,
+.homeContainer .attendanceBox::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background: rgb(70, 69, 69);
+}
+/* .homeContainer .attendanceBox::after, */
+.homeContainer .attendanceBox::before {
+  left: 65px;
+}
+
+.homeContainer .attendanceBox::after {
+  right: 65px;
+}
+
+.wrapperHome .workoutAttendanceDays {
+  width: 100vw;
+  overflow-x: scroll;
+  padding: 10px 20px;
+  transform: translate(-20px, 0px);
+}
+.wrapperHome .workoutAttendanceDays::-webkit-scrollbar {
+  display: none;
+}

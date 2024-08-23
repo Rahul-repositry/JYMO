@@ -5,6 +5,11 @@ module.exports = {
     extend: {
       colors: {
         customButton: "#FF8A62",
+        yellowBox: "#FEC972",
+        greenBox: "#8BE261",
+        redBox: "#EA3F3F",
+        lightBlack: "#3F3D3D",
+        darkBlack: "#404446",
       },
       screens: {
         "custom-md400": "400px",

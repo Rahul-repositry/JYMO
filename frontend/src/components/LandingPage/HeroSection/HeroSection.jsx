@@ -7,7 +7,7 @@ import Karan from "../../../images/KaranSingh.webp";
 import Ankit from "../../../images/AnkitVerma.webp";
 import Sunita from "../../../images/sunita.webp";
 import "./HeroSection.css"; // Import the CSS file
-import Navbar from "../../Navbar/navbar";
+import Navbar from "../../websiteNavbar/navbar";
 import { Link } from "react-router-dom";
 
 const HeroSection = () => {

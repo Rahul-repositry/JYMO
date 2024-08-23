@@ -55,7 +55,7 @@
       "form_factor": "wide"
     }
   ],
-  "start_url": "/",
+  "start_url": "/home",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone"],

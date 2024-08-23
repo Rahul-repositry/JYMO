@@ -1,16 +1,22 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import NotificationIcon from "../../../images/Notifications-Icon.svg";
+import { useSelector } from "react-redux";
+import { getObjectFromLocalStorage } from "../../../utils/helperFunc";
+// import {  } from "../../../redux/slices/user.slice.js"
 const Navbar = () => {
   const navigate = useNavigate();
-
+  const [user, setUser] = useState(
+    () => getObjectFromLocalStorage("user") || null
+  );
+  console.log(user);
   const handleBackClick = () => {
     navigate(-1);
   };
   return (
     <div className="mobileNavbar  border-b border-gray-200">
-      <div className="navbarWrapper py-2 px-1">
-        <div className="cont flex items-center ">
+      <div className="navbarWrapper py-2 px-1 flex justify-between">
+        <div className="cont flex items-center  ">
           <div className="backarrow  " onClick={handleBackClick}>
             <svg
               width="45"
@@ -63,6 +69,11 @@ const Navbar = () => {
             </svg>
           </div>
         </div>
+        {user && (
+          <div className="notification pr-4">
+            <img src={NotificationIcon} alt="notification" />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import Gauth from "../../../components/Gauth/Gauth";
 import { SignupUserDataProvider } from "../../../context/context";
 import CustomButton from "../../../components/Button/Button";
@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom/dist/umd/react-router-dom.development";
+import { setObjectInLocalStorage } from "../../../utils/helperFunc";
 
 const LogIn = () => {
   const [error, setError] = useState({
@@ -74,6 +75,7 @@ const LogIn = () => {
           },
           {
             headers: { "Content-Type": "application/json" },
+            withCredentials: true,
           }
         );
 
@@ -83,6 +85,8 @@ const LogIn = () => {
         } else {
           toast.success("Login successful!");
           // Add navigation to the dashboard or home page if needed
+          setObjectInLocalStorage("user", data.user);
+
           navigate("/home");
           return;
         }
