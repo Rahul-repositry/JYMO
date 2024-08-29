@@ -1,22 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import bicep from "../../images/bicep.svg";
 import edit from "../../images/edit.svg";
 import clock from "../../images/tabler_clock.svg";
 import { useLocation } from "react-router-dom/dist/umd/react-router-dom.development";
 import Exercises from "./Exercises";
 const WorkoutPlan = ({ data, date }) => {
-  const { dayOfWeek, title, exercisePlan, userId } = data;
-  const totalTime = exercisePlan.reduce((acc, curr) => acc + curr.duration, 0);
+  const { dayOfWeek, title = "Your Exercise", exercisePlan, userId } = data;
+  const totalTime = exercisePlan
+    ? exercisePlan?.reduce((acc, curr) => acc + curr.duration, 0)
+    : 0;
   const [showDetail, setshowDetail] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
   const location = useLocation();
-  if (location.pathname === "/calender") {
-    setShowEdit(true);
-  }
+
+  useEffect(() => {
+    if (location.pathname === "/calendar") {
+      setShowEdit(true);
+    }
+  }, [location.pathname]);
+
   const showDetailtoggle = (e) => {
     e.stopPropagation();
     setshowDetail((prev) => !prev);
   };
+
   return (
     <>
       <div
@@ -43,7 +50,7 @@ const WorkoutPlan = ({ data, date }) => {
               </h2>
             </div>
 
-            {showDetail && (
+            {exercisePlan && showDetail && (
               <div className="flex flex-col gap-1 my-2 pl-2">
                 {exercisePlan.map((exercise) => {
                   return (
@@ -58,15 +65,14 @@ const WorkoutPlan = ({ data, date }) => {
 
             <div className="totalTime flex py-2">
               <img src={clock} alt="clock" className="w-5 opacity-40" />
-
               <span className="text-zinc-600 pl-1">{totalTime}&nbsp;min</span>
             </div>
           </div>
         </div>
-        {showEdit && (
+        {exercisePlan && showEdit && (
           <div className="edit flex place-items-center">
             <div className="svgCont bg-yellowBox  rounded-md py-1 px-2 translate-x-2">
-              <img src={edit} alt="edit" className="w-9 -translate-x-1" />
+              <img src={edit} alt="edit" className="w-6 -translate-x-1" />
             </div>
           </div>
         )}

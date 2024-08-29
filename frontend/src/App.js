@@ -12,9 +12,13 @@ import ResetPass from "./pages/app/SignIn/ResetPass";
 
 import Home from "./pages/app/Home/Home.jsx";
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
+import Calendar from "./pages/app/Calendar/Calendar.jsx";
+import EditWorkout from "./components/workoutPlan/EditWorkout.jsx";
 
 function App() {
   const location = useLocation();
+
+  // defines a redux user slice to user everwhere
 
   // Define the paths where the specific styles should not be applied
   const excludePathsForJymoNavbar = [
@@ -50,12 +54,16 @@ function App() {
         }`}
       >
         <div
-          className={`wrapper ${applyStylesForBottomNavigation ? "pb-16" : ""}`}
+          className={`wrapper min-h-screen bg-white ${
+            applyStylesForBottomNavigation ? "pb-16 " : ""
+          }`}
         >
           {applyStyles && <Navbar />}
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/calendar" element={<Calendar />} />
+            <Route path="/editworkout" element={<EditWorkout />} />
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />
