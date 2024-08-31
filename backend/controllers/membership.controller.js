@@ -2,7 +2,6 @@ const Membership = require("../models/membership.model.js");
 const User = require("../models/user.model.js");
 const CustomError = require("../utils/CustomError.utils.js");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
-const Membership = require("../models/membership.model.js");
 const { Jym } = require("../models/jym.model.js");
 const Attendance = require("../models/attendance.model.js");
 const { UserDurationInJym } = require("../models/userDuration.model.js");
@@ -20,7 +19,7 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
 
   // Find user by userId or userUniqueId
   const user = userId
-    ? await User.findById(userId)
+    ? await User.findById({ _id: userId })
     : await User.findOne({ userUniqueId });
 
   if (!user) {
@@ -31,7 +30,9 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
   const latestMembership = await Membership.findOne({
     userId: user._id,
     jymId,
-  }).sort({ endDate: -1 });
+  }).sort({ createdAt: -1 });
+
+  console.log({ latestMembership, user });
 
   if (!latestMembership) {
     return next(new CustomError("No active membership found to renew", 404));
@@ -57,7 +58,7 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
     amount,
     isPreviousMembership,
     startDate: currentDate,
-    endDate,
+    endDate: newEndDate,
   });
 
   const savedMembership = await newMembership.save();
@@ -99,11 +100,11 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
     : await User.findOne({ userUniqueId });
 
   if (!userData) {
-    return next(CustomError("User not found", 404));
+    return next(new CustomError("User not found", 404));
   }
 
   // Update the user's currentJymUUId
-  userData.currentJymUUId.push(jymId);
+  userData.currentJymUUId.push({ jymId, name: req.jym.name });
   await userData.save();
 
   // Check for existing membership
@@ -111,11 +112,11 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
     jymId,
     userId: userData._id,
   })
-    .sort({ endDate: -1 })
+    .sort({ createdAt: -1 })
     .exec();
 
   if (latestMembership) {
-    return next(CustomError("Membership already exists", 409));
+    return next(new CustomError("Membership already exists", 409));
   }
 
   // Calculate end date and membership status
@@ -139,6 +140,10 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
   const savedMembership = await newMembership.save();
 
   // Update or create user duration
+  /**
+   *   user can direct create membership or userduration can be created after trial period
+   *
+   */
   let userDuration = await UserDurationInJym.findOne({
     userId: userData._id,
     jymId,
@@ -148,13 +153,12 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
     userDuration = new UserDurationInJym({
       userId: userData._id,
       jymId,
-      isActive: true,
       joinDates: [currentDate.toISOString()],
+      isBecomeActiveUser: true,
     });
   } else if (userDuration.isTrialUser) {
     userDuration.isTrialUser = false;
     userDuration.isBecomeActiveUser = true;
-    userDuration.isActive = true;
     userDuration.joinDates.push(currentDate.toISOString());
   }
 
@@ -236,6 +240,27 @@ const markTrialAttendance = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
+const getMembership = AsyncErrorHandler(async (req, res, next) => {
+  const jymId = req.params.jymid;
+  const userId = req.user._id;
+  const membership = await Membership.findOne({
+    jymId: jymId,
+    userId: userId,
+  }).sort({ createdAt: -1 });
+  if (!membership) {
+    return next(new CustomError("Create Membership with this jym", 404));
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Membership found",
+    membership: membership,
+  });
+});
+
+/**
+ * create function for quit ing user update userduration  quit date and quit stauts and mark inactive attendance update membership status
+ */
+
 //need to make a membership handler which changes data of existing membership like enddate , fee , this could be changed .
 /**
  * 
@@ -297,9 +322,9 @@ const membershipPauseHandler = AsyncErrorHandler(async (req, res, next) => {
 * 
  */
 module.exports = {
-  membershipHandler,
   createMembership,
   isMember,
   markTrialAttendance,
+  getMembership,
   renewMembership,
 };

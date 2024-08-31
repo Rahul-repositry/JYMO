@@ -43,7 +43,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["male", "female", "others"],
     },
-    currentJymUUId: [{ type: mongoose.Schema.Types.ObjectId, ref: "jyms" }], // currently active in these jyms.
+    currentJymUUId: [
+      {
+        jymId: { type: mongoose.Schema.Types.ObjectId, ref: "jyms" },
+        name: { type: String },
+      },
+    ], //currently active in these jyms.
 
     resetPasswordToken: String,
     resetPasswordExpires: Date,

@@ -21,9 +21,8 @@ const workoutSchema = new Schema(
 );
 
 workoutSchema.pre("save", function (next) {
-  if (this.isNew || this.isModified("dayOfWeek")) {
-    this.dayOfWeek = this.dayOfWeek.toLowerCase();
-  }
+  this.dayOfWeek = this.dayOfWeek.toLowerCase();
+
   next();
 });
 

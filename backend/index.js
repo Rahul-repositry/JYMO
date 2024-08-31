@@ -5,6 +5,7 @@ const cookieParser = require("cookie-parser");
 const { globalErrorHandler } = require("./controllers/error.controller.js");
 const authRoutes = require("./routes/auth.route.js");
 const jymAuthRoutes = require("./routes/jymAuth.route.js");
+const jymRoutes = require("./routes/jym.route.js");
 const workoutRoutes = require("./routes/workout.route.js");
 const attendanceRoutes = require("./routes/attendance.route.js");
 const membershipRoutes = require("./routes/membership.route.js");
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
   res.send("hello world");
 });
 app.use("/api/user", userRoutes);
+app.use("/api/jym", jymRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/auth/jym", jymAuthRoutes);
 app.use("/api/workout", workoutRoutes);

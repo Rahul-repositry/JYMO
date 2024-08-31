@@ -1,59 +1,35 @@
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const Workout = require("../models/workout.model.js");
 
-const createWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
+const manageWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
   const userId = req.user._id;
-  const { dayOfWeek, exercisePlan } = req.body;
+  const { dayOfWeek, exercisePlan, title } = req.body;
 
-  const workoutIsExists = await Workout.findOne({
-    userId,
-    dayOfWeek: dayOfWeek.toLowerCase(),
-  });
-
-  if (workoutIsExists) {
-    return next(new CustomError("Plan already created", 409));
-  }
-  const workout = new Workout({ userId, dayOfWeek, exercisePlan });
-
-  let obj = await workout.save();
-  res.json({ success: "true", message: "workout plan created", obj });
-});
-const updateWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
-  const userId = req.user._id;
-  const { dayOfWeek, exercisePlan } = req.body;
-
-  // Find the workout by ID and dayOfWeek
+  // Find if a workout plan exists for the user and the specified day
   const workout = await Workout.findOne({
     userId,
     dayOfWeek: dayOfWeek.toLowerCase(),
   });
-  if (!workout) {
-    return next(new CustomError("Workout plan not found ", 404));
+
+  if (workout) {
+    // If the workout plan exists, update it
+    workout.exercisePlan = exercisePlan;
+    const updatedWorkout = await workout.save();
+    return res.json({
+      success: true,
+      message: "Workout plan updated",
+      workout: updatedWorkout,
+    });
+  } else {
+    // If the workout plan doesn't exist, create a new one
+    const newWorkout = new Workout({ userId, dayOfWeek, title, exercisePlan });
+    const savedWorkout = await newWorkout.save();
+    return res.json({
+      success: true,
+      message: "Workout plan created",
+      workout: savedWorkout,
+    });
   }
-
-  // Update the workout plan
-  workout.exercisePlan = exercisePlan;
-
-  const updatedWorkout = await workout.save();
-  res.json({
-    success: true,
-    message: "Workout plan updated",
-    workout: updatedWorkout,
-  });
-});
-
-const deleteWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
-  const userId = req.user._id;
-  const { dayOfWeek } = req.body;
-
-  const deletedWorkout = await Workout.findOneAndDelete({
-    userId,
-    dayOfWeek: dayOfWeek.toLowerCase(),
-  });
-  if (!deletedWorkout) {
-    return next(new CustomError("Workout plan not found ", 404));
-  }
-  res.json({ success: true, message: "Workout plan deleted" });
 });
 
 const getAllWorkoutPlans = AsyncErrorHandler(async (req, res, next) => {
@@ -62,9 +38,26 @@ const getAllWorkoutPlans = AsyncErrorHandler(async (req, res, next) => {
   res.json({ success: true, workoutPlans });
 });
 
+const getWorkoutByDay = AsyncErrorHandler(async (req, res, next) => {
+  const { dayOfWeek } = req.params;
+  console.log(req.params);
+  if (dayOfWeek) {
+    const workoutPlans = await Workout.find({
+      userId: req.user._id,
+      dayOfWeek: dayOfWeek,
+    });
+    console.log({ workoutPlans, id: req.user._id });
+    return res.json({
+      success: true,
+      workoutPlans,
+      message: "Workout plan found",
+    });
+  }
+  return next(new CustomError("Select Day to find Workout", 404));
+});
+
 module.exports = {
-  createWorkoutPlan,
-  updateWorkoutPlan,
+  manageWorkoutPlan,
   getAllWorkoutPlans,
-  deleteWorkoutPlan,
+  getWorkoutByDay,
 };

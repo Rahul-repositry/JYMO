@@ -2,16 +2,14 @@ const express = require("express");
 const { verifyUser } = require("../utils/Middleware.utils");
 
 const {
-  createWorkoutPlan,
-  deleteWorkoutPlan,
-  updateWorkoutPlan,
+  manageWorkoutPlan,
+  getWorkoutByDay,
   getAllWorkoutPlans,
 } = require("../controllers/workout.controller");
 const router = express.Router();
 
-router.post("/createworkout", verifyUser, createWorkoutPlan);
-router.post("/updateworkout", verifyUser, updateWorkoutPlan);
+router.post("/manageworkout", verifyUser, manageWorkoutPlan);
 router.get("/getallworkout", verifyUser, getAllWorkoutPlans);
-router.post("/deleteworkout", verifyUser, deleteWorkoutPlan);
+router.get("/getworkoutbyday/:dayOfWeek", verifyUser, getWorkoutByDay);
 
 module.exports = router;

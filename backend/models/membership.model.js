@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-const { jymId } = require("../controllers/jymAuth.controller");
 const { Schema } = mongoose;
 
 const membershipSchema = new Schema(
@@ -12,9 +11,12 @@ const membershipSchema = new Schema(
     endDate: { type: Date },
     status: { type: String, enum: ["active", "Inactive"], default: "active" }, //at the time whten this is set to inactive then create a attendance with inactive and remove user from user currentUUids and update quitdates in userDuration
     isPreviousMembership: { type: Boolean, default: false }, // mentioned bcz sometime people give fee of previous month so while creating membership we can know that this is a previous month fee
-    isPaused: { type: Boolean, default: false },
+    /**
+     * if used in future then we can thik about this
+     * isPaused: { type: Boolean, default: false },
     pausedAt: [{ type: Date }], // Array of dates for pause events
     resumeAt: [{ type: Date }], // Array of dates for resume events
+    */
   },
   { timestamps: true }
 );

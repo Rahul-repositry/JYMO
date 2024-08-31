@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const { Schema } = mongoose;
+const AutoIncrement = require("mongoose-sequence")(mongoose);
 
 const geolocationSchema = new Schema(
   {
@@ -23,7 +24,7 @@ const jymSchema = new Schema(
   {
     name: { type: String, required: true },
     recoveryEmail: { type: String, required: true },
-    jymId: { type: String, unique: true, required: true }, // necesaary will identify uniquely and user for login
+    jymUniqueId: { type: String, unique: true, required: true }, // necesaary will identify uniquely and user for login
     password: { type: String },
     geolocation: geolocationSchema,
     addressLocation: addressLocationSchema,
@@ -38,6 +39,8 @@ const jymSchema = new Schema(
   },
   { timestamps: true }
 );
+
+userSchema.plugin(AutoIncrement, { inc_field: "jymUniqueId" });
 
 const Jym = mongoose.model("jym", jymSchema);
 

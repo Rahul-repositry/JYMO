@@ -59,7 +59,6 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
   console.log(req.user);
   const {
     name,
-    jymId,
     recoveryEmail,
     password,
     numbers,
@@ -72,7 +71,6 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
 
   const newJym = new Jym({
     name,
-    jymId,
     recoveryEmail,
     password: hashedPassword,
     numbers,
@@ -94,9 +92,9 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const jymSignin = AsyncErrorHandler(async (req, res, next) => {
-  const { jymId, password } = req.body;
+  const { JUID, password } = req.body;
   const ownerId = req.user._id;
-  const validJym = await Jym.findOne({ jymId });
+  const validJym = await Jym.findOne({ jymUniqueId: JUID });
   if (!validJym) return next(new CustomError("Create Jym first", 401));
   const validPassword = bcryptjs.compareSync(password, validJym.password);
   if (!validPassword) return next(new CustomError("invalid credentials", 401));

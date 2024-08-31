@@ -29,7 +29,6 @@ const verifyUser = (req, res, next) => {
 
 const verifyJym = (req, res, next) => {
   const token = req.cookies.access_jymToken;
-  console.log({ token });
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
@@ -43,7 +42,7 @@ const verifyJym = (req, res, next) => {
           _id: decoded.id,
           ...decoded,
         };
-        console.log(decodedObj);
+
         req.jym = decodedObj;
 
         next();
@@ -59,7 +58,7 @@ const verifyJym = (req, res, next) => {
 
 const verifyOwnership = async (req, res, next) => {
   const ownerId = req.user._id;
-  console.log(req.jym);
+
   const jymId = req.jym._id;
 
   try {
