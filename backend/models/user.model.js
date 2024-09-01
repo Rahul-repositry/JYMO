@@ -31,10 +31,9 @@ const userSchema = new mongoose.Schema(
     birthday: {
       type: Date,
     },
-    role: {
-      type: String,
-      enum: ["gymOwner", "user"],
-      required: true,
+    isOwner: {
+      type: Boolean,
+      default: false,
     },
     isActive: {
       type: String,

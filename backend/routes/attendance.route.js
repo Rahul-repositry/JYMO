@@ -11,9 +11,9 @@ const {
   getAttendanceByDate,
 } = require("../controllers/attendance.controller.js");
 
-router.post("/regularAttendance", verifyUser, attendanceHandler);
+router.post("/regularattendance", verifyUser, attendanceHandler);
 router.post(
-  "/attendanceByAdmin",
+  "/attendancebyadmin",
   verifyUser,
   verifyJym,
   verifyOwnership,
