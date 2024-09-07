@@ -43,10 +43,10 @@ async function markAttendance(
     jymId: jymId,
     mode: mode,
     isTrial: isTrial,
+    checkOut: "",
     trialTokenExpiry: trialTokenExpiry,
   });
   const attendanceObj = await newAttendance.save();
-  attendanceObj.checkOut = false;
 
   return attendanceObj;
 }
@@ -182,10 +182,17 @@ const markTrialAttendance = async (jymId, userId) => {
     userDuration: userDurationObj,
   };
 };
+
 const compareDates = (date1ISOString, date2ISOString) => {
-  const [year1, month1, day1] = date1ISOString.split("T")[0].split("-");
-  const [year2, month2, day2] = date2ISOString.split("T")[0].split("-");
-  return year1 === year2 && month1 === month2 && day1 === day2;
+  console.log({ date1ISOString }, { date2ISOString });
+  const date1 = new Date(date1ISOString);
+  const date2 = new Date(date2ISOString);
+
+  return (
+    date1.getFullYear() === date2.getFullYear() &&
+    date1.getMonth() === date2.getMonth() && // getMonth() returns month index (0 for Jan, 11 for Dec)
+    date1.getDate() === date2.getDate() // getDate() returns day of the month
+  );
 };
 
 const gapDays = (lastChqIn) => {
@@ -200,37 +207,40 @@ const gapDays = (lastChqIn) => {
 //make attendance registratiton by admins
 const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   let { jymId, userId: userIdFromBody } = req.body;
-  let userId = userIdFromBody || req.user._id;
+  let userId = userIdFromBody || req.user._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
 
   const today = new Date();
   let latestAttendance = await Attendance.findOne({ userId, jymId }).sort({
     createdAt: -1,
   });
 
-  if (!latestAttendance) {
-    return next(new CustomError("Get register with Jym first", 404));
-  }
-  if (gapDays(latestAttendance.chqIn) >= process.env.REGISTERAGAININ) {
-    return next(
-      new CustomError(
-        "Ask owner to register again you came after a long time",
-        404
-      )
-    );
-  }
-  if (latestAttendance.mode === "inactive") {
-    return next(
-      new CustomError(
-        "Ask owner to register again you came after a long time",
-        404
-      )
-    );
-  }
+  console.log(latestAttendance, "latestattendance");
 
-  if (latestAttendance.mode === "register") {
+  if (!latestAttendance) {
+    console.log("get register executed");
+    return next(new CustomError("Get register with Jym first", 404));
+  } else if (gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ) {
+    console.log("ask owner to register again");
+    return next(
+      new CustomError(
+        "Ask owner to register again you came after a long time",
+        404
+      )
+    );
+  } else if (latestAttendance.mode === "inactive") {
+    console.log("inactive");
+    return next(
+      new CustomError(
+        "Ask owner to register again you came after a long time",
+        404
+      )
+    );
+  } else if (latestAttendance.mode === "register") {
+    console.log("register executed");
     let obj = await markTrialAttendance(jymId, userId);
     return res.status(200).json(obj);
   } else if (latestAttendance.mode === "trial") {
+    console.log("trial executed");
     // Handle trial period attendance
     if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
       // Trial period is over, register user
@@ -244,6 +254,7 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
         attendance: attendanceObj,
       });
     } else {
+      console.log("else");
       // Trial period is ongoing
       const isToday = compareDates(
         latestAttendance.createdAt,
@@ -251,6 +262,7 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       );
 
       if (!isToday) {
+        console.log("else trial !isToday executed");
         const attendanceObj = await markAttendance(
           userId,
           jymId,
@@ -263,6 +275,7 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
           attendance: attendanceObj,
         });
       } else {
+        console.log("trial else ");
         latestAttendance.checkOut = today.toISOString();
         await latestAttendance.save();
         return res.status(200).json({
@@ -276,26 +289,34 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
     latestAttendance.mode === "registered" ||
     latestAttendance.mode === "registerAgain"
   ) {
+    console.log("registered");
     // Handle registered user attendance
-    const isToday = compareDates(
-      latestAttendance.createdAt,
-      today.toISOString()
-    );
+
+    const isToday = compareDates(latestAttendance.checkIn, today.toISOString());
+    console.log(isToday);
 
     if (!isToday) {
+      console.log("registerd !istoday");
       const attendanceObj = await markAttendance(userId, jymId, "registered");
       return res.status(201).json({
         success: true,
-        message: "Attendance marked for today as registered user.",
+        message: "Attendance marked successfully.",
         attendance: attendanceObj,
       });
-    } else {
+    } else if (isToday && !latestAttendance.checkOut) {
+      console.log("registered issToday && !latestAttendance.checkOut");
       latestAttendance.checkOut = today.toISOString();
       await latestAttendance.save();
-
       return res.status(200).json({
         success: true,
         message: "Checkout time updated.",
+        attendance: latestAttendance,
+      });
+    } else {
+      console.log("else");
+      return res.status(200).json({
+        success: true,
+        message: "Today's attendance has been marked. .",
         attendance: latestAttendance,
       });
     }
@@ -310,13 +331,13 @@ const getAttendanceByDate = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.body.jymId;
   const startDate = req.body.startDate;
   const endDate = req.body.endDate;
-  console.log(jymId);
+
   const attendance = await Attendance.find({
     userId: new ObjectId(userId),
     jymId: new ObjectId(jymId),
     checkIn: { $gte: startDate, $lte: endDate },
   });
-  console.log(attendance);
+  console.log(attendance, startDate, endDate);
   if (attendance.length > 0) {
     return res.status(200).json({
       success: true,
@@ -368,7 +389,7 @@ const registerAgainAttendance = AsyncErrorHandler(async (req, res, next) => {
     jymId: new ObjectId(jymId),
   });
   if (userDuration) {
-    userDuration.quitDates.push(attendance.chqIn);
+    userDuration.quitDates.push(attendance.checkIn);
     userDuration.joinDates.push(today.toISOString());
     await userDuration.save();
   }
@@ -412,7 +433,6 @@ module.exports = {
   registerAgainAttendance,
   attendanceHandler,
   registerAttendance,
-  quitUserHandler,
   getAttendanceByDate,
 };
 

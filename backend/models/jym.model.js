@@ -24,7 +24,7 @@ const jymSchema = new Schema(
   {
     name: { type: String, required: true },
     recoveryEmail: { type: String, required: true },
-    jymUniqueId: { type: String, unique: true, required: true }, // necesaary will identify uniquely and user for login
+    jymUniqueId: { type: Number, unique: true }, // necesaary will identify uniquely and user for login
     password: { type: String },
     geolocation: geolocationSchema,
     addressLocation: addressLocationSchema,
@@ -40,8 +40,8 @@ const jymSchema = new Schema(
   { timestamps: true }
 );
 
-userSchema.plugin(AutoIncrement, { inc_field: "jymUniqueId" });
+jymSchema.plugin(AutoIncrement, { inc_field: "jymUniqueId" });
 
 const Jym = mongoose.model("jym", jymSchema);
 
-module.exports = { Jym };
+module.exports = Jym;

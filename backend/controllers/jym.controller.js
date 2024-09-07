@@ -1,12 +1,16 @@
-import { Jym } from "../models/jym.model";
-import { AsyncErrorHandler } from "../utils/AsyncErrorHandler.utils";
-import CustomError from "../utils/CustomError.utils";
+const Jym = require("../models/jym.model.js");
+const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
+const CustomError = require("../utils/CustomError.utils.js");
 
 const getJym = AsyncErrorHandler(async (req, res, next) => {
   const { JUID } = req.params;
-  const jym = await Jym.findOne({ jymUniqueId: JUID });
+  console.log(req.params);
+  const jym = await Jym.findOne(
+    { jymUniqueId: Number(JUID) },
+    { name: 1, addressLocation: 1, owners: 1, subscriptionFee: 1 } // Include these fields
+  );
   if (!jym) {
-    return next(new CustomError("JID is incorrect", 404));
+    return next(new CustomError("JUID is incorrect", 404));
   }
   return res.status(200).json({
     sucess: true,

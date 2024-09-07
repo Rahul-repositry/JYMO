@@ -25,7 +25,7 @@ const attendanceSchema = new Schema(
     isTrial: { type: Boolean, default: false },
     trialTokenExpiry: { type: Date },
     checkIn: { type: Date, default: Date.now() },
-    checkOut: { type: Date },
+    checkOut: { type: String },
   },
   { timestamps: true }
 );

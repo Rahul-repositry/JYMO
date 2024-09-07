@@ -234,7 +234,7 @@ const Scanner = () => {
     return () => {
       stopScanner("Cleanup on unmount");
     };
-  }, [cameraAllowed, reinitializeScanner, stopScanner]);
+  }, [cameraAllowed, loading, reinitializeScanner, stopScanner]);
 
   const requestCameraPermission = async () => {
     setLoading(true);
