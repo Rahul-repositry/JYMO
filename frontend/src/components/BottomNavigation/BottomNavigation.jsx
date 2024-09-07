@@ -72,20 +72,20 @@ const BottomNavigation = () => {
             </svg>
           </button>
         </Link>
-        <Link to="/tasks" className="flex place-content-center">
+        <Link to="/scanner" className="flex place-content-center">
           <button
             type="button"
-            onClick={() => handleActive("/tasks")}
+            onClick={() => handleActive("/scanner")}
             className={`inline-flex flex-col items-center justify-center px-5 w-full hover:bg-gray-50 dark:hover:bg-slate-50 group ${
-              active === "/tasks"
+              active === "/scanner"
                 ? "text-darkBlack bg-slate-100"
                 : "text-gray-500"
             }`}
-            aria-label="Tasks"
+            aria-label="Scanner"
           >
             <svg
               className={`w-7 h-7 mb-1 ${
-                active === "/tasks" ? "text-darkBlack " : "text-gray-500"
+                active === "/scanner" ? "text-darkBlack " : "text-gray-500"
               } group-hover:text-darkBlack `}
               fill="currentColor"
               viewBox="0 0 28 28"

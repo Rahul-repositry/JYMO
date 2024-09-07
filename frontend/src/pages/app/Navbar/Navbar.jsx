@@ -14,7 +14,7 @@ const Navbar = () => {
     navigate(-1);
   };
   return (
-    <div className="mobileNavbar  border-b border-gray-200">
+    <div className="mobileNavbar relative  z-50 border-b border-gray-200">
       <div className="navbarWrapper py-2 px-1 flex justify-between">
         <div className="cont flex items-center  ">
           <div className="backarrow  " onClick={handleBackClick}>
@@ -70,8 +70,12 @@ const Navbar = () => {
           </div>
         </div>
         {user && (
-          <div className="notification pr-4">
-            <img src={NotificationIcon} alt="notification" />
+          <div className="notification fle place-content-center pr-4">
+            <img
+              src={NotificationIcon}
+              alt="notification"
+              className="w-[40px]"
+            />
           </div>
         )}
       </div>

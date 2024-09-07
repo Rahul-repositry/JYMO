@@ -6,7 +6,10 @@ import circleTick from "../../../images/charm_circle-tick.svg";
 import crossCircle from "../../../images/cross_circle.svg";
 import workoutPlanImg from "../../../images/workoutPlan.webp";
 import CustomButton from "../../../components/Button/Button";
-import { getObjectFromLocalStorage } from "../../../utils/helperFunc";
+import {
+  capitalizeFLetter,
+  getObjectFromLocalStorage,
+} from "../../../utils/helperFunc";
 import WorkoutPlan from "../../../components/workoutPlan/WorkoutPlan";
 
 const getSundaysCountInMonth = (startDate, endDate) => {
@@ -108,10 +111,6 @@ const Home = () => {
   const membershipCache = useRef(null);
   const attendanceCache = useRef(null);
   const workoutCache = useRef(null);
-
-  const capitalizeFLetter = (text) => {
-    return text[0].toUpperCase() + text.slice(1);
-  };
 
   let userName = user?.username ? capitalizeFLetter(user.username) : "";
 

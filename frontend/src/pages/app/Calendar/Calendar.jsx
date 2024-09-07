@@ -20,6 +20,7 @@ import WorkoutPlan from "../../../components/workoutPlan/WorkoutPlan";
 import { Link } from "react-router-dom";
 
 function classNames(...classes) {
+  console.log(classes);
   return classes.filter(Boolean).join(" ");
 }
 
@@ -82,6 +83,7 @@ const Calendar = () => {
 
   const weekDates = getWeekDates();
   console.log(weekDates);
+
   const sortWorkoutPlans = (workoutPlans) => {
     const dayOfWeekOrder = {
       sun: 0,
@@ -97,6 +99,7 @@ const Calendar = () => {
       return dayOfWeekOrder[a.dayOfWeek] - dayOfWeekOrder[b.dayOfWeek];
     });
   };
+
   const fetchWorkoutPlans = async () => {
     if (workoutCache.current.length > 0) {
       return workoutCache.current;
@@ -153,6 +156,7 @@ const Calendar = () => {
         }
       );
       attendanceMonthCache.current[currentMonth] = response.data;
+      console.log({ attendanceMonthCache, data: response });
       return response.data;
     } catch (err) {
       console.error("Error fetching attendance data: ", err);
@@ -164,6 +168,9 @@ const Calendar = () => {
   };
 
   const updateDaysWithAttendance = (attendanceData) => {
+    attendanceData.forEach((att) => {
+      console.log(new Date(att?.checkIn));
+    });
     if (attendanceData?.length > 0) {
       if (daysWithStatusCache.current[currentMonth]) {
         console.log("cached executed");
@@ -173,7 +180,6 @@ const Calendar = () => {
 
       const updatedDays = initializeDaysWithStatus().map((dayObj) => {
         const dayDate = startOfDay(dayObj.date).getTime().toString();
-
         const attendanceRecord = attendanceData?.find((att) => {
           let chqDate = startOfDay(parseISO(att?.checkIn)).getTime().toString();
           return chqDate === dayDate;
@@ -305,33 +311,41 @@ const Calendar = () => {
               <div>S</div>
             </div>
             <div className="grid grid-cols-7 mt-2 text-sm">
-              {daysWithStatus.map((dayObj, dayIdx) => (
-                <div
-                  key={dayObj.date.toString()}
-                  className={classNames(
-                    dayIdx === 0 && colStartClasses[getDay(dayObj.date)],
-                    "py-1.5"
-                  )}
-                >
-                  <button
-                    type="button"
+              {daysWithStatus.map((dayObj, dayIdx) => {
+                if (isToday(dayObj.date)) {
+                  console.log({ dayObj }, "heree");
+                }
+                return (
+                  <div
+                    key={dayObj.date.toString()}
                     className={classNames(
-                      isSameMonth(dayObj.date, firstDayCurrentMonth) &&
-                        dayObj.status === "present" &&
-                        "bg-green-500 text-white",
-                      isToday(dayObj.date) && "bg-yellowBox text-white",
-                      isSunday(dayObj.date) && "text-redBox ",
-
-                      "font-semibold",
-                      "mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
+                      dayIdx === 0 && colStartClasses[getDay(dayObj.date)],
+                      "py-1.5"
                     )}
                   >
-                    <time dateTime={format(dayObj.date, "yyyy-MM-dd")}>
-                      {format(dayObj.date, "d")}
-                    </time>
-                  </button>
-                </div>
-              ))}
+                    <button
+                      type="button"
+                      className={classNames(
+                        isSameMonth(dayObj.date, firstDayCurrentMonth) &&
+                          dayObj.status === "present" &&
+                          "bg-green-500 text-white",
+                        isToday(dayObj.date) && "bg-yellowBox text-white",
+                        isToday(dayObj.date) &&
+                          dayObj.status === "present" &&
+                          "!bg-green-500 text-white",
+                        isSunday(dayObj.date) && "text-redBox ",
+
+                        "font-semibold",
+                        "mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
+                      )}
+                    >
+                      <time dateTime={format(dayObj.date, "yyyy-MM-dd")}>
+                        {format(dayObj.date, "d")}
+                      </time>
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

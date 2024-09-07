@@ -1,0 +1,19 @@
+.browser-section {
+  margin-bottom: 20px;
+}
+
+.browser-logo {
+  width: 32px;
+  height: 32px;
+  margin-right: 10px;
+  vertical-align: middle;
+}
+
+h3,
+h4 {
+  margin-bottom: 10px;
+}
+
+ol {
+  padding-left: 20px;
+}

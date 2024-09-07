@@ -5,7 +5,7 @@ import CustomButton from "../../../components/Button/Button";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom/dist/umd/react-router-dom.development";
+import { useNavigate } from "react-router-dom";
 import { setObjectInLocalStorage } from "../../../utils/helperFunc";
 
 const LogIn = () => {

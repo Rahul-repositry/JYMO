@@ -14,6 +14,11 @@ import Home from "./pages/app/Home/Home.jsx";
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
 import Calendar from "./pages/app/Calendar/Calendar.jsx";
 import EditWorkout from "./components/workoutPlan/EditWorkout.jsx";
+import Scanner from "./pages/app/Scanner/Scanner.jsx";
+import Success from "./pages/app/Scanner/Success.jsx";
+import Myqr from "./pages/app/Scanner/Myqr.jsx";
+import Scanner2 from "./pages/app/Scanner/SolveScannerProb.jsx";
+import ScannerProtected from "./pages/app/Scanner/ScannerProtected.jsx";
 
 function App() {
   const location = useLocation();
@@ -55,7 +60,7 @@ function App() {
       >
         <div
           className={`wrapper min-h-screen bg-white ${
-            applyStylesForBottomNavigation ? "pb-16 " : ""
+            applyStylesForBottomNavigation ? "pb-20 " : ""
           }`}
         >
           {applyStyles && <Navbar />}
@@ -64,6 +69,17 @@ function App() {
             <Route path="/home" element={<Home />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/editworkout" element={<EditWorkout />} />
+            <Route
+              path="/scanner"
+              element={
+                <ScannerProtected>
+                  <Scanner />
+                </ScannerProtected>
+              }
+            />
+            {/* <Route path="/scanner2" element={<Scanner2 />} /> */}
+            <Route path="/scanner/success" element={<Success />} />
+            <Route path="/scanner/myqr" element={<Myqr />} />
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />
