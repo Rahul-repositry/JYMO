@@ -29,9 +29,16 @@ const jymSchema = new Schema(
     geolocation: geolocationSchema,
     addressLocation: addressLocationSchema,
     owners: [{ type: Schema.Types.ObjectId, ref: "users" }], // will get updated as new owners join and quit
+    phoneNumbers: [
+      {
+        type: String,
+        min: [10, "Not a valid Indian Number"],
+        max: [10, "Not a valid indian number"],
+      },
+    ],
     subscriptionFee: { type: String },
     subscriptionStartDate: { type: Date },
-    subscriptionEndDate: { type: Date },
+    subscriptionEndDate: { type: Date }, // for jymo subscription for jyms
     resetPasswordToken: String,
     jymoDietId: { type: Schema.Types.ObjectId, ref: "jymoDietIdForJymOwners" },
     jymDietAmount: Number,

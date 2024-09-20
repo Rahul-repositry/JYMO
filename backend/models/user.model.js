@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema(
     img: {
       type: String,
       default:
-        "https://cdn.pixabay.com/photo/2023/02/18/11/00/icon-7797704_640.png",
+        "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465",
     },
     email: {
       type: String,
@@ -35,9 +35,9 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    isActive: {
-      type: String,
-    },
+    /* isActive: {
+    //   type: String,
+    // },*/
     gender: {
       type: String,
       enum: ["male", "female", "others"],
@@ -49,8 +49,8 @@ const userSchema = new mongoose.Schema(
       },
     ], //currently active in these jyms.
 
-    resetPasswordToken: String,
-    resetPasswordExpires: Date,
+    resetPasswordToken: { type: String, default: "" },
+    resetPasswordExpires: { type: Date, default: Date.now() },
   },
   { timestamps: true }
 );

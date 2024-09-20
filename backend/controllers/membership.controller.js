@@ -5,6 +5,7 @@ const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const { Jym } = require("../models/jym.model.js");
 const Attendance = require("../models/attendance.model.js");
 const { UserDurationInJym } = require("../models/userDuration.model.js");
+const { ObjectId } = require("mongoose").Types;
 
 const renewMembership = AsyncErrorHandler(async (req, res, next) => {
   let {
@@ -28,8 +29,8 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
 
   // Check if user has an active membership in the gym
   const latestMembership = await Membership.findOne({
-    userId: user._id,
-    jymId,
+    userId: new ObjectId(user._id),
+    jymId: new ObjectId(jymId),
   }).sort({ createdAt: -1 });
 
   console.log({ latestMembership, user });
@@ -96,7 +97,7 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
 
   // Find user data
   const userData = userId
-    ? await User.findById(userId)
+    ? await User.findById({ userId: new ObjectId(userId) })
     : await User.findOne({ userUniqueId });
 
   if (!userData) {
@@ -109,8 +110,8 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
 
   // Check for existing membership
   const latestMembership = await Membership.findOne({
-    jymId,
-    userId: userData._id,
+    jymId: new ObjectId(jymId),
+    userId: new objectId(userData._id),
   })
     .sort({ createdAt: -1 })
     .exec();
@@ -176,12 +177,15 @@ const isMember = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.jym._id;
   let newMember = true;
   // Check if user exists
-  const user = await User.findById({ _id });
+  const user = await User.findById({ _id: new ObjectId(_id) });
 
   if (!user) {
     return next(new CustomError("User not found", 404));
   }
-  const wasMember = await Membership.findOne({ jymId, userId: _id });
+  const wasMember = await Membership.findOne({
+    jymId: new ObjectId(jymId),
+    userId: new ObjectId(_id),
+  });
 
   if (!wasMember) {
     return res.status(200).json({
@@ -243,9 +247,10 @@ const markTrialAttendance = AsyncErrorHandler(async (req, res, next) => {
 const getMembership = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.params.jymid;
   const userId = req.user._id;
+  console.log({ jymId, userId });
   const membership = await Membership.findOne({
-    jymId: jymId,
-    userId: userId,
+    jymId: new ObjectId(jymId),
+    userId: new ObjectId(userId),
   }).sort({ createdAt: -1 });
   if (!membership) {
     return next(new CustomError("Create Membership with this jym", 404));

@@ -12,6 +12,8 @@ const {
 } = require("../controllers/attendance.controller.js");
 
 router.post("/regularattendance", verifyUser, attendanceHandler);
+
+// this need to be changed according to new model
 router.post(
   "/attendancebyadmin",
   verifyUser,

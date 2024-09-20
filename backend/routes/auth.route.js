@@ -19,7 +19,7 @@ router.post("/signup", signup);
 router.post("/login", signin);
 router.post("/google", google);
 router.post("/getputurltoken", putObject);
-router.post("/deleteurltoken/:key", deleteObject);
+router.delete("/deleteimg", verifyUser, deleteObject);
 router.post("/send-otp", sendOtp);
 router.post("/verify-otp", verifyOtp);
 router.post("/resetpassword", resetPassword);

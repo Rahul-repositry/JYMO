@@ -15,6 +15,8 @@ const CustomError = require("../utils/CustomError.utils.js");
 const OTP = require("../models/OTP.model.js");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const axios = require("axios");
+const { ObjectId } = require("mongoose").Types;
+
 // Other code using these imports
 
 dotenv.config("");
@@ -23,6 +25,14 @@ const bucketName = process.env.BUCKET_NAME;
 const bucketRegion = process.env.BUCKET_REGION;
 const userKey = process.env.AWSUSER_ACCESS_KEY;
 const secretKey = process.env.AWSUSER_SECRET_KEY;
+
+const s3Client = new S3Client({
+  region: bucketRegion,
+  credentials: {
+    accessKeyId: userKey,
+    secretAccessKey: secretKey,
+  },
+});
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
@@ -97,10 +107,12 @@ const storeOTP = async (phoneNumber, otp, idToken) => {
 // all async handler func
 
 const signup = AsyncErrorHandler(async (req, res, next) => {
+  // only send firebaseEmailIdToken token instead of email
+  // you have to verify otp here and directly signsup the user otherwise this is very weak signup  change it
   const {
     username,
     age,
-    email,
+    firebaseEmailIdToken,
     password,
     phoneNumber,
     birthday,
@@ -109,12 +121,19 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     img,
     gender,
   } = req.body;
+
+  const firebaseUser = await admin.auth().verifyIdToken(firebaseEmailIdToken);
+
+  if (!firebaseUser.email) {
+    return next(new CustomError("Authentication failed", 401));
+  }
+
   const hashedPassword = bcryptjs.hashSync(String(password), 10);
   console.log("body", req.body);
   const newUser = new User({
     username,
     age,
-    email,
+    email: firebaseEmailIdToken.email,
     password: hashedPassword,
     phone: phoneNumber,
     birthday,
@@ -123,9 +142,12 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
   });
 
   console.log({ img, newUser });
+  // img for google img
   if (img) {
     newUser.img = img;
   }
+
+  // img key for uploaded img
   if (imgKey) {
     newUser.img = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/userProfileImg/${imgKey}`;
   }
@@ -295,6 +317,7 @@ const logout = AsyncErrorHandler(async (req, res, next) => {
 // });
 
 const sendOtp = AsyncErrorHandler(async (req, res, next) => {
+  // same used as in user for updating data
   const { phoneNumber } = req.body;
   console.log(phoneNumber);
 
@@ -352,15 +375,8 @@ const verifyOtp = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
+// PUT object
 const putObject = AsyncErrorHandler(async (req, res, next) => {
-  const s3Client = new S3Client({
-    region: bucketRegion,
-    credentials: {
-      accessKeyId: userKey,
-      secretAccessKey: secretKey,
-    },
-  });
-
   const key = `${crypto.randomBytes(20).toString("hex")}${Date.now()}`;
   const command = new PutObjectCommand({
     Bucket: "jymo",
@@ -371,21 +387,93 @@ const putObject = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const deleteObject = AsyncErrorHandler(async (req, res, next) => {
-  const s3Client = new S3Client({
-    region: bucketRegion,
-    credentials: {
-      accessKeyId: userKey,
-      secretAccessKey: secretKey,
-    },
-  });
-  const key = req.params.key;
+  const { imgUrl } = req.query; // Get imgUrl from query params
+  const userId = req.user._id;
+
+  console.log({ imgUrl });
+
+  if (!imgUrl) {
+    return next(new CustomError("upload img to delete", 400));
+  }
+
+  // Get the user object from the database
+  const userObj = await User.findById({ _id: new ObjectId(userId) });
+
+  // Default image URL from environment variable
+  const defaultImgUrl = process.env.AWSUSER_DEFAULT_IMG;
+
+  // 1. Check if the image is the default image from the environment
+  if (imgUrl === defaultImgUrl) {
+    return next(new CustomError("Not a valid image to delete", 400));
+  }
+
+  // 2. Check if the image URL is a Google sign-in image
+  if (imgUrl.includes("lh3.googleusercontent.com")) {
+    res.status(200).json({
+      status: "success",
+      success: true,
+      message: "You can upload a new image",
+    });
+    return;
+  }
+
+  // 3. Check if the image is hosted on S3 and verify it is not the default image
+  const urlParts = imgUrl.split("/");
+  const key = urlParts[urlParts.length - 1];
+  const s3ImageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/userProfileImg/${key}`;
+
+  if (!imgUrl.includes("jymo.s3") || imgUrl === defaultImgUrl) {
+    return next(new CustomError("Not a valid image to delete", 400));
+  }
+
+  // 4. Verify that the user deleting the image is the owner of the image
+  if (userObj.img !== s3ImageUrl) {
+    return next(
+      new CustomError("You are not authorized to delete this image", 403)
+    );
+  }
+
+  // 5. Delete the image from S3 if all conditions are met
   const command = new DeleteObjectCommand({
     Bucket: "jymo",
     Key: `userProfileImg/${key}`,
   });
-  const url = await getSignedUrl(s3Client, command);
-  res.status(200).json({ status: "success", url, key });
+
+  try {
+    let s3res = await s3Client.send(command);
+
+    // Check if the S3 deletion was successful by checking status code or response
+    if (s3res.$metadata.httpStatusCode === 204) {
+      // 6. Update the user's image field to an empty string
+      userObj.img = process.env.AWSUSER_DEFAULT_IMG; // Set image to empty
+      await userObj.save(); // Save the updated user object
+
+      // Respond with success
+      res.status(200).json({
+        status: "success",
+        success: true,
+        response: s3res,
+        message: "Image deleted successfully and user image field updated",
+      });
+    } else {
+      return next(new CustomError("Failed to delete image from S3", 500));
+    }
+  } catch (error) {
+    // Handle any errors during the deletion process
+    return next(new CustomError("Error deleting image from S3", 500));
+  }
 });
+
+// in frontend
+// * dont show delete icon if img starts from 'lh3.googleusercontent.com'  show when its 'jymo.s3' but not that default img
+
+// if there is default img or img starts with 'https://lh3.googleusercontent.com/' this  then only img will get uploaded otherwise delete button will be shown in which you have to delete your preivously uploaded aws image and then
+
+// before uploading new image delete existing image if exists in aws storage if it is a google firebase "img  you can upload a new image with success "   add a 15 day stoppage and add it in backend change it from backend that if user is modified   problem arisies that if one place if user is modified then changing other proprties will also update upted at date add timestamp to every property .
+
+// get url from frontend
+// split by slash here get key if starts with jymo or must not be default img to delete
+// chq is googleimg by identifying the domain and style of url and pass message .
 
 module.exports = {
   signup,
