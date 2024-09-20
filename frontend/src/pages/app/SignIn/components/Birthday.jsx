@@ -1,13 +1,28 @@
 import React, { useEffect, useState } from "react";
 import "./birthday.css";
 import { useSignupUserContext } from "../../../../context/context";
+import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
 
-const BirthDate = () => {
+const BirthDate = ({ setFormData }) => {
   const [birthDate, setBirthDate] = useState({
     year: "",
     month: "",
     day: "",
   });
+
+  useEffect(() => {
+    const localUser = getObjectFromLocalStorage("user");
+
+    const localUserBirthday = localUser?.birthday.split("-");
+
+    if (localUserBirthday) {
+      setBirthDate({
+        year: localUserBirthday[0],
+        month: localUserBirthday[1],
+        day: localUserBirthday[2],
+      });
+    }
+  }, []);
 
   const [signupData, updateSignupData] = useSignupUserContext();
 
@@ -16,7 +31,15 @@ const BirthDate = () => {
       const formattedBirthday = `${birthDate.year}-${String(
         months.indexOf(birthDate.month) + 1
       ).padStart(2, "0")}-${String(birthDate.day).padStart(2, "0")}`;
+
       updateSignupData({ birthday: formattedBirthday });
+      if (setFormData) {
+        console.log(formattedBirthday);
+        setFormData((prev) => ({
+          ...prev,
+          birthday: formattedBirthday,
+        }));
+      }
     }
   }, [birthDate]);
 
@@ -74,7 +97,7 @@ const BirthDate = () => {
           id="year"
           value={birthDate.year}
           onChange={handleDateChange}
-          className="  select-field focus:ring-customButton focus:border-customButton"
+          className="select-field focus:ring-customButton focus:border-customButton"
         >
           <option value="" disabled>
             Year
@@ -90,7 +113,7 @@ const BirthDate = () => {
           id="month"
           value={birthDate.month}
           onChange={handleDateChange}
-          className=" select-field focus:ring-customButton focus:border-customButton"
+          className="select-field focus:ring-customButton focus:border-customButton"
         >
           <option value="" disabled>
             Month
@@ -106,7 +129,7 @@ const BirthDate = () => {
           id="day"
           value={birthDate.day}
           onChange={handleDateChange}
-          className=" select-field focus:ring-customButton focus:border-customButton"
+          className="select-field focus:ring-customButton focus:border-customButton"
           disabled={!birthDate.month || !birthDate.year}
         >
           <option value="" disabled>

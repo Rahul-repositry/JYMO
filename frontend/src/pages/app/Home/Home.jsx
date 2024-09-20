@@ -9,6 +9,7 @@ import CustomButton from "../../../components/Button/Button";
 import {
   capitalizeFLetter,
   getObjectFromLocalStorage,
+  setObjectInLocalStorage,
 } from "../../../utils/helperFunc";
 import WorkoutPlan from "../../../components/workoutPlan/WorkoutPlan";
 
@@ -131,17 +132,36 @@ const Home = () => {
       return dayOfWeekOrder[a.dayOfWeek] - dayOfWeekOrder[b.dayOfWeek];
     });
   };
+  console.log("is rendering ");
 
-  const calculateDaysUntilExpiration = (membershipEndDate) => {
+  const calculateDiffOfEndDateAndToday = (membershipEndDate) => {
+    console.log(membershipEndDate);
     const membershipEndDateTime = new Date(membershipEndDate).getTime();
     const now = new Date().getTime();
     const diff = membershipEndDateTime - now;
-    return Math.round(diff / (1000 * 60 * 60 * 24));
+    const days = Math.round(diff / (1000 * 60 * 60 * 24));
+    if (days < 0) {
+      setDetailsInLocalStorageForUser({ isExpired: true });
+    } else {
+      setDetailsInLocalStorageForUser({ isExpired: false });
+    }
+    return days;
+  };
+
+  // set details in localStorage user
+  const setDetailsInLocalStorageForUser = (data) => {
+    // data : { key : value } format
+    const user = getObjectFromLocalStorage("user");
+    if (user) {
+      const updatedUser = { ...user, ...data };
+      setObjectInLocalStorage("user", updatedUser);
+    }
   };
 
   // Function to fetch membership data
   const fetchMembershipData = async (currentJymId) => {
     if (membershipCache.current) {
+      console.log(membershipCache);
       return membershipCache.current;
     }
     try {
@@ -152,6 +172,7 @@ const Home = () => {
         }
       );
       membershipCache.current = response.data;
+      console.log(response.data);
       return response.data;
     } catch (err) {
       console.error("Error fetching membership data: ", err);
@@ -211,12 +232,13 @@ const Home = () => {
     if (!data || !data.success) return;
 
     const membershipEndDate = new Date(data.membership.endDate);
-    const daysUntilExpiration = calculateDaysUntilExpiration(membershipEndDate);
+    const diffOfEndDateAndToday =
+      calculateDiffOfEndDateAndToday(membershipEndDate);
 
-    if (daysUntilExpiration < 0) {
+    if (diffOfEndDateAndToday < 0) {
       setMembership({
         expired: true,
-        days: Math.abs(daysUntilExpiration),
+        days: Math.abs(diffOfEndDateAndToday),
         date: membershipEndDate.getDate(),
         month: membershipEndDate.getMonth() + 1,
         year: membershipEndDate.getFullYear(),
@@ -248,7 +270,7 @@ const Home = () => {
         }
       }
     } else {
-      setMembership({ expired: false, days: daysUntilExpiration });
+      setMembership({ expired: false, days: diffOfEndDateAndToday });
     }
   };
 
@@ -256,9 +278,11 @@ const Home = () => {
     const loadData = async () => {
       const currentJym = getObjectFromLocalStorage("currentJym");
 
-      if (currentJym?.id) {
-        const membershipData = await fetchMembershipData(currentJym.id);
-        await handleMembershipData(membershipData, currentJym.id);
+      if (currentJym?.jymId) {
+        console.log(currentJym);
+        const membershipData = await fetchMembershipData(currentJym.jymId);
+        console.log(membershipData);
+        await handleMembershipData(membershipData, currentJym.jymId);
       }
 
       const workoutPlans = await fetchWorkoutPlans();

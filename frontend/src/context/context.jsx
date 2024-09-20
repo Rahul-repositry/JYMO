@@ -4,6 +4,8 @@ import { toast } from "react-toastify";
 
 const SignupUserDataContext = createContext(undefined);
 
+/// only applicable for signup and personal info cannto used iin whole app
+
 export function useSignupUserContext() {
   const context = useContext(SignupUserDataContext);
 

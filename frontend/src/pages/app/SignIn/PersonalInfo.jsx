@@ -8,9 +8,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 
 const PersonalInfo = () => {
-  const [preview, setPreview] = useState(
-    "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465"
-  );
+  const [preview, setPreview] = useState(process.env.REACT_APP_DEFAULT_IMG);
   const [signupData, updateSignupData] = useSignupUserContext();
   const [formData, setFormData] = useState({
     gender: "",
@@ -44,11 +42,7 @@ const PersonalInfo = () => {
     try {
       let imgUrl = signupData.img;
 
-      if (
-        preview &&
-        preview !==
-          "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465"
-      ) {
+      if (preview && preview !== process.env.REACT_APP_DEFAULT_IMG) {
         // Check if preview is updated
         let imageFile;
         console.log(preview.startsWith("https://lh3.googleusercontent.com/"));

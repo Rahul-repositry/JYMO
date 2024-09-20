@@ -9,7 +9,6 @@ import Main from "./pages/app/SignIn/Main";
 import LogIn from "./pages/app/SignIn/LogIn";
 import ForgotPass from "./pages/app/SignIn/ForgotPass";
 import ResetPass from "./pages/app/SignIn/ResetPass";
-
 import Home from "./pages/app/Home/Home.jsx";
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
 import Calendar from "./pages/app/Calendar/Calendar.jsx";
@@ -17,11 +16,45 @@ import EditWorkout from "./components/workoutPlan/EditWorkout.jsx";
 import Scanner from "./pages/app/Scanner/Scanner.jsx";
 import Success from "./pages/app/Scanner/Success.jsx";
 import Myqr from "./pages/app/Scanner/Myqr.jsx";
-import Scanner2 from "./pages/app/Scanner/SolveScannerProb.jsx";
+// import Scanner2 from "./pages/app/Scanner/SolveScannerProb.jsx";
 import ScannerProtected from "./pages/app/Scanner/ScannerProtected.jsx";
+import { useEffect } from "react";
+import {
+  getObjectFromLocalStorage,
+  setObjectInLocalStorage,
+} from "./utils/helperFunc.js";
+import Profile from "./pages/app/Profile/Profile.jsx";
+
+import axios from "axios";
+import UpdateWrapper from "./pages/app/Profile/UpdateWrapper.jsx";
 
 function App() {
   const location = useLocation();
+
+  const fetchUserDetails = async () => {
+    try {
+      const user = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URI}/api/user`,
+        {
+          withCredentials: true,
+          headers: {
+            "Cache-Control": "no-cache", // Ensure no caching
+          },
+        }
+      );
+      if (user.data.success) {
+        setObjectInLocalStorage("user", user.data.user);
+      }
+      console.log(user);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+
+  useEffect(() => {
+    console.log("working");
+    fetchUserDetails();
+  }, []);
 
   // defines a redux user slice to user everwhere
 
@@ -38,9 +71,7 @@ function App() {
     "/termscondition",
     "/about",
     "/login",
-    "signup",
-    "/forgotpassword",
-    "/resetpassword",
+    "/signup",
   ];
 
   // Check if the current path is in the excludePaths array
@@ -80,6 +111,8 @@ function App() {
             {/* <Route path="/scanner2" element={<Scanner2 />} /> */}
             <Route path="/scanner/success" element={<Success />} />
             <Route path="/scanner/myqr" element={<Myqr />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/updateuser" element={<UpdateWrapper />} />
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />

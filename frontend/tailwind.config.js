@@ -24,6 +24,7 @@ module.exports = {
         "custom-md400": "400px",
         "custom-md500": "500px",
         "custom-md800": "800px",
+        "custom-md600": "600px",
         "custom-md900": "900px",
         "custom-lg1100": "1100px",
         standalone: {

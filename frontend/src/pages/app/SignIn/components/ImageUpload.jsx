@@ -120,7 +120,7 @@ const ImageUpload = ({ setPreview }) => {
           </div>
         )}
         <button onClick={handleCrop} className="crop-button">
-          Crop and Upload
+          Crop
         </button>
         <button onClick={closeModal} className="close-button">
           Close

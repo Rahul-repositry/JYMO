@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import NotificationIcon from "../../../images/Notifications-Icon.svg";
 import { useSelector } from "react-redux";
 import { getObjectFromLocalStorage } from "../../../utils/helperFunc";
-// import {  } from "../../../redux/slices/user.slice.js"
+import arrow from "../../../images/arrow.svg";
 const Navbar = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState(
@@ -18,21 +18,7 @@ const Navbar = () => {
       <div className="navbarWrapper py-2 px-1 flex justify-between">
         <div className="cont flex items-center  ">
           <div className="backarrow  " onClick={handleBackClick}>
-            <svg
-              width="45"
-              height="45"
-              viewBox="0 0 27 28"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M15.75 8.375L10.125 14L15.75 19.625"
-                stroke="#6a6a6a"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+            <img src={arrow} alt="arrow" />
           </div>
           <div className="logo">
             <svg
