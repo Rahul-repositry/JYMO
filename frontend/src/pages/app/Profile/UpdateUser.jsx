@@ -122,11 +122,6 @@ const UpdateUser = () => {
       );
       if (data.success) {
         toast.success("User updated successfully!");
-      } else {
-        const nextUpdate = new Date(data.user.updatedAt + 1000 * 60 * 2);
-        toast.warning(
-          `You can update after ${nextUpdate.getHours()} : ${nextUpdate.getMinutes()}`
-        );
       }
     } catch (error) {
       console.log(error);

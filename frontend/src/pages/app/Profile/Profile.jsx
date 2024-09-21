@@ -17,26 +17,31 @@ import phone from "../../../images/phone.svg";
 import axios from "axios";
 
 let Options = [
-  { logo: checklist, text: "Past Jyms" },
+  { logo: checklist, text: "Past Jyms", link: "/profile/pastjyms" },
   {
     logo: email,
     text: "Change  Gmail",
+    link: "/profile/updategmail",
   },
   {
     logo: phone,
     text: "Change Phone-number",
+    link: "/profile/updatephone",
   },
   {
     logo: password,
     text: "Forgot Password",
+    link: "/profile/forgotpassword",
   },
   {
     logo: getHelp,
     text: "Get Help",
+    link: "/profile/gethelp",
   },
   {
     logo: logOut,
     text: "Log Out",
+    link: "/profile/logout",
   },
 ];
 
@@ -244,21 +249,29 @@ const Profile = () => {
       <div className="options px-4 flex flex-col gap-4 py-5">
         {Options.map((data) => {
           return (
-            <div
-              className={`${data.text} flex  place-items-center`}
-              key={data.text}
-            >
-              <div className="svg">
-                <img src={data.logo} alt={data.text} />
-              </div>
-              <div className="pastContainer pl-3  flex-grow">
-                <div className="arrowNDText flex justify-between  place-items-center">
-                  <p>{data.text}</p>
-                  <img src={arrow} alt="arrow" className=" rotate-180 w-9" />
+            <>
+              <Link to={data?.link}>
+                <div
+                  className={`${data.text} flex  place-items-center`}
+                  key={data.text}
+                >
+                  <div className="svg">
+                    <img src={data.logo} alt={data.text} />
+                  </div>
+                  <div className="pastContainer pl-3  flex-grow">
+                    <div className="arrowNDText flex justify-between  place-items-center">
+                      <p>{data.text}</p>
+                      <img
+                        src={arrow}
+                        alt="arrow"
+                        className=" rotate-180 w-9"
+                      />
+                    </div>
+                    <div className="line bg-slate-300 h-[1px] w-full"></div>
+                  </div>
                 </div>
-                <div className="line bg-slate-300 h-[1px] w-full"></div>
-              </div>
-            </div>
+              </Link>
+            </>
           );
         })}
       </div>

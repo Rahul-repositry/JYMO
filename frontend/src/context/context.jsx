@@ -24,6 +24,7 @@ export function SignupUserDataProvider({ children }) {
     email: "",
     password: "",
     phoneNumber: "",
+    firebaseEmailIdToken: "",
     role: "",
     birthday: "",
     gender: "",

@@ -113,6 +113,7 @@ function App() {
             <Route path="/scanner/myqr" element={<Myqr />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/updateuser" element={<UpdateWrapper />} />
+            <Route path="/profile/updategmail" element={<UpdateWrapper />} />
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />

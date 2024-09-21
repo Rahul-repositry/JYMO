@@ -6,7 +6,7 @@ import { useSignupUserContext } from "../../context/context.jsx";
 import axios from "axios";
 import { setObjectInLocalStorage } from "../../utils/helperFunc.js";
 
-export default function Gauth() {
+export default function Gauth({ setUpdateData, confirmChange }) {
   const navigate = useNavigate();
   const location = useLocation();
   const [signupData, updateSignupData] = useSignupUserContext();
@@ -19,8 +19,8 @@ export default function Gauth() {
       const result = await signInWithPopup(auth, provider);
       const idToken = await result.user.getIdToken();
 
+      // Check the page and update accordingly
       if (location.pathname === "/login") {
-        console.log("login workign ");
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/auth/google`,
           {
@@ -35,7 +35,6 @@ export default function Gauth() {
         );
 
         const { data } = response;
-        console.log(response);
         if (data.success === false) {
           toast.error(`${data.message}`);
           return;
@@ -43,15 +42,29 @@ export default function Gauth() {
         toast.success("Welcome To Jymo");
         setObjectInLocalStorage("user", response.data.user);
         navigate("/home");
+        return;
       } else if (location.pathname === "/signup") {
         updateSignupData({
           username: result.user.displayName,
           email: result.user.email,
+          firebaseEmailIdToken: idToken,
           img: result.user.photoURL,
         });
+        return;
+      } else if (location.pathname.includes("profile")) {
+        if (setUpdateData) {
+          // Instead of directly setting the updateData, prompt the user
+          confirmChange(); // Trigger the confirmation modal
+          setUpdateData({
+            email: result.user.email,
+            firebaseEmailIdToken: idToken,
+          });
+        }
+        return;
       }
+      toast.error("Page not found");
     } catch (error) {
-      console.log("could not login with google", error);
+      console.log("Could not log in with Google", error);
       if (error?.response?.data?.message === "Signup first to get registered") {
         navigate("/signup");
         return toast.error(`${error.response.data.message}`);
@@ -94,12 +107,12 @@ export default function Gauth() {
                   fill="#EB4335"
                 ></path>
                 <path
-                  d="M23.7136364,37.8666667 C17.5491591,37.8666667 12.3545909,33.888 10.5322727,28.3562667 L2.62345455,34.3946667 C6.44540909,42.1557333 14.4268636,47.4666667 23.7136364,47.4666667 C29.4455,47.4666667 34.9177955,45.4314667 39.0249545,41.6181333 L31.5177727,35.8144 C29.3995682,37.1488 26.7323182,37.8666667 23.7136364,37.8666667"
+                  d="M23.7136364,37.8666667 C17.5491591,37.8666667 12.3545909,33.888 10.5322727,28.3562667 L2.62345455,34.3946667 C6.44540909,42.1557333 14.4268636,47.4666667 23.7136364,47.4666667 C29.381,47.4666667 34.3521591,45.5514667 38.52075,42.0656 L31.0359091,36.4266667 C28.7831818,37.8549333 26.3261591,38.7333333 23.7136364,38.7333333"
                   id="Fill-3"
                   fill="#34A853"
                 ></path>
                 <path
-                  d="M46.1454545,24 C46.1454545,22.6133333 45.9318182,21.12 45.6113636,19.7333333 L23.7136364,19.7333333 L23.7136364,28.8 L36.3181818,28.8 C35.6879545,31.8912 33.9724545,34.2677333 31.5177727,35.8144 L39.0249545,41.6181333 C43.3393409,37.6138667 46.1454545,31.6490667 46.1454545,24"
+                  d="M46.1454545,24 C46.1454545,22.7365333 46,21.4912 45.7363636,20.2933333 L23.7136364,20.2933333 L23.7136364,28.1866667 L36.4856818,28.1866667 C35.855,31.2469333 34.2020455,33.7482667 31.6613636,35.4208 L38.52075,42.0656 C42.8369545,38.0229333 46.1454545,31.9466667 46.1454545,24"
                   id="Fill-4"
                   fill="#4285F4"
                 ></path>
@@ -107,7 +120,7 @@ export default function Gauth() {
             </g>
           </g>
         </svg>
-        <span>Continue with Google</span>
+        Continue with Google
       </button>
     </div>
   );
