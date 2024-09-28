@@ -10,8 +10,10 @@ import LogIn from "./pages/app/SignIn/LogIn";
 import ForgotPass from "./pages/app/SignIn/ForgotPass";
 import ResetPass from "./pages/app/SignIn/ResetPass";
 import Home from "./pages/app/Home/Home.jsx";
+
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
 import Calendar from "./pages/app/Calendar/Calendar.jsx";
+import Calendar2 from "./pages/app/Calendar/Calendar.jsx";
 import EditWorkout from "./components/workoutPlan/EditWorkout.jsx";
 import Scanner from "./pages/app/Scanner/Scanner.jsx";
 import Success from "./pages/app/Scanner/Success.jsx";
@@ -27,6 +29,7 @@ import Profile from "./pages/app/Profile/Profile.jsx";
 
 import axios from "axios";
 import UpdateWrapper from "./pages/app/Profile/UpdateWrapper.jsx";
+import PastJyms from "./pages/app/Profile/PastJyms.jsx";
 
 function App() {
   const location = useLocation();
@@ -98,7 +101,9 @@ function App() {
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<Home />} />
+
             <Route path="/calendar" element={<Calendar />} />
+            <Route path="/calendar2" element={<Calendar2 />} />
             <Route path="/editworkout" element={<EditWorkout />} />
             <Route
               path="/scanner"
@@ -114,6 +119,8 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/profile/updateuser" element={<UpdateWrapper />} />
             <Route path="/profile/updategmail" element={<UpdateWrapper />} />
+            <Route path="/profile/updatephone" element={<UpdateWrapper />} />
+            <Route path="/profile/pastjyms" element={<PastJyms />} />
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />

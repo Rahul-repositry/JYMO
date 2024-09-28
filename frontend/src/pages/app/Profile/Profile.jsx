@@ -31,7 +31,7 @@ let Options = [
   {
     logo: password,
     text: "Forgot Password",
-    link: "/profile/forgotpassword",
+    link: "/forgotpassword",
   },
   {
     logo: getHelp,

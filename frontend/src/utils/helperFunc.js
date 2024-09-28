@@ -27,3 +27,19 @@ export const capitalizeFLetter = (text) => {
 
   return data ? data : "";
 };
+
+export const formatTime = (dateStr) => {
+  let date = new Date(dateStr);
+  let hours = date.getHours();
+  const minutes = date.getMinutes().toString().padStart(2, "0");
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+
+  // Determine AM/PM suffix
+  const ampm = hours >= 12 ? "PM" : "AM";
+
+  // Convert hours to 12-hour format
+  hours = hours % 12 || 12; // Convert 0 to 12 for midnight and 12-hour format
+  hours = hours.toString().padStart(2, "0");
+
+  return `${hours}:${minutes}:${seconds} ${ampm}`;
+};

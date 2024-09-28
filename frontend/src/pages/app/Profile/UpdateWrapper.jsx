@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import UpdateUser from "./UpdateUser";
 import { SignupUserDataProvider } from "../../../context/context";
 import { useLocation } from "react-router-dom";
-import UpdateGmail from "./UpdateGmail";
+import UpdateGmail from "./UpdateGmail.jsx";
+import UpdatePhone from "./UpdatePhone.jsx";
 
 const UpdateWrapper = () => {
   let location = useLocation();
@@ -27,6 +28,7 @@ const UpdateWrapper = () => {
     <SignupUserDataProvider>
       {updateuser && <UpdateUser />}
       {updategmail && <UpdateGmail />}
+      {updatephone && <UpdatePhone />}
     </SignupUserDataProvider>
   );
 };

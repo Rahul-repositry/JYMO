@@ -1,26 +1,21 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import {
   add,
   eachDayOfInterval,
   endOfMonth,
   format,
   getDay,
-  isEqual,
-  isSameDay,
   isSameMonth,
-  isSunday,
   isToday,
-  parse,
-  parseISO,
-  startOfDay,
   startOfToday,
+  parse,
 } from "date-fns";
-import axios from "axios";
-import WorkoutPlan from "../../../components/workoutPlan/WorkoutPlan";
 import { Link } from "react-router-dom";
+import useWorkoutPlans from "./CustomHooks/useWorkoutPlan.js";
+import useAttendance from "./CustomHooks/useAttendance.js";
+import WorkoutPlan from "../../../components/workoutPlan/WorkoutPlan.jsx";
 
 function classNames(...classes) {
-  console.log(classes);
   return classes.filter(Boolean).join(" ");
 }
 
@@ -35,212 +30,27 @@ let colStartClasses = [
 ];
 
 const Calendar = () => {
-  // not currently showing status of absent because it becomes difficult at time when t
   const today = startOfToday();
-  //   const [selectedDay, setSelectedDay] = useState(today);
   const [currentMonth, setCurrentMonth] = useState(format(today, "MMM-yyyy"));
-  const attendanceMonthCache = useRef({});
-  const daysWithStatusCache = useRef({});
-  const workoutCache = useRef({});
-  const [workout, setWorkout] = useState([
-    { dayOfWeek: "sun", _id: "id1-sun" },
-    { dayOfWeek: "mon", _id: "id2-mon" },
-    { dayOfWeek: "tue", _id: "id3-tue" },
-    { dayOfWeek: "wed", _id: "id4-wed" },
-    { dayOfWeek: "thu", _id: "id5-thu" },
-    { dayOfWeek: "fri", _id: "id6-fri" },
-    { dayOfWeek: "sat", _id: "id7-sat" },
-  ]);
-
-  console.log(daysWithStatusCache);
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
-  const days = eachDayOfInterval({
-    start: firstDayCurrentMonth,
-    end: endOfMonth(firstDayCurrentMonth),
-  });
+  const daysWithStatus = useAttendance(currentMonth, firstDayCurrentMonth);
+  const workout = useWorkoutPlans();
 
-  const initializeDaysWithStatus = () => {
-    return days.map((date) => ({
-      date,
-      status: "pending",
-    }));
-  };
   const getWeekDates = () => {
     const weekDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     const today = new Date();
-    const dayOfWeek = today.getDay(); // 0 (Sun) to 6 (Sat)
+    const dayOfWeek = today.getDay();
     const weekDates = {};
-
     weekDays.forEach((day, index) => {
       const diff = index - dayOfWeek;
       const date = new Date(today);
       date.setDate(today.getDate() + diff);
       weekDates[day] = date;
     });
-
     return weekDates;
   };
 
   const weekDates = getWeekDates();
-  console.log(weekDates);
-
-  const sortWorkoutPlans = (workoutPlans) => {
-    const dayOfWeekOrder = {
-      sun: 0,
-      mon: 1,
-      tue: 2,
-      wed: 3,
-      thu: 4,
-      fri: 5,
-      sat: 6,
-    };
-
-    return workoutPlans.sort((a, b) => {
-      return dayOfWeekOrder[a.dayOfWeek] - dayOfWeekOrder[b.dayOfWeek];
-    });
-  };
-
-  const fetchWorkoutPlans = async () => {
-    if (workoutCache.current.length > 0) {
-      return workoutCache.current;
-    }
-    try {
-      const response = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URI}/api/workout/getallworkout`,
-        {
-          withCredentials: true,
-        }
-      );
-      console.log(response);
-      const sortedWorkoutPlans = sortWorkoutPlans(response.data.workoutPlans);
-      workoutCache.current = sortedWorkoutPlans;
-      console.log({ sortedWorkoutPlans });
-      return { success: true, workoutPlans: sortedWorkoutPlans };
-    } catch (err) {
-      console.error("Error fetching workout plans: ", err);
-      return null;
-    }
-  };
-
-  const [daysWithStatus, setDaysWithStatus] = useState(
-    initializeDaysWithStatus()
-  );
-
-  const fetchAttendanceMonthData = async (currentJymId, startDate, endDate) => {
-    const today = new Date();
-
-    // Check if the start date is in the future
-
-    if (new Date(startDate) > today) {
-      return {
-        success: true,
-        attendance: [], // Return an empty attendance array
-      };
-    }
-
-    // Check cache
-    if (attendanceMonthCache.current[currentMonth]) {
-      return attendanceMonthCache.current[currentMonth];
-    }
-
-    try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URI}/api/attendance/getattendancebydate`,
-        {
-          jymId: currentJymId,
-          startDate,
-          endDate,
-        },
-        {
-          withCredentials: true,
-        }
-      );
-      attendanceMonthCache.current[currentMonth] = response.data;
-      console.log({ attendanceMonthCache, data: response });
-      return response.data;
-    } catch (err) {
-      console.error("Error fetching attendance data: ", err);
-      return {
-        success: false,
-        attendance: [],
-      };
-    }
-  };
-
-  const updateDaysWithAttendance = (attendanceData) => {
-    attendanceData.forEach((att) => {
-      console.log(new Date(att?.checkIn));
-    });
-    if (attendanceData?.length > 0) {
-      if (daysWithStatusCache.current[currentMonth]) {
-        console.log("cached executed");
-        setDaysWithStatus(daysWithStatusCache.current[currentMonth]);
-        return;
-      }
-
-      const updatedDays = initializeDaysWithStatus().map((dayObj) => {
-        const dayDate = startOfDay(dayObj.date).getTime().toString();
-        const attendanceRecord = attendanceData?.find((att) => {
-          let chqDate = startOfDay(parseISO(att?.checkIn)).getTime().toString();
-          return chqDate === dayDate;
-        });
-
-        if (attendanceRecord) {
-          return { ...dayObj, status: "present" };
-        } else if (getDay(dayObj.date) === 0) {
-          return { ...dayObj, status: "holiday" };
-        } else {
-          return { ...dayObj, status: "pending" };
-        }
-      });
-
-      daysWithStatusCache.current[currentMonth] = updatedDays;
-      setDaysWithStatus(updatedDays);
-    } else {
-      const updatedDays = initializeDaysWithStatus();
-      setDaysWithStatus(updatedDays);
-    }
-  };
-
-  const loadCalendarData = async () => {
-    const startDate = firstDayCurrentMonth.toISOString();
-    const endDate = endOfMonth(firstDayCurrentMonth).toISOString();
-
-    const attendanceData = await fetchAttendanceMonthData(
-      "66b494c994292de725fe1a0e", // replace it with redux context jymid
-      startDate,
-      endDate
-    );
-
-    if (attendanceData?.success) {
-      updateDaysWithAttendance(attendanceData.attendance);
-    } else {
-      console.log("Error fetching attendance data");
-      updateDaysWithAttendance([]);
-    }
-  };
-
-  useEffect(() => {
-    loadCalendarData();
-  }, [currentMonth]);
-
-  useEffect(() => {
-    const loadWorkoutData = async () => {
-      try {
-        const workoutPlans = await fetchWorkoutPlans();
-
-        if (workoutPlans && workoutPlans.success) {
-          setWorkout(workoutPlans.workoutPlans);
-        }
-      } catch (err) {
-        console.log("no workout found");
-      }
-    };
-
-    loadWorkoutData();
-  }, []);
-
-  console.log(workout);
 
   const previousMonth = () => {
     const firstDayPreviousMonth = add(firstDayCurrentMonth, { months: -1 });
@@ -311,41 +121,35 @@ const Calendar = () => {
               <div>S</div>
             </div>
             <div className="grid grid-cols-7 mt-2 text-sm">
-              {daysWithStatus.map((dayObj, dayIdx) => {
-                if (isToday(dayObj.date)) {
-                  console.log({ dayObj }, "heree");
-                }
-                return (
-                  <div
-                    key={dayObj.date.toString()}
+              {daysWithStatus.map((dayObj, dayIdx) => (
+                <div
+                  key={dayObj.date.toString()}
+                  className={classNames(
+                    dayIdx === 0 && colStartClasses[getDay(dayObj.date)],
+                    "py-1.5"
+                  )}
+                >
+                  <button
+                    type="button"
                     className={classNames(
-                      dayIdx === 0 && colStartClasses[getDay(dayObj.date)],
-                      "py-1.5"
+                      isSameMonth(dayObj.date, firstDayCurrentMonth) &&
+                        dayObj.status === "present" &&
+                        "bg-green-500 text-white",
+                      isToday(dayObj.date) && "bg-yellowBox text-white",
+                      isToday(dayObj.date) &&
+                        dayObj.status === "present" &&
+                        "!bg-green-500 text-white",
+                      getDay(dayObj.date) === 0 && "text-redBox",
+                      "font-semibold",
+                      "mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
                     )}
                   >
-                    <button
-                      type="button"
-                      className={classNames(
-                        isSameMonth(dayObj.date, firstDayCurrentMonth) &&
-                          dayObj.status === "present" &&
-                          "bg-green-500 text-white",
-                        isToday(dayObj.date) && "bg-yellowBox text-white",
-                        isToday(dayObj.date) &&
-                          dayObj.status === "present" &&
-                          "!bg-green-500 text-white",
-                        isSunday(dayObj.date) && "text-redBox ",
-
-                        "font-semibold",
-                        "mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
-                      )}
-                    >
-                      <time dateTime={format(dayObj.date, "yyyy-MM-dd")}>
-                        {format(dayObj.date, "d")}
-                      </time>
-                    </button>
-                  </div>
-                );
-              })}
+                    <time dateTime={format(dayObj.date, "yyyy-MM-dd")}>
+                      {format(dayObj.date, "d")}
+                    </time>
+                  </button>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -360,17 +164,14 @@ const Calendar = () => {
               </span>
             </Link>
           </div>
-          <div className="planBox flex flex-col   place-items-center ">
+          <div className="planBox flex flex-col place-items-center">
             {workout.length && (
               <div className="flex flex-col py-5 gap-y-6 w-full">
                 {workout.map((data) => {
                   const date = weekDates[data.dayOfWeek]?.toLocaleDateString(
                     "en-GB",
-                    {
-                      day: "2-digit",
-                    }
+                    { day: "2-digit" }
                   );
-                  console.log(date);
                   return <WorkoutPlan key={data._id} data={data} date={date} />;
                 })}
               </div>

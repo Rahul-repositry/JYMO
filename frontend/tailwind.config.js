@@ -18,6 +18,7 @@ module.exports = {
         yellowBox: "#FEC972",
         redBox: "#EA3F3F",
         lightBlack: "#3F3D3D",
+        greenBox: "#8BE261",
         darkBlack: "#404446",
       },
       screens: {
