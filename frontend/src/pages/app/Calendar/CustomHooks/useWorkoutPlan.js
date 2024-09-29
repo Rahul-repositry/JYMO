@@ -1,8 +1,111 @@
 import { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
+const generateid = () => Math.random().toString(16).substr(2, 24);
+
+const transformedWorkoutPlans = [
+  {
+    _id: generateid(),
+    dayOfWeek: "sun",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+  {
+    _id: generateid(),
+    dayOfWeek: "mon",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+  {
+    _id: generateid(),
+    dayOfWeek: "tue",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+  {
+    _id: generateid(),
+    dayOfWeek: "wed",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+  {
+    _id: generateid(),
+    dayOfWeek: "thu",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+  {
+    _id: generateid(),
+    dayOfWeek: "fri",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+  {
+    _id: generateid(),
+    dayOfWeek: "sat",
+    title: "Exercise Day",
+    exercisePlan: [
+      {
+        duration: 0,
+        exercise: "Exercise Name",
+        reps: 0,
+        sets: 0,
+        _id: generateid(),
+      },
+    ],
+  },
+];
+
 const useWorkoutPlans = () => {
-  const [workout, setWorkout] = useState([]);
+  const [workout, setWorkout] = useState(transformedWorkoutPlans);
   const workoutCache = useRef(null);
 
   useEffect(() => {

@@ -1,23 +1,14 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import bicep from "../../images/bicep.svg";
-import edit from "../../images/edit.svg";
 import clock from "../../images/tabler_clock.svg";
-import { useLocation } from "react-router-dom/dist/umd/react-router-dom.development";
+
 import Exercises from "./Exercises";
 const WorkoutPlan = ({ data, date }) => {
-  const { dayOfWeek, title = "Your Exercise", exercisePlan, userId } = data;
+  const { dayOfWeek, title = "Your Exercise", exercisePlan } = data;
   const totalTime = exercisePlan
     ? exercisePlan?.reduce((acc, curr) => acc + curr.duration, 0)
     : 0;
   const [showDetail, setshowDetail] = useState(false);
-  const [showEdit, setShowEdit] = useState(false);
-  const location = useLocation();
-
-  useEffect(() => {
-    if (location.pathname === "/calendar") {
-      setShowEdit(true);
-    }
-  }, [location.pathname]);
 
   const showDetailtoggle = (e) => {
     e.stopPropagation();
@@ -31,7 +22,7 @@ const WorkoutPlan = ({ data, date }) => {
         onClick={showDetailtoggle}
       >
         <div className="flex ">
-          <div className="date w-[70px] relative flex flex-col place-items-start place-items-center px-3 pb-4">
+          <div className="date w-[70px] relative flex flex-col place-items-center px-3 pb-4">
             <h2 className="text-zinc-400 pt-4">{dayOfWeek.toUpperCase()}</h2>
             <p className="text-redBox">{date}</p>
             <div className="absolute w-[3px] h-full bg-yellowBox right-0"></div>
@@ -69,13 +60,6 @@ const WorkoutPlan = ({ data, date }) => {
             </div>
           </div>
         </div>
-        {exercisePlan && showEdit && (
-          <div className="edit flex place-items-center">
-            <div className="svgCont bg-yellowBox  rounded-md py-1 px-2 translate-x-2">
-              <img src={edit} alt="edit" className="w-6 -translate-x-1" />
-            </div>
-          </div>
-        )}
       </div>
     </>
   );
