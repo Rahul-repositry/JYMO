@@ -57,14 +57,10 @@ function Scanner({ setLoading }) {
   );
 
   const handleJUIDinput = (e) => {
-    console.log({ beforeJuid: juidRef.current });
     juidRef.current = e.target.value;
-    console.log({ afterJuid: juidRef.current });
   };
 
   const reinitializeScanner = useCallback(() => {
-    console.log("Reinitializing scanner...");
-
     setTimeout(() => {
       initScanner();
     }, 1000); // 1-second delay
@@ -75,7 +71,6 @@ function Scanner({ setLoading }) {
       try {
         await html5QrCodeRef.current.stop();
         html5QrCodeRef.current = null;
-        console.log("QR Code scanner stopped.");
       } catch (error) {
         console.error("Error stopping QR code scanner:", error);
       }
@@ -107,9 +102,8 @@ function Scanner({ setLoading }) {
   );
 
   const initScanner = useCallback(async () => {
-    console.log(html5QrCodeRef.current, readerRef.current, "before init");
     if (!readerRef.current || html5QrCodeRef.current) return;
-    console.log("after init");
+
     html5QrCodeRef.current = new Html5Qrcode(readerRef?.current.id || "reader");
     try {
       // Access camera stream
@@ -123,8 +117,6 @@ function Scanner({ setLoading }) {
         { fps: 10, qrbox: { width: 250, height: 250 } },
         onScanSuccess
       );
-
-      console.log("started scanner... ");
     } catch (error) {
       console.error("Failed to start QR code scanner:", error);
     }
@@ -160,18 +152,14 @@ function Scanner({ setLoading }) {
   }, []);
 
   useEffect(() => {
-    console.log("mounting and initializing scanner.....");
     reinitializeScanner();
 
     return () => {
-      console.log("unmounting");
       if (html5QrCodeRef.current) {
         stopScanner();
       }
     };
   }, []);
-
-  console.log("something new ");
 
   return (
     <>

@@ -16,7 +16,7 @@ const UpdateUser = () => {
   const defaultImg = process.env.REACT_APP_DEFAULT_IMG;
   const [preview, setPreview] = useState(localUser?.img || defaultImg);
   const [showDelete, setShowDelete] = useState(false);
-  console.log("19", showDelete);
+
   const [isUploading, setIsUploading] = useState(false); // Prevent multiple requests
   const [formData, setFormData] = useState({
     name: localUser.username || "",
@@ -35,8 +35,6 @@ const UpdateUser = () => {
         url !== defaultImg
     );
   };
-
-  console.log(shouldShowDelete(), showDelete);
 
   const handleInputChange = (e) =>
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -113,7 +111,7 @@ const UpdateUser = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!formData.birthday) return toast.error("Please select Birthdate.");
-    console.log(formData);
+
     try {
       const { data } = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/user/updateusernameandbday`,

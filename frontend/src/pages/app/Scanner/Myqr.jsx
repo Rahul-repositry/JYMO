@@ -19,7 +19,6 @@ const Myqr = () => {
         username: user.username,
         app: "jymo",
       });
-      console.log(JSON.stringify(qrData));
     }
   }, []);
 

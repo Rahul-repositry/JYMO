@@ -84,7 +84,7 @@ const Profile = () => {
       );
 
       const jymData = response.data.jymData;
-      console.log({ jymData });
+
       return jymData;
     } catch (err) {
       console.error("Error fetching workout plans: ", err);
@@ -119,7 +119,6 @@ const Profile = () => {
     fetchDetails();
   }, [fetchJymDetails, navigate]);
 
-  console.log(currentJym, "outside");
   const handleJymChange = async (e) => {
     const selectedJymId = e.target.value; // Get selected jym's ID
     const newJymData = await fetchJymDetails(selectedJymId); // Fetch gym details based on the ID
@@ -233,7 +232,6 @@ const Profile = () => {
                   </option>
 
                   {myJyms.map((jym) => {
-                    console.log(jym, myJyms);
                     return (
                       <option key={jym.jymId} value={`${jym.jymName}`}>
                         {jym.jymName}

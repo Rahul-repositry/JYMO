@@ -129,7 +129,11 @@ const useWorkoutPlans = () => {
 
     const loadWorkoutPlans = async () => {
       const workoutPlans = await fetchWorkoutPlans();
-      if (workoutPlans && workoutPlans.success) {
+      if (
+        workoutPlans &&
+        workoutPlans.success &&
+        workoutPlans.workoutPlans.length > 0
+      ) {
         setWorkout(workoutPlans.workoutPlans);
       }
     };

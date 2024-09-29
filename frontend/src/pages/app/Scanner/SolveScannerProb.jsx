@@ -7,9 +7,8 @@ import {
   setObjectInLocalStorage,
 } from "../../../utils/helperFunc";
 import { toast } from "react-toastify";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import Reader from "./Reader";
-import CameraAccess from "./CameraAccess";
 
 const Scanner = () => {
   const [cameraAllowed, setCameraAllowed] = useState(false);
@@ -18,7 +17,7 @@ const Scanner = () => {
   const html5QrCodeRef = useRef(null);
   const readerRef = useRef(null);
   const navigate = useNavigate();
-  const location = useLocation();
+
   useEffect(() => {
     const checkCameraPermission = async () => {
       try {
@@ -35,28 +34,17 @@ const Scanner = () => {
         setLoading(false);
       }
     };
-    console.log("1st useeffect");
+
     checkCameraPermission();
 
     return async () => {
-      console.log("unmounting 1st useeffect");
       stopScanner("running on unmounting of 1st useeffecont passing as args");
     };
   }, []);
 
   const initScanner = useCallback(async () => {
-    console.log("beforehtm5qrcoderef");
-    console.log({
-      cameraAllowed,
-      current: html5QrCodeRef.current,
-      reader: readerRef.current,
-    });
-    console.log(location.pathname);
-    console.log(html5QrCodeRef?.current?.getState());
-
     if (!cameraAllowed || !readerRef.current) return;
     // html5QrCodeRef.current = null;
-    console.log("afterhtm5qrcoderef");
 
     html5QrCodeRef.current = new Html5Qrcode(readerRef.current.id);
     html5QrCodeRef.current
@@ -72,7 +60,6 @@ const Scanner = () => {
   }, [cameraAllowed, readerRef]);
 
   const reinitializeScanner = useCallback(() => {
-    console.log("Reinitializing scanner...");
     setTimeout(() => {
       initScanner();
     }, 1000); // 1-second delay
@@ -146,7 +133,6 @@ const Scanner = () => {
   // Adjust initScanner to avoid running if cameraAllowed is false
 
   const stopScanner = useCallback(async (consolelog) => {
-    console.log(consolelog);
     if (html5QrCodeRef.current) {
       const state = html5QrCodeRef.current.getState();
       if (state === 2) {
@@ -158,14 +144,13 @@ const Scanner = () => {
             video: true,
           });
           stream.getTracks().forEach((track) => track.stop());
-          console.log("Camera stopped successfully");
+
           return true;
         } catch (error) {
           console.error("Error stopping QR code scanner:", error);
           return false;
         }
       } else {
-        console.log("Scanner is not running, so no need to stop", state);
         return true;
       }
     }

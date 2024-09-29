@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import NotificationIcon from "../../../images/Notifications-Icon.svg";
-import { useSelector } from "react-redux";
+
 import { getObjectFromLocalStorage } from "../../../utils/helperFunc";
 import arrow from "../../../images/arrow.svg";
 const Navbar = () => {
@@ -9,7 +9,7 @@ const Navbar = () => {
   const [user, setUser] = useState(
     () => getObjectFromLocalStorage("user") || null
   );
-  console.log(user);
+
   const handleBackClick = () => {
     navigate(-1);
   };
