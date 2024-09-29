@@ -25,7 +25,36 @@ const Home = () => {
   const [user, setUser] = useState("");
   const [workout, setWorkout] = useState([]);
   const [attendancePercentage, setAttendancePercentage] = useState(0);
-  const [attendanceArr, setAttendanceArr] = useState([]);
+  const [attendanceArr, setAttendanceArr] = useState([
+    {
+      day: "Sun",
+      status: "pending",
+    },
+    {
+      day: "Mon",
+      status: "pending",
+    },
+    {
+      day: "Tue",
+      status: "pending",
+    },
+    {
+      day: "Wed",
+      status: "pending",
+    },
+    {
+      day: "Thu",
+      status: "pending",
+    },
+    {
+      day: "Fri",
+      status: "pending",
+    },
+    {
+      day: "Sat",
+      status: "pending",
+    },
+  ]);
   const [membership, setMembership] = useState({
     expired: false,
     days: "--",
@@ -49,7 +78,6 @@ const Home = () => {
       calculateDiffOfEndDateAndToday(membershipEndDate);
 
     if (diffOfEndDateAndToday < 0) {
-      console.log("expired now wokring ");
       setMembership({
         expired: true,
         days: Math.abs(diffOfEndDateAndToday),
@@ -59,8 +87,6 @@ const Home = () => {
         endDate: membershipEndDate,
       });
     } else {
-      console.log("not expireed wokring sdfasdfasdfsd lkjsdofijaosidfj");
-
       setMembership((prev) => ({
         ...prev,
         expired: false,
@@ -72,21 +98,20 @@ const Home = () => {
 
   const handleAttendanceData = (data) => {
     if (data && data.success && data.attendance.length > 0) {
-      console.log("working inside attendance data");
       let currentDate = new Date();
       // Filter attendance to remove duplicates based on the same check-in date
       const uniqueAttendanceData = filterUniqueCheckIns(data.attendance);
-      console.log({ uniqueAttendanceData }, "Filtered attendance data");
 
       const totalAttendancePercentage = attendedDaysInPercentage(
         startOfMonth(currentDate),
         endOfMonth(currentDate),
         uniqueAttendanceData
       );
-      console.log({ totalAttendancePercentage });
+
       setAttendancePercentage(totalAttendancePercentage);
 
       const weekAttendanceStatus = attendanceOfThisWeek(uniqueAttendanceData);
+
       setAttendanceArr(weekAttendanceStatus);
     }
 
