@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useSignupUserContext } from "../../../context/context";
 import { toast } from "react-toastify";
 import Gauth from "../../../components/Gauth/Gauth";
@@ -15,7 +15,7 @@ const SignUpForm = ({ onShowPersonal }) => {
   const [otp, setOtp] = useState("");
   const [mailError, setMailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
-  const [idToken, setIdToken] = useState("");
+  const [otpObj, setOtpObj] = useState("");
   const [formData, setFormData] = useState({
     password: "",
     confirm_password: "",
@@ -26,11 +26,17 @@ const SignUpForm = ({ onShowPersonal }) => {
   const [timer, setTimer] = useState(60);
   const [resendEnabled, setResendEnabled] = useState(false);
 
+  useEffect(() => {
+    if (currentStep === "verify") {
+      startTimer();
+    }
+  }, [currentStep]);
+
   const validatePhoneNumber = (e) => {
     const phoneNumber = e.target.value;
     const phonePattern = /^[6789]\d{9}$/;
 
-    setFormData((prev) => ({ ...prev, phoneNumber: phoneNumber }));
+    setFormData((prev) => ({ ...prev, phoneNumber }));
 
     if (phonePattern.test(phoneNumber)) {
       setPhoneError("");
@@ -63,8 +69,7 @@ const SignUpForm = ({ onShowPersonal }) => {
   };
 
   const handleResendOTP = async () => {
-    const phoneNumber = formData.phoneNumber;
-    if (!phoneNumber || phoneError) {
+    if (!formData.phoneNumber || phoneError) {
       toast.error("Please enter a valid phone number");
       return;
     }
@@ -72,15 +77,14 @@ const SignUpForm = ({ onShowPersonal }) => {
     try {
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/auth/send-otp`,
-        { phoneNumber },
-        {
-          headers: { "Content-Type": "application/json" },
-        }
+        { phoneNumber: formData.phoneNumber },
+        { headers: { "Content-Type": "application/json" } }
       );
 
-      const result = await response.data;
+      const result = response.data;
 
       if (result.status === "success") {
+        setOtpObj(result.otp);
         toast.success("OTP Resent");
         startTimer();
       } else {
@@ -92,7 +96,7 @@ const SignUpForm = ({ onShowPersonal }) => {
     }
   };
 
-  const updateData = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (currentStep === "submit") {
@@ -100,36 +104,26 @@ const SignUpForm = ({ onShowPersonal }) => {
         setMailError("Register your Gmail with Google");
         toast.error("Register your Gmail with Google");
         return;
-      } else {
-        setCurrentStep("verify");
       }
-    } else if (currentStep === "verify") {
-      const phoneNumber = formData.phoneNumber;
-      if (!phoneNumber || phoneError) {
+      setCurrentStep("otp");
+    } else if (currentStep === "otp") {
+      if (!formData.phoneNumber || phoneError) {
         toast.error("Please enter a valid phone number");
         return;
       }
 
       try {
-        //*****
-        // setCurrentStep("otp");
-        // startTimer();
-        //******/
-
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/auth/send-otp`,
-          { phoneNumber },
-          {
-            headers: { "Content-Type": "application/json" },
-          }
+          { phoneNumber: formData.phoneNumber },
+          { headers: { "Content-Type": "application/json" } }
         );
 
-        const result = await response.data;
+        const result = response.data;
 
         if (result.status === "success") {
-          setIdToken(result.idToken);
-          setCurrentStep("otp");
-          startTimer();
+          setOtpObj(result.otp);
+          setCurrentStep("verify");
         } else {
           setPhoneError("Failed to send OTP, please try again.");
           toast.error("Failed to send OTP, please try again.");
@@ -138,28 +132,20 @@ const SignUpForm = ({ onShowPersonal }) => {
         console.error("Error:", error);
         toast.error("Failed to send OTP, please try again.");
       }
-    } else if (currentStep === "otp") {
-      if (!otp) {
+    } else if (currentStep === "verify") {
+      if (!otp || otp.length !== 6) {
         toast.error("Please enter the OTP");
         return;
       }
 
       try {
-        ///^^^^^^ just for test/
-        // setCurrentStep("final");
-        // toast.success("OTP Verified");
-
-        ///*&*&*()
-
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/auth/verify-otp`,
-          { otp, phoneNumber: formData.phoneNumber, idToken },
-          {
-            headers: { "Content-Type": "application/json" },
-          }
+          { otp, phoneNumber: formData.phoneNumber, _id: otpObj._id },
+          { headers: { "Content-Type": "application/json" } }
         );
 
-        const result = await response.data;
+        const result = response.data;
 
         if (result.status === "success") {
           setCurrentStep("final");
@@ -169,6 +155,12 @@ const SignUpForm = ({ onShowPersonal }) => {
         }
       } catch (error) {
         console.error("Error:", error);
+        let message = error?.response?.data?.message;
+        if (message) {
+          toast.error(message);
+        } else {
+          toast.error("OTP not matched");
+        }
       }
     } else if (currentStep === "final") {
       if (formData.password !== formData.confirm_password) {
@@ -178,6 +170,7 @@ const SignUpForm = ({ onShowPersonal }) => {
 
       updateSignupData({
         phoneNumber: formData.phoneNumber,
+        otpObj,
         password: formData.password,
       });
 
@@ -187,8 +180,8 @@ const SignUpForm = ({ onShowPersonal }) => {
 
   return (
     <form
-      className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg "
-      onSubmit={updateData}
+      className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
+      onSubmit={handleSubmit}
     >
       {signupData.email === "" ? (
         <>
@@ -199,27 +192,29 @@ const SignUpForm = ({ onShowPersonal }) => {
         <p className="text-green-600 -translate-y-5">Gmail is Registered</p>
       )}
 
-      {(currentStep === "verify" || "otp") && (
+      {(currentStep === "otp" || currentStep === "verify") && (
         <>
           <PhoneInput
             phoneNumber={formData.phoneNumber}
             validatePhoneNumber={validatePhoneNumber}
             phoneError={phoneError}
           />
-
           <OTPInput onChange={setOtp} />
-          <div className="flex justify-center mt-4">
-            <button
-              type="button"
-              onClick={handleResendOTP}
-              disabled={!resendEnabled}
-              className={`text-sm text-orange-500 hover:underline ${
-                !resendEnabled ? "cursor-not-allowed opacity-50" : ""
-              }`}
-            >
-              {resendEnabled ? "Resend OTP" : `Resend OTP in ${timer}s`}
-            </button>
-          </div>
+          <h2 className="text-center text-customButton">
+            Resend Otp in - {timer}
+          </h2>
+
+          {currentStep === "verify" && resendEnabled && (
+            <div className="flex justify-center mt-4">
+              <button
+                type="button"
+                onClick={handleResendOTP}
+                className="text-sm text-orange-500 underline"
+              >
+                Resend OTP
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -230,16 +225,16 @@ const SignUpForm = ({ onShowPersonal }) => {
       <div className="flex flex-col items-center justify-between">
         <Link
           to="/login"
-          className="text-sm text-orange-500 underline  text-center -translate-y-2"
+          className="text-sm text-orange-500 underline text-center -translate-y-2"
         >
           Already have an account?
         </Link>
         <CustomButton type="submit" fullWidth>
           {currentStep === "submit"
             ? "Submit"
-            : currentStep === "verify"
-            ? "Send OTP"
             : currentStep === "otp"
+            ? "Send OTP"
+            : currentStep === "verify"
             ? "Verify OTP"
             : "Submit"}
         </CustomButton>

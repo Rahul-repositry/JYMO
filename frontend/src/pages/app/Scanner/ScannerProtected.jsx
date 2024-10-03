@@ -26,9 +26,7 @@ const ScannerProtected = ({ children }) => {
 
     checkCameraPermission();
 
-    return () => {
-      console.log("Unmounting and cleaning up resources...");
-    };
+    return () => {};
   }, []);
 
   const requestCameraPermission = async () => {

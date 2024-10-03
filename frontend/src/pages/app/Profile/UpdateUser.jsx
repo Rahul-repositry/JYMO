@@ -6,7 +6,7 @@ import {
   getObjectFromLocalStorage,
   setObjectInLocalStorage,
 } from "../../../utils/helperFunc";
-import ImageUpload from "../SignIn/components/ImageUpload";
+import ImageUpload from "../../../components/ImageUpload/ImageUpload.jsx";
 import Modal from "react-modal";
 import BirthDate from "../SignIn/components/Birthday.jsx";
 

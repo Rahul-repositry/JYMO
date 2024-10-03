@@ -26,6 +26,7 @@ export function SignupUserDataProvider({ children }) {
     phoneNumber: "",
     firebaseEmailIdToken: "",
     role: "",
+    otpObj: "",
     birthday: "",
     gender: "",
   });

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import Modal from "react-modal";
 import {
   capitalizeFLetter,
   getObjectFromLocalStorage,
@@ -15,6 +16,7 @@ import arrow from "../../../images/arrow.svg";
 import email from "../../../images/email.svg";
 import phone from "../../../images/phone.svg";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 let Options = [
   { logo: checklist, text: "Past Jyms", link: "/profile/pastjyms" },
@@ -36,12 +38,12 @@ let Options = [
   {
     logo: getHelp,
     text: "Get Help",
-    link: "/profile/gethelp",
+    link: null, // No link for Get Help
   },
   {
     logo: logOut,
     text: "Log Out",
-    link: "/profile/logout",
+    link: null, // No link for Log Out
   },
 ];
 
@@ -68,6 +70,8 @@ const Profile = () => {
     subscriptionFee: "900",
     jymUniqueId: null,
   });
+  const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const jymDetailCache = useRef(null);
   const navigate = useNavigate();
 
@@ -132,6 +136,32 @@ const Profile = () => {
       window.location.reload();
     }
   };
+
+  const handleLogout = async () => {
+    try {
+      let res = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URI}/api/auth/logout`,
+        {
+          withCredentials: true,
+        }
+      );
+
+      if (res.data.success) {
+        toast.success("You are successfully logut.");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
+    } catch (err) {
+      console.error("Error logging out: ", err);
+      let msg = err?.response?.data?.message;
+      if (msg) {
+        toast.error(msg);
+      }
+    } finally {
+      setIsLogoutModalOpen(false);
+    }
+  };
+
   return (
     <div>
       <div className="profile bg-yellowBox text-lightBlack">
@@ -240,19 +270,54 @@ const Profile = () => {
                   })}
                 </select>
               </div>
-            </div>{" "}
+            </div>
           </>
         )}
       </div>
       <div className="options px-4 flex flex-col gap-4 py-5">
         {Options.map((data) => {
-          return (
-            <>
-              <Link to={data?.link}>
-                <div
-                  className={`${data.text} flex  place-items-center`}
-                  key={data.text}
-                >
+          if (data.text === "Get Help") {
+            return (
+              <div
+                className={`${data.text} flex  place-items-center`}
+                key={data.text}
+                onClick={() => setIsHelpModalOpen(true)}
+              >
+                <div className="svg">
+                  <img src={data.logo} alt={data.text} />
+                </div>
+                <div className="pastContainer pl-3  flex-grow">
+                  <div className="arrowNDText flex justify-between  place-items-center">
+                    <p>{data.text}</p>
+                    <img src={arrow} alt="arrow" className=" rotate-180 w-9" />
+                  </div>
+                  <div className="line bg-slate-300 h-[1px] w-full"></div>
+                </div>
+              </div>
+            );
+          } else if (data.text === "Log Out") {
+            return (
+              <div
+                className={`${data.text} flex  place-items-center`}
+                key={data.text}
+                onClick={() => setIsLogoutModalOpen(true)}
+              >
+                <div className="svg">
+                  <img src={data.logo} alt={data.text} />
+                </div>
+                <div className="pastContainer pl-3  flex-grow">
+                  <div className="arrowNDText flex justify-between  place-items-center">
+                    <p>{data.text}</p>
+                    <img src={arrow} alt="arrow" className=" rotate-180 w-9" />
+                  </div>
+                  <div className="line bg-slate-300 h-[1px] w-full"></div>
+                </div>
+              </div>
+            );
+          } else {
+            return (
+              <Link to={data?.link} key={data.text}>
+                <div className={`${data.text} flex  place-items-center`}>
                   <div className="svg">
                     <img src={data.logo} alt={data.text} />
                   </div>
@@ -269,10 +334,63 @@ const Profile = () => {
                   </div>
                 </div>
               </Link>
-            </>
-          );
+            );
+          }
         })}
       </div>
+
+      {/* Help Modal */}
+      <Modal
+        isOpen={isHelpModalOpen}
+        onRequestClose={() => setIsHelpModalOpen(false)}
+        contentLabel="Get Help"
+        className="modal-content  mx-5 !max-w-[370px]  rounded-lg
+         flex flex-col gap-2 place-items-center "
+        overlayClassName="modal-overlay"
+      >
+        <h2 className="text-xl font-medium py-2">Get Help ?</h2>
+        <p className="text-lightBlack text-center">
+          For any query, message us at{" "}
+          <span className="text-xl font-bold text-customButton">
+            jyymmoo@gmail.com
+          </span>
+        </p>
+        <button
+          onClick={() => setIsHelpModalOpen(false)}
+          className="bg-red-400 w-full rounded-lg text-white my-2"
+        >
+          Close
+        </button>
+      </Modal>
+
+      {/* Logout Modal */}
+      <Modal
+        isOpen={isLogoutModalOpen}
+        onRequestClose={() => setIsLogoutModalOpen(false)}
+        contentLabel="Log Out"
+        className="modal-content  mx-5 !max-w-[370px]  rounded-lg
+        flex flex-col  gap-2  "
+        overlayClassName="modal-overlay"
+      >
+        <h2 className="text-xl font-medium py-2 text-center">Log Out</h2>
+        <p className="text-lightBlack text-center">
+          Are you sure you want to log out?
+        </p>
+        <div className="buttons pt-4 flex justify-around">
+          <button
+            className="bg-green-500 px-7 rounded-lg text-white"
+            onClick={handleLogout}
+          >
+            Yes
+          </button>
+          <button
+            className="bg-red-500 px-7 rounded-lg text-white"
+            onClick={() => setIsLogoutModalOpen(false)}
+          >
+            No
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };

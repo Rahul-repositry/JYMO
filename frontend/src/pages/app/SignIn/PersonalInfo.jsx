@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 
 import BirthDate from "./components/Birthday";
-import ImageUpload from "./components/ImageUpload";
+
 import CustomButton from "../../../components/Button/Button";
 import { useSignupUserContext } from "../../../context/context";
 import { toast } from "react-toastify";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const PersonalInfo = () => {
   const [preview, setPreview] = useState(process.env.REACT_APP_DEFAULT_IMG);
@@ -14,7 +15,7 @@ const PersonalInfo = () => {
     gender: "",
     role: "",
   });
-
+  const navigate = useNavigate("");
   const handleChange = (e) => {
     const { value, name } = e.target;
     setFormData((prevState) => ({
@@ -45,7 +46,7 @@ const PersonalInfo = () => {
       if (preview && preview !== process.env.REACT_APP_DEFAULT_IMG) {
         // Check if preview is updated
         let imageFile;
-        console.log(preview.startsWith("https://lh3.googleusercontent.com/"));
+
         if (!preview.startsWith("https://lh3.googleusercontent.com/")) {
           imageFile = await fetch(preview).then((res) => res.blob());
 
@@ -53,7 +54,7 @@ const PersonalInfo = () => {
           const uploadResult = await axios.post(
             `${process.env.REACT_APP_BACKEND_URI}/api/auth/getputurltoken`
           );
-          console.log({ uploadResult });
+
           if (uploadResult.status !== 200) {
             toast.error("Failed uploading Image.");
             return;
@@ -68,8 +69,6 @@ const PersonalInfo = () => {
             },
           });
 
-          console.log({ putResult });
-
           if (putResult.status !== 200) {
             toast.error("Failed to upload the image.");
             return;
@@ -83,8 +82,6 @@ const PersonalInfo = () => {
         }
       }
 
-      console.log("before", signupData);
-
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/auth/signup`,
         {
@@ -96,9 +93,10 @@ const PersonalInfo = () => {
           },
         }
       );
-      console.log(response, signupData);
+
       if (response?.data?.success) {
-        toast.success(response.data.msg);
+        toast.success("User Created Successfully ");
+        navigate("/login");
       }
     } catch (err) {
       if (err?.response?.data?.message) {
@@ -109,9 +107,8 @@ const PersonalInfo = () => {
       }
     }
   };
-  console.log(preview);
+
   useEffect(() => {
-    console.log({ signupData });
     if (signupData.img) {
       setPreview(() => signupData.img);
     }
@@ -133,11 +130,11 @@ const PersonalInfo = () => {
               id="showImg"
               alt="Jymo user"
               name="showImg"
+              referrerPolicy="no-referrer"
               style={{ boxShadow: "0px 7px 20px 0px rgba(0,0,0,.2)" }}
               className="w-[100px] h-[100px] rounded-xl border-orange-300 bg-gray-300"
             />
           </div>
-          <ImageUpload setPreview={setPreview} />
           <div className="Gym mb-3">
             <h2 className="block mb-2 text-sm font-medium text-gray-900">
               Identify Yourself :

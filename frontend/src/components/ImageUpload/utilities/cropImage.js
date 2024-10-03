@@ -1,4 +1,4 @@
-import { createImage, getRadianAngle } from "./utils.js"; // utility functions to create an image and get the radian angle
+import { createImage } from "./utils.js"; // utility functions to create an image and get the radian angle
 
 const getCroppedImg = async (imageSrc, pixelCrop) => {
   const image = await createImage(imageSrc);

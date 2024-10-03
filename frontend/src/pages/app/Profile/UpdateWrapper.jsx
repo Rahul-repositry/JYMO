@@ -9,7 +9,7 @@ const UpdateWrapper = () => {
   let location = useLocation();
   let locationPageArr = location.pathname.split("/");
   let locationLastWord = locationPageArr[locationPageArr.length - 1];
-  console.log(locationLastWord);
+
   const [updateuser, setUpdateUser] = useState("");
   const [updategmail, setUpdategmail] = useState("");
   const [updatephone, setUpdatephone] = useState("");

@@ -34,7 +34,6 @@ const BirthDate = ({ setFormData }) => {
 
       updateSignupData({ birthday: formattedBirthday });
       if (setFormData) {
-        console.log(formattedBirthday);
         setFormData((prev) => ({
           ...prev,
           birthday: formattedBirthday,

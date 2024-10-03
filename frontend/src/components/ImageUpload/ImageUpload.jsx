@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef } from "react";
 import Cropper from "react-easy-crop";
 import Modal from "react-modal";
-import getCroppedImg from "../utilities/cropImage"; // Utility function to crop the image
+import getCroppedImg from "./utilities/cropImage"; // Utility function to crop the image
 import imageCompression from "browser-image-compression";
 import "./imageupload.css";
-import CustomButton from "../../../../components/Button/Button";
+import CustomButton from "../Button/Button";
 import { toast } from "react-toastify";
 
 Modal.setAppElement("#root"); // Make sure to set the root element for accessibility

@@ -63,16 +63,15 @@ const EditWorkout = () => {
           withCredentials: true,
         }
       );
-      console.log(response.data);
+
       if (response.data.workoutPlans.length > 0) {
-        console.log("succes workking");
         let data = response.data.workoutPlans[0];
-        console.log(data);
+
         setTitle(data.title);
         setExercisePlans(data.exercisePlan);
       } else {
         // Clear fields if no data is found
-        console.log("else sucess wokring");
+
         setTitle("");
         setExercisePlans([{ exercise: "", sets: "", reps: "", duration: "" }]);
       }
@@ -102,7 +101,7 @@ const EditWorkout = () => {
       setTitle(value);
     } else {
       const updatedPlans = [...exercisePlans];
-      console.log(updatedPlans);
+
       updatedPlans[index][field] = value;
       setExercisePlans(updatedPlans);
     }
@@ -167,7 +166,7 @@ const EditWorkout = () => {
 
       return;
     } catch (err) {
-      console.error("Error fetching workout data ");
+      console.error("Error fetching workout data ", err);
 
       return null;
     }

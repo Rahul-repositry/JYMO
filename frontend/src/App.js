@@ -1,4 +1,7 @@
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import axios from "axios";
+
 import "./index.css";
 import LandingPage from "./pages/website/LandingPage";
 import PrivacyPolicy from "./pages/website/PrivacyPolicy";
@@ -10,100 +13,103 @@ import LogIn from "./pages/app/SignIn/LogIn";
 import ForgotPass from "./pages/app/SignIn/ForgotPass";
 import ResetPass from "./pages/app/SignIn/ResetPass";
 import Home from "./pages/app/Home/Home.jsx";
-
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
 import Calendar from "./pages/app/Calendar/Calendar.jsx";
-import Calendar2 from "./pages/app/Calendar/Calendar.jsx";
 import EditWorkout from "./components/workoutPlan/EditWorkout.jsx";
 import Scanner from "./pages/app/Scanner/Scanner.jsx";
 import Success from "./pages/app/Scanner/Success.jsx";
 import Myqr from "./pages/app/Scanner/Myqr.jsx";
-// import Scanner2 from "./pages/app/Scanner/SolveScannerProb.jsx";
 import ScannerProtected from "./pages/app/Scanner/ScannerProtected.jsx";
-import { useEffect } from "react";
-import {
-  getObjectFromLocalStorage,
-  setObjectInLocalStorage,
-} from "./utils/helperFunc.js";
 import Profile from "./pages/app/Profile/Profile.jsx";
-
-import axios from "axios";
 import UpdateWrapper from "./pages/app/Profile/UpdateWrapper.jsx";
 import PastJyms from "./pages/app/Profile/PastJyms.jsx";
 
+import { setObjectInLocalStorage } from "./utils/helperFunc.js";
+
+// Constants
+const UNPROTECTED_ROUTES = [
+  "/",
+  "/privacypolicy",
+  "/termscondition",
+  "/about",
+  "/signup",
+  "/login",
+  "/forgotpassword",
+  "/resetpassword",
+];
+
+const EXCLUDE_PATHS_NAVBAR = [
+  "/",
+  "/privacypolicy",
+  "/termscondition",
+  "/about",
+];
+
+const EXCLUDE_PATHS_BOTTOM_NAV = [
+  "/",
+  "/privacypolicy",
+  "/termscondition",
+  "/about",
+  "/login",
+  "/signup",
+];
+
 function App() {
   const location = useLocation();
-
-  const fetchUserDetails = async () => {
-    try {
-      const user = await axios.get(
-        `${process.env.REACT_APP_BACKEND_URI}/api/user`,
-        {
-          withCredentials: true,
-          headers: {
-            "Cache-Control": "no-cache", // Ensure no caching
-          },
-        }
-      );
-      if (user.data.success) {
-        setObjectInLocalStorage("user", user.data.user);
-      }
-      console.log(user);
-    } catch (err) {
-      console.log(err);
-    }
-  };
+  const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("working");
+    const fetchUserDetails = async () => {
+      if (!UNPROTECTED_ROUTES.includes(location.pathname)) {
+        try {
+          const response = await axios.get(
+            `${process.env.REACT_APP_BACKEND_URI}/api/user`,
+            {
+              withCredentials: true,
+              headers: {
+                "Cache-Control": "no-cache",
+              },
+            }
+          );
+          if (response.data.success) {
+            setObjectInLocalStorage("user", response.data.user);
+          } else {
+            navigate("/login");
+          }
+        } catch (err) {
+          console.error("Error fetching user details:", err);
+          navigate("/login");
+        }
+      }
+    };
+
     fetchUserDetails();
-  }, []);
+  }, [location.pathname, navigate]);
 
-  // defines a redux user slice to user everwhere
-
-  // Define the paths where the specific styles should not be applied
-  const excludePathsForJymoNavbar = [
-    "/",
-    "/privacypolicy",
-    "/termscondition",
-    "/about",
-  ];
-  const excludePathsBottomNavbar = [
-    "/",
-    "/privacypolicy",
-    "/termscondition",
-    "/about",
-    "/login",
-    "/signup",
-  ];
-
-  // Check if the current path is in the excludePaths array
-  const applyStyles = !excludePathsForJymoNavbar.includes(location.pathname);
-  const applyStylesForBottomNavigation = !excludePathsBottomNavbar.includes(
+  const applyNavbarStyles = !EXCLUDE_PATHS_NAVBAR.includes(location.pathname);
+  const applyBottomNavStyles = !EXCLUDE_PATHS_BOTTOM_NAV.includes(
     location.pathname
   );
 
   return (
-    <div className={`app ${applyStyles ? "bg-black" : ""}`}>
+    <div className={`app ${applyNavbarStyles ? "bg-black" : ""}`}>
       <div
         className={`${
-          applyStyles
-            ? "max-w-screen-custom-md500 max-h-screen overflow-scroll mx-auto  bg-slate-50"
+          applyNavbarStyles
+            ? "max-w-screen-custom-md500 max-h-screen overflow-scroll mx-auto bg-slate-50"
             : ""
         }`}
       >
         <div
           className={`wrapper min-h-screen bg-white ${
-            applyStylesForBottomNavigation ? "pb-20 " : ""
+            applyBottomNavStyles ? "pb-20" : ""
           }`}
         >
-          {applyStyles && <Navbar />}
+          {applyNavbarStyles && <Navbar />}
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<Home />} />
-
             <Route path="/calendar" element={<Calendar />} />
-            <Route path="/calendar2" element={<Calendar2 />} />
             <Route path="/editworkout" element={<EditWorkout />} />
             <Route
               path="/scanner"
@@ -113,7 +119,6 @@ function App() {
                 </ScannerProtected>
               }
             />
-            {/* <Route path="/scanner2" element={<Scanner2 />} /> */}
             <Route path="/scanner/success" element={<Success />} />
             <Route path="/scanner/myqr" element={<Myqr />} />
             <Route path="/profile" element={<Profile />} />
@@ -129,7 +134,7 @@ function App() {
             <Route path="/forgotpassword" element={<ForgotPass />} />
             <Route path="/resetpassword" element={<ResetPass />} />
           </Routes>
-          {applyStylesForBottomNavigation && <BottomNavigation />}
+          {applyBottomNavStyles && <BottomNavigation />}
         </div>
       </div>
     </div>
