@@ -71,18 +71,19 @@ ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
 const generateOTP = () => {
   return crypto.randomInt(100000, 999999).toString(); // Generates a 6-digit OTP
 };
+// in case we need to send custom message by fast2sms
 
-const sendOTPViaFast2SMS = async (phoneNumber, otp) => {
-  const message = `Your OTP for Jymo app is ${otp}`;
-  console.log(process.env.FAST2SMS_API_KEY);
-  const response = await fast2sms.sendMessage({
-    authorization: process.env.FAST2SMS_API_KEY,
-    message: message,
-    numbers: [phoneNumber],
-  });
-  console.log("is response", response);
-  return response;
-};
+// const sendOTPViaFast2SMS = async (phoneNumber, otp) => {
+//   const message = `Your OTP for Jymo app is ${otp}`;
+//   console.log(process.env.FAST2SMS_API_KEY);
+//   const response = await fast2sms.sendMessage({
+//     authorization: process.env.FAST2SMS_API_KEY,
+//     message: message,
+//     numbers: [phoneNumber],
+//   });
+//   console.log("is response", response);
+//   return response;
+// };
 
 const getWalletDetails = async () => {
   const walletOptions = {
@@ -98,10 +99,11 @@ const getWalletDetails = async () => {
   return wallet;
 };
 
-const storeOTP = async (phoneNumber, otp, idToken) => {
-  const otpDocument = new OTP({ phoneNumber, otp, idToken });
+const storeOTP = async (phoneNumber, otp) => {
+  const otpDocument = new OTP({ phoneNumber, otp });
   let doc = await otpDocument.save();
   console.log(doc);
+  return doc;
 };
 
 // all async handler func
@@ -109,6 +111,9 @@ const storeOTP = async (phoneNumber, otp, idToken) => {
 const signup = AsyncErrorHandler(async (req, res, next) => {
   // only send firebaseEmailIdToken token instead of email
   // you have to verify otp here and directly signsup the user otherwise this is very weak signup  change it
+
+  // img must be uploaded after authentication
+
   const {
     username,
     age,
@@ -116,9 +121,9 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     password,
     phoneNumber,
     birthday,
-    role,
-    imgKey,
     img,
+    role,
+    otpObj,
     gender,
   } = req.body;
 
@@ -128,32 +133,51 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("Authentication failed", 401));
   }
 
+  const otpDocument = await OTP.findById({ _id: new ObjectId(otpObj._id) });
+
+  if (!otpDocument) {
+    return next(new CustomError("Start the signup again ", 400));
+  }
+
+  if (
+    otpDocument.otp !== otpObj.otp ||
+    otpDocument.phoneNumber !== otpObj.phoneNumber ||
+    !String(otpDocument._id).includes(otpObj._id)
+  ) {
+    return next(new CustomError("Invalid  OTP", 400));
+  }
+
   const hashedPassword = bcryptjs.hashSync(String(password), 10);
-  console.log("body", req.body);
   const newUser = new User({
     username,
     age,
-    email: firebaseEmailIdToken.email,
+    email: firebaseUser.email,
     password: hashedPassword,
     phone: phoneNumber,
     birthday,
+    img,
     role,
     gender,
   });
 
-  console.log({ img, newUser });
-  // img for google img
+  // for  google img new image can only be uploaded after authentication
   if (img) {
     newUser.img = img;
   }
+
+  /**
+   *  uploading img should be done after authentication 
+  // img for google img
+  
 
   // img key for uploaded img
   if (imgKey) {
     newUser.img = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/userProfileImg/${imgKey}`;
   }
-
+ */
   const savedUser = await newUser.save();
   console.log("saved", savedUser);
+  await OTP.findByIdAndDelete({ _id: new ObjectId(otpDocument._id) });
 
   res
     .status(201)
@@ -284,8 +308,8 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
 const logout = AsyncErrorHandler(async (req, res, next) => {
   res.clearCookie("access_token");
   return res.status(200).json({
-    status: "success",
-    msg: "You are successfully logged out",
+    success: true,
+    message: "You are successfully logged out",
   });
 });
 
@@ -321,8 +345,7 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
   const { phoneNumber } = req.body;
   console.log(phoneNumber);
 
-  const otp = generateOTP();
-  const idToken = crypto.randomBytes(16).toString("hex"); // Generate a random ID token
+  const otpPass = generateOTP();
 
   console.log(process.env.FAST2SMS_API_KEY);
 
@@ -331,7 +354,7 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
     url: "https://www.fast2sms.com/dev/bulkV2",
     params: {
       authorization: process.env.FAST2SMS_API_KEY,
-      variables_values: otp,
+      variables_values: otpPass,
       route: "otp",
       flash: "0",
       numbers: phoneNumber,
@@ -343,14 +366,16 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
   try {
     const response = await axios.request(options);
-    console.log(response.data, "SMS Response");
 
-    await storeOTP(phoneNumber, otp, idToken);
+    let otp = await storeOTP(phoneNumber, otpPass);
 
     res.status(200).json({
       status: "success",
-      msg: "OTP Successfully Sent.",
-      idToken,
+      message: "OTP Successfully Sent.",
+      otp: {
+        _id: otp._id,
+        phoneNumber: otp.phoneNumber,
+      },
     });
   } catch (error) {
     console.error("Error sending OTP: ", error);
@@ -361,18 +386,28 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
-const verifyOtp = AsyncErrorHandler(async (req, res, next) => {
-  const { phoneNumber, otp, idToken } = req.body;
-  const otpDocument = await OTP.findOne({ phoneNumber, otp, idToken });
+// once it will be verified on 1st page of signup and after during creation
 
-  if (otpDocument) {
-    await OTP.findByIdAndDelete({ _id: otpDocument._id }); // Delete the OTP document after verifying
-    res
-      .status(200)
-      .json({ status: "success", msg: "OTP Successfully verified" });
-  } else {
-    return next(new CustomError("Invalid or expired OTP", 400));
+const verifyOtp = AsyncErrorHandler(async (req, res, next) => {
+  const { phoneNumber, otp, _id } = req.body;
+  console.log(phoneNumber, otp, _id);
+  const otpDocument = await OTP.findById({ _id: new ObjectId(_id) });
+  console.log(otpDocument);
+
+  if (!otpDocument) {
+    return next(new CustomError("Not Found", 404));
   }
+  if (
+    otpDocument.otp !== otp ||
+    otpDocument.phoneNumber !== phoneNumber ||
+    !String(otpDocument._id).includes(_id)
+  ) {
+    return next(new CustomError("Invalid  OTP", 400));
+  }
+
+  return res
+    .status(200)
+    .json({ status: "success", msg: "OTP Successfully verified" });
 });
 
 // PUT object
@@ -463,17 +498,6 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("Error deleting image from S3", 500));
   }
 });
-
-// in frontend
-// * dont show delete icon if img starts from 'lh3.googleusercontent.com'  show when its 'jymo.s3' but not that default img
-
-// if there is default img or img starts with 'https://lh3.googleusercontent.com/' this  then only img will get uploaded otherwise delete button will be shown in which you have to delete your preivously uploaded aws image and then
-
-// before uploading new image delete existing image if exists in aws storage if it is a google firebase "img  you can upload a new image with success "   add a 15 day stoppage and add it in backend change it from backend that if user is modified   problem arisies that if one place if user is modified then changing other proprties will also update upted at date add timestamp to every property .
-
-// get url from frontend
-// split by slash here get key if starts with jymo or must not be default img to delete
-// chq is googleimg by identifying the domain and style of url and pass message .
 
 module.exports = {
   signup,

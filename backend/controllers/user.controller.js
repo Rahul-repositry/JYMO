@@ -21,8 +21,6 @@ const bucketRegion = process.env.BUCKET_REGION;
 const coolDownTimeInMin = process.env.COOL_DOWN_TIME_IN_MIN;
 
 const userData = AsyncErrorHandler((req, res, next) => {
-  console.log(req.user, "working now");
-
   // if in future you get a problem of getting old user update the properities in middleware.utils.js to get full data of updated user
   return res.status(200).json({ success: true, user: req.user });
 });
@@ -166,7 +164,7 @@ const updateUserPhone = AsyncErrorHandler(async (req, res, next) => {
       user: filterUserDetails(user),
     });
   } else {
-    return next(new CustomError("Invalid or expired OTP", 400));
+    return next(new CustomError("Invalid OTP", 400));
   }
 });
 

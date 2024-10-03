@@ -13,31 +13,23 @@ const {
   isMember,
   renewMembership,
   getMembership,
+  getAllMembership,
 } = require("../controllers/membership.controller");
 const router = express.Router();
 
-/*
-
-@ frontend : 
-* person can also access createmembership from sidebar 
-* after evalution from '/ismember/:id' route a user is send to frontend so with userId in route navigate to createmembership page in react  and send userId in req.body after taking it from url
-
-There will be 2 option 
-
-1.start a trial period  (create membership after 2 days(env variable trialDays))
-
-2. Create Membership
-  {
-    on frontend page do this 
-
-  1. take important details like amount  , months 
-  2. if there is attended days after trial period get those from frontend and send it 
-  2. send request to backend to create membership with details and userid in body 
-
-
-  }
-*/
-
+/**
+ * @route POST /createmembership
+ * @frontend
+ * - Accessed from the sidebar or after evaluation from '/ismember/:id'.
+ * - Navigates to the createmembership page in React with userId in the URL.
+ * - Provides two options: Start a trial period or Create Membership.
+ * - Collects important details like amount and months.
+ * - Sends a request to the backend with these details and userId in the body.
+ *
+ * @backend
+ * - Verifies user, gym, and ownership.
+ * - Creates a membership with the provided details.
+ */
 router.post(
   "/createmembership",
   verifyUser,
@@ -46,35 +38,16 @@ router.post(
   createMembership
 );
 
-/*
-
-@ frontend : after evalution from '/ismember/:id' route a user is send to frontend so with userId in route navigate to createmembership page in react  and send userId in req.body after taking it from url 
-
-there will be 2 option to choose  either they start a trial or direct create a membership so if they chooses start trial then do this 
-
-@ backend :   {
-  1. create a attendance with trial token expiry of next two days .
-    a :{ 
-     - for regular attendance part 
-        * when person is marked for attendance again then chq if it is under expiry date then again mark the attendance with same expiry date if expiry date is over then mark day as registered and calculate it as renewmemership and adjust that registered days in membership
-      }
-  2. add user in jym trial user array  with data
-  3. remove user from jym trial array after 90 days ( make a func on backend when owne from dashboard loads user if user trial is  greater than 90 days then remove it  ) 
-  }
-
-
-  # not using it now because after initiating attendance for first time  user  attendance will start automatically after scanning jymqr 
-
-*/
-
-// router.post(
-//   "/starttrial",
-//   verifyUser,
-//   verifyJym,
-//   verifyOwnership,
-//   markTrialAttendance
-// );
-
+/**
+ * @route POST /renewmembership
+ * @frontend
+ * - Initiated through the owner dashboard by scanning the user's QR code.
+ * - Sends a request with user details to renew membership.
+ *
+ * @backend
+ * - Verifies user, gym, and ownership.
+ * - Renews the user's membership by calculating new end dates and updating records.
+ */
 router.post(
   "/renewmembership",
   verifyUser,
@@ -83,19 +56,35 @@ router.post(
   renewMembership
 );
 
-/*
-@ frontend : through owner dashboard scanner user qr will be scanned and a request will be made to this below route with id  
-
-on dashboard if new member 
- show initate user  first  
-
-
-
-*/
+/**
+ * @route GET /ismember/:id
+ * @frontend
+ * - Scans user QR through the owner dashboard.
+ * - Checks if the user is a new member or has an existing membership.
+ *
+ * @backend
+ * - Verifies user, gym, and ownership.
+ * - Determines if the user is a new member or has an existing membership.
+ */
 router.get("/ismember/:id", verifyUser, verifyJym, verifyOwnership, isMember);
 
 /**
-  @ frontend : this route get the memberhsip bson from the db of userid & jymid  
+ * @route GET /getallmembership
+ * @frontend
+ * - Fetches all memberships for the user.
+ *
+ * @backend
+ * - Retrieves all memberships associated with the user.
+ */
+router.get("/getallmembership", verifyUser, getAllMembership);
+
+/**
+ * @route GET /getmembership/:jymid
+ * @frontend
+ * - Retrieves membership details using userId and jymId.
+ *
+ * @backend
+ * - Fetches the latest membership for the user in the specified gym.
  */
 router.get("/getmembership/:jymid", verifyUser, getMembership);
 

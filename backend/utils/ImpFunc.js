@@ -8,9 +8,18 @@ const checkCooldown = (lastUpdated, cooldownMinutes = 2) => {
 
 // Helper function to format time as "HH:MM"
 const formatTime = (date) => {
-  const hours = date.getHours().toString().padStart(2, "0");
+  let hours = date.getHours();
   const minutes = date.getMinutes().toString().padStart(2, "0");
-  return `${hours}:${minutes}`;
+  const seconds = date.getSeconds().toString().padStart(2, "0");
+
+  // Determine AM/PM suffix
+  const ampm = hours >= 12 ? "PM" : "AM";
+
+  // Convert hours to 12-hour format
+  hours = hours % 12 || 12; // Convert 0 to 12 for midnight and 12-hour format
+  hours = hours.toString().padStart(2, "0");
+
+  return `${hours}:${minutes}:${seconds} ${ampm}`;
 };
 
 // utils/filterUserDetails.js

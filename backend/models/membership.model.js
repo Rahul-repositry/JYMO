@@ -3,7 +3,7 @@ const { Schema } = mongoose;
 
 const membershipSchema = new Schema(
   {
-    jymId: { type: Schema.Types.ObjectId, ref: "jyms", required: true },
+    jymId: { type: Schema.Types.ObjectId, ref: "jym", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
     userUniqueId: { type: Number },
     amount: { type: Number },

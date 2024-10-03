@@ -262,73 +262,38 @@ const getMembership = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
-/**
- * create function for quit ing user update userduration  quit date and quit stauts and mark inactive attendance update membership status
- */
+const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
+  console.log("thi iw asdofasd");
+  const userId = req.user._id;
+  const { skip = 0 } = req.query; // Default values for skip
 
-//need to make a membership handler which changes data of existing membership like enddate , fee , this could be changed .
-/**
- * 
- * will be used agaiin if there will be need for pause and resume membership 
- 
-const membershipResumeHandler = AsyncErrorHandler(async (req, res, next) => {
-  const { userId } = req.body;
+  const memberships = await Membership.find({
+    userId: new ObjectId(userId),
+  })
+    .skip(Number(skip)) // Skip the records based on the current page
+    .limit(20) // Limit the number of records fetched per request
+    .populate({
+      path: "jymId",
+      select: "name jymUniqueId addressLocation owners  phoneNumbers", // Select only these fields from the Jym model
+    })
+    .exec();
 
-  // Fetch membership
-  const membership = await Membership.findOne(userId).sort({
-    createdAt: -1,
-  });
-  if (!membership) {
-    return next(new CustomError("Membership not found", 404));
+  console.log(memberships);
+  if (!memberships.length) {
+    return next(new CustomError("No more memberships found", 404));
   }
 
-  // Check if end date has passed
-  if (new Date() > new Date(membership.endDate)) {
-    return next(new CustomError("Membership has already expired", 400));
-  }
-
-  // Resume membership
-  membership.resume();
-  await membership.save();
-
-  res.status(200).json({
+  return res.status(200).json({
     success: true,
-    message: "Membership resumed successfully",
-    membership: membership,
+    message: "Memberships fetched successfully",
+    memberships: memberships,
   });
 });
 
-const membershipPauseHandler = AsyncErrorHandler(async (req, res, next) => {
-  const { userId } = req.body;
-
-  // Fetch membership
-  const membership = await Membership.findOne(userId).sort({
-    createdAt: -1,
-  });
-  if (!membership) {
-    return next(new CustomError("Membership not found", 404));
-  }
-
-  // Check if end date has passed
-  if (new Date() > new Date(membership.endDate)) {
-    return next(new CustomError("Membership has already expired", 400));
-  }
-
-  // Pause membership
-  membership.pause();
-  await membership.save();
-
-  res.status(200).json({
-    success: true,
-    message: "Membership paused successfully",
-    membership: membership,
-  });
-});
-* 
- */
 module.exports = {
   createMembership,
   isMember,
+  getAllMembership,
   markTrialAttendance,
   getMembership,
   renewMembership,

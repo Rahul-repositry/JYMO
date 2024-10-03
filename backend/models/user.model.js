@@ -19,6 +19,7 @@ const userSchema = new mongoose.Schema(
     email: {
       type: String,
       unique: true,
+      required: true,
     },
     password: {
       type: String,
@@ -27,9 +28,10 @@ const userSchema = new mongoose.Schema(
     phone: {
       type: String,
       unique: true,
+      required: true,
     },
     birthday: {
-      type: Date,
+      type: String,
     },
     isOwner: {
       type: Boolean,

@@ -11,16 +11,17 @@ dotenv.config("");
 const verifyUser = async (req, res, next) => {
   // if in future you update user model update here in req.user to add new properties
   const token = req.cookies.access_token;
-
+  console.log(token, "token for user");
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
       if (err) {
+        console.log(err);
         return res
           .status(401)
           .json({ success: false, message: "Token is not valid" });
       } else {
         const user = await User.findById({ _id: decoded.user._id });
-        console.log(decoded, "decoded", user);
+        console.log(user, "user in verify");
         if (!user) {
           return next(new CustomError("No User found", 404));
         }
@@ -32,7 +33,7 @@ const verifyUser = async (req, res, next) => {
   } else {
     return res.status(401).json({
       success: false,
-      message: "You are not authenticated",
+      message: "Complete Your Login Authentication",
     });
   }
 };

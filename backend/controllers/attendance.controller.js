@@ -214,13 +214,9 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
     createdAt: -1,
   });
 
-  console.log(latestAttendance, "latestattendance");
-
   if (!latestAttendance) {
-    console.log("get register executed");
     return next(new CustomError("Get register with Jym first", 404));
   } else if (gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ) {
-    console.log("ask owner to register again");
     return next(
       new CustomError(
         "Ask owner to register again you came after a long time",
@@ -228,7 +224,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       )
     );
   } else if (latestAttendance.mode === "inactive") {
-    console.log("inactive");
     return next(
       new CustomError(
         "Ask owner to register again you came after a long time",
@@ -236,11 +231,9 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       )
     );
   } else if (latestAttendance.mode === "register") {
-    console.log("register executed");
     let obj = await markTrialAttendance(jymId, userId);
     return res.status(200).json(obj);
   } else if (latestAttendance.mode === "trial") {
-    console.log("trial executed");
     // Handle trial period attendance
     if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
       // Trial period is over, register user
@@ -254,7 +247,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
         attendance: attendanceObj,
       });
     } else {
-      console.log("else");
       // Trial period is ongoing
       const isToday = compareDates(
         latestAttendance.createdAt,
@@ -262,7 +254,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       );
 
       if (!isToday) {
-        console.log("else trial !isToday executed");
         const attendanceObj = await markAttendance(
           userId,
           jymId,
@@ -275,7 +266,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
           attendance: attendanceObj,
         });
       } else {
-        console.log("trial else ");
         latestAttendance.checkOut = today.toISOString();
         await latestAttendance.save();
         return res.status(200).json({
@@ -289,14 +279,11 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
     latestAttendance.mode === "registered" ||
     latestAttendance.mode === "registerAgain"
   ) {
-    console.log("registered");
     // Handle registered user attendance
 
     const isToday = compareDates(latestAttendance.checkIn, today.toISOString());
-    console.log(isToday);
 
     if (!isToday) {
-      console.log("registerd !istoday");
       const attendanceObj = await markAttendance(userId, jymId, "registered");
       return res.status(201).json({
         success: true,
@@ -304,7 +291,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
         attendance: attendanceObj,
       });
     } else if (isToday && !latestAttendance.checkOut) {
-      console.log("registered issToday && !latestAttendance.checkOut");
       latestAttendance.checkOut = today.toISOString();
       await latestAttendance.save();
       return res.status(200).json({
@@ -313,7 +299,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
         attendance: latestAttendance,
       });
     } else {
-      console.log("else");
       return res.status(200).json({
         success: true,
         message: "Today's attendance has been marked. .",
