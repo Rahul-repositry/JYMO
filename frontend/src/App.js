@@ -7,22 +7,22 @@ import LandingPage from "./pages/website/LandingPage";
 import PrivacyPolicy from "./pages/website/PrivacyPolicy";
 import TermsCondition from "./pages/website/TermsCondition";
 import About from "./pages/website/About";
-import Navbar from "./pages/app/Navbar/Navbar";
-import Main from "./pages/app/SignIn/Main";
-import LogIn from "./pages/app/SignIn/LogIn";
-import ForgotPass from "./pages/app/SignIn/ForgotPass";
-import ResetPass from "./pages/app/SignIn/ResetPass";
-import Home from "./pages/app/Home/Home.jsx";
+import Navbar from "./pages/app/User/Navbar/Navbar";
+import Main from "./pages/app/User/SignIn/Main";
+import LogIn from "./pages/app/User/SignIn/LogIn";
+import ForgotPass from "./pages/app/User/SignIn/ForgotPass";
+import ResetPass from "./pages/app/User/SignIn/ResetPass";
+import Home from "./pages/app/User/Home/Home.jsx";
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
-import Calendar from "./pages/app/Calendar/Calendar.jsx";
+import Calendar from "./pages/app/User/Calendar/Calendar.jsx";
 import EditWorkout from "./components/workoutPlan/EditWorkout.jsx";
-import Scanner from "./pages/app/Scanner/Scanner.jsx";
-import Success from "./pages/app/Scanner/Success.jsx";
-import Myqr from "./pages/app/Scanner/Myqr.jsx";
-import ScannerProtected from "./pages/app/Scanner/ScannerProtected.jsx";
-import Profile from "./pages/app/Profile/Profile.jsx";
-import UpdateWrapper from "./pages/app/Profile/UpdateWrapper.jsx";
-import PastJyms from "./pages/app/Profile/PastJyms.jsx";
+import Scanner from "./pages/app/User/Scanner/Scanner.jsx";
+import Success from "./pages/app/User/Scanner/Success.jsx";
+import Myqr from "./pages/app/User/Scanner/Myqr.jsx";
+import ScannerProtected from "./pages/app/User/Scanner/ScannerProtected.jsx";
+import Profile from "./pages/app/User/Profile/Profile.jsx";
+import UpdateWrapper from "./pages/app/User/Profile/UpdateWrapper.jsx";
+import PastRecords from "./pages/app/User/Profile/PastRecords.jsx";
 
 import { setObjectInLocalStorage } from "./utils/helperFunc.js";
 
@@ -73,6 +73,7 @@ function App() {
           );
           if (response.data.success) {
             setObjectInLocalStorage("user", response.data.user);
+            console.log(response.data.user);
           } else {
             navigate("/login");
           }
@@ -125,7 +126,7 @@ function App() {
             <Route path="/profile/updateuser" element={<UpdateWrapper />} />
             <Route path="/profile/updategmail" element={<UpdateWrapper />} />
             <Route path="/profile/updatephone" element={<UpdateWrapper />} />
-            <Route path="/profile/pastjyms" element={<PastJyms />} />
+            <Route path="/profile/pastrecords" element={<PastRecords />} />
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />
