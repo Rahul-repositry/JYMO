@@ -67,7 +67,7 @@ const Profile = () => {
     },
     phoneNumbers: ["9999999999", "9999999999", "9999999999"],
     owners: ["owner"],
-    subscriptionFee: "900",
+    subscriptionFee: "00",
     jymUniqueId: null,
   });
   const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
@@ -102,7 +102,7 @@ const Profile = () => {
       const jyms = getObjectFromLocalStorage("myJyms");
       const currentJymLocalStorage = getObjectFromLocalStorage("currentJym");
 
-      if (localUser && !localUser.isExpired) {
+      if (localUser) {
         setUser(localUser);
       } else {
         navigate("/login");
@@ -162,6 +162,7 @@ const Profile = () => {
     }
   };
 
+  console.log(currentJym);
   return (
     <div>
       <div className="profile bg-yellowBox text-lightBlack">

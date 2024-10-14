@@ -26,6 +26,12 @@ import PastRecords from "./pages/app/User/Profile/PastRecords.jsx";
 
 import { setObjectInLocalStorage } from "./utils/helperFunc.js";
 
+// Admin routes
+import AdSignup from "./pages/app/Admin/Auth/Signup.jsx";
+import AdLogin from "./pages/app/Admin/Auth/Login.jsx";
+import AdForgot from "./pages/app/Admin/Auth/ForgotPass.jsx";
+import AdHome from "./pages/app/Admin/Home/Home.jsx";
+
 // Constants
 const UNPROTECTED_ROUTES = [
   "/",
@@ -134,6 +140,13 @@ function App() {
             <Route path="/login" element={<LogIn />} />
             <Route path="/forgotpassword" element={<ForgotPass />} />
             <Route path="/resetpassword" element={<ResetPass />} />
+
+            {/* Admin flow routes */}
+            <Route path="/admin/signup" element={<AdSignup />} />
+            <Route path="/admin/login" element={<AdLogin />} />
+            <Route path="/admin/forgotpass" element={<AdForgot />} />
+
+            <Route path="/admin/home" element={<AdHome />} />
           </Routes>
           {applyBottomNavStyles && <BottomNavigation />}
         </div>

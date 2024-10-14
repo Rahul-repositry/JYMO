@@ -13,6 +13,7 @@ const Navbar = () => {
   const handleBackClick = () => {
     navigate(-1);
   };
+
   return (
     <div className="mobileNavbar relative  z-50 border-b border-gray-200">
       <div className="navbarWrapper py-2 px-1 flex justify-between">

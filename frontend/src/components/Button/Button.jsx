@@ -40,7 +40,7 @@ const CustomButton = ({
         : `bg-customButton text-white`
     }
     ${rounded === "lg" ? "rounded-lg" : "rounded"}
-    ${outline ? "hover:bg-transparent" : `hover:bg-orange-900`}
+    ${outline ? "hover:bg-transparent" : `hover:bg-orange-500`}
     focus:outline-none overflow-hidden
     transition-colors duration-300
     relative

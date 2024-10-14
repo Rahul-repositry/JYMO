@@ -41,47 +41,6 @@ const PersonalInfo = () => {
       return;
     }
     try {
-      let imgUrl = signupData.img;
-
-      if (preview && preview !== process.env.REACT_APP_DEFAULT_IMG) {
-        // Check if preview is updated
-        let imageFile;
-
-        if (!preview.startsWith("https://lh3.googleusercontent.com/")) {
-          imageFile = await fetch(preview).then((res) => res.blob());
-
-          // Get pre-signed URL for the image
-          const uploadResult = await axios.post(
-            `${process.env.REACT_APP_BACKEND_URI}/api/auth/getputurltoken`
-          );
-
-          if (uploadResult.status !== 200) {
-            toast.error("Failed uploading Image.");
-            return;
-          }
-
-          const { url, key } = uploadResult.data;
-
-          // Upload image to S3 using the pre-signed URL
-          const putResult = await axios.put(url, imageFile, {
-            headers: {
-              "Content-Type": imageFile.type,
-            },
-          });
-
-          if (putResult.status !== 200) {
-            toast.error("Failed to upload the image.");
-            return;
-          }
-
-          // Construct the public URL of the uploaded image
-          imgUrl = key;
-          updateSignupData({
-            imgKey: imgUrl,
-          });
-        }
-      }
-
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/auth/signup`,
         {

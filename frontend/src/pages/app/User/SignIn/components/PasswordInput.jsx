@@ -1,7 +1,7 @@
 // components/PasswordInput.js
 import React from "react";
 
-const PasswordInput = ({ formData, handleChange }) => (
+const PasswordInput = ({ formData, handleChange, agree }) => (
   <>
     <div>
       <label
@@ -37,28 +37,31 @@ const PasswordInput = ({ formData, handleChange }) => (
         onChange={handleChange}
       />
     </div>
-    <div className="flex items-start mb-6">
-      <div className="flex items-center h-5">
-        <input
-          id="remember"
-          type="checkbox"
-          checked={formData.remember}
-          onChange={handleChange}
-          className="input-field w-4 h-4 border border-orange-300 rounded bg-gray-50 focus:ring-3 focus:ring-orange-500"
-          required
-        />
+    {agree && (
+      <div className="flex items-start mb-6">
+        <div className="flex items-center h-5">
+          <input
+            id="remember"
+            type="checkbox"
+            checked={formData.remember}
+            onChange={handleChange}
+            className="input-field w-4 h-4 border border-orange-300 rounded bg-gray-50 focus:ring-3 focus:ring-orange-500"
+            required
+          />
+        </div>
+
+        <label
+          htmlFor="remember"
+          className="ml-2 text-sm font-medium text-gray-900"
+        >
+          I agree with the{" "}
+          <a href="/" className="text-orange-500 hover:underline">
+            terms and conditions
+          </a>
+          .
+        </label>
       </div>
-      <label
-        htmlFor="remember"
-        className="ml-2 text-sm font-medium text-gray-900"
-      >
-        I agree with the{" "}
-        <a href="/" className="text-orange-500 hover:underline">
-          terms and conditions
-        </a>
-        .
-      </label>
-    </div>
+    )}
   </>
 );
 

@@ -37,7 +37,11 @@ const Membership = ({ user, membership }) => {
         }`}
       >
         <p>
-          <span className="text-xs text-stone-600">
+          <span
+            className={`text-xs ${
+              membership.expired ? "text-white" : "text-stone-600"
+            } `}
+          >
             {membership.endDate
               ? formatDate(membership.endDate, "dd-MMM-yyyy")
               : "--"}
