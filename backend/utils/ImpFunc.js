@@ -57,4 +57,32 @@ const filterUserDetails = (user) => {
   };
 };
 
-module.exports = { checkCooldown, formatTime, filterUserDetails };
+const filterJymDetails = (jym) => {
+  if (!jym) return null;
+  const {
+    _id,
+    name,
+    jymUniqueId,
+    addressLocation,
+    owners,
+    phoneNumbers,
+    subscriptionFee,
+  } = jym;
+
+  return {
+    _id,
+    name,
+    jymUniqueId,
+    addressLocation,
+    owners,
+    phoneNumbers,
+    subscriptionFee,
+  };
+};
+
+module.exports = {
+  checkCooldown,
+  formatTime,
+  filterJymDetails,
+  filterUserDetails,
+};

@@ -2,12 +2,14 @@ const jwt = require("jsonwebtoken");
 const bcryptjs = require("bcryptjs");
 const dotenv = require("dotenv");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
-
+const OTP = require("../models/OTP.model.js");
 const nodemailer = require("nodemailer");
-const { Jym } = require("../models/jym.model.js");
-const { JymId } = require("../models/jymId.model.js");
+const Jym = require("../models/jym.model.js");
+const JymId = require("../models/jymId.model.js");
 const crypto = require("crypto");
 const CustomError = require("../utils/CustomError.utils.js");
+const { filterJymDetails } = require("../utils/ImpFunc.js");
+const { ObjectId } = require("mongoose").Types;
 
 dotenv.config("");
 
@@ -57,21 +59,46 @@ ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
 
 const jymSignup = AsyncErrorHandler(async (req, res, next) => {
   console.log(req.user);
+  //img be updated manually by admin
+
   const {
     name,
-    recoveryEmail,
+    recoveryNumber,
     password,
     numbers,
     geolocation,
     addressLocation,
-    img,
     subscriptionFee,
+    otpObj,
   } = req.body;
+
+  if (!req.user.isOwner) {
+    return next(new CustomError("Change your ownership status.", 403));
+  }
+
+  if (!otpObj._id || !otpObj.phoneNumber || !otpObj.otp) {
+    return next(new CustomError("OTP details are incomplete", 404));
+  }
+
+  const otpDocument = await OTP.findById({ _id: new ObjectId(otpObj._id) });
+
+  if (!otpDocument) {
+    return next(new CustomError("Start the signup again ", 400));
+  }
+
+  if (
+    otpDocument.otp !== otpObj.otp ||
+    otpDocument.phoneNumber !== otpObj.phoneNumber ||
+    !String(otpDocument._id).includes(otpObj._id)
+  ) {
+    return next(new CustomError("Invalid  OTP", 400));
+  }
+
   const hashedPassword = bcryptjs.hashSync(String(password), 10);
 
   const newJym = new Jym({
     name,
-    recoveryEmail,
+    recoveryNumber,
     password: hashedPassword,
     numbers,
     owners: req.user._id,
@@ -80,21 +107,20 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
     subscriptionFee,
   });
 
-  if (img) {
-    newJym.img = img;
-  }
-
   const savedJym = await newJym.save();
+  await OTP.findByIdAndDelete({ _id: new ObjectId(otpDocument._id) });
 
-  res
-    .status(201)
-    .json({ success: true, message: "Jym created successfully", savedJym });
+  res.status(201).json({
+    success: true,
+    message: "Jym created successfully",
+    jymAdmin: filterJymDetails(savedJym),
+  });
 });
 
 const jymSignin = AsyncErrorHandler(async (req, res, next) => {
-  const { JUID, password } = req.body;
+  const { jymUniqueId, password } = req.body;
   const ownerId = req.user._id;
-  const validJym = await Jym.findOne({ jymUniqueId: JUID });
+  const validJym = await Jym.findOne({ jymUniqueId: jymUniqueId });
   if (!validJym) return next(new CustomError("Create Jym first", 401));
   const validPassword = bcryptjs.compareSync(password, validJym.password);
   if (!validPassword) return next(new CustomError("invalid credentials", 401));
@@ -130,45 +156,85 @@ const jymId = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
-  const { email } = req.body;
-  const JymObj = await Jym.findOne({
-    recoveryEmail: email,
-  });
+  const { recoveryNumber } = req.body;
+  const phonePattern = /^[6789]\d{9}$/;
 
-  if (!JymObj) {
-    return next(new CustomError("Jym not found", 404));
-  }
+  if (phonePattern.test(recoveryNumber)) {
+    const JymObj = await Jym.findOne({
+      recoveryNumber: recoveryNumber,
+    });
 
-  if (email.includes("@")) {
+    if (!JymObj) {
+      return next(new CustomError("Jym not found with this number", 404));
+    }
+
     const token = generateToken();
     JymObj.resetPasswordToken = token;
     JymObj.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
     await JymObj.save();
-    await transporter.sendMail(mailOptions(email, token));
+
+    //otp will be send by sendotp route
+    // otp will be verified by verify otp route and then show the update password input in frontend
+    //then reset password with otp number and toke will be first these will be verified then changes will made
+
+    res.status(200).json({
+      success: true,
+      message: "Reset instructions sent",
+      token: token,
+      jymId: JymObj._id,
+    });
+    return;
   }
 
-  res.status(200).json({ success: true, message: "Reset instructions sent" });
+  next(new CustomError("Number is incorrect", 404));
+  return;
 });
 
 const resetPassword = AsyncErrorHandler(async (req, res, next) => {
-  const { token, newPassword } = req.body;
+  const { jymId, token, password: newPassword, otpObj } = req.body;
+  console.log({
+    body: req.body,
+  });
+  console.log({ jymId, token, newPassword, otpObj });
+  if (!otpObj._id || !otpObj.phoneNumber || !otpObj.otp) {
+    return next(new CustomError("OTP details are incomplete", 404));
+  }
+
+  const otpDocument = await OTP.findById({ _id: new ObjectId(otpObj._id) });
+
+  if (!otpDocument) {
+    return next(new CustomError("Invalid OTP", 400));
+  }
+
+  if (
+    otpDocument.otp !== otpObj.otp ||
+    otpDocument.phoneNumber !== otpObj.phoneNumber ||
+    !String(otpDocument._id).includes(otpObj._id)
+  ) {
+    return next(new CustomError("Invalid  OTP", 400));
+  }
+
   let jymObj;
 
   if (token) {
-    jymObj = await Jym.findOne({
-      resetPasswordToken: token,
-      resetPasswordExpires: { $gt: Date.now() },
+    jymObj = await Jym.findById({
+      _id: new ObjectId(jymId),
     });
   }
 
-  if (!jymObj) {
+  if (
+    !jymObj ||
+    jymObj.resetPasswordToken !== token ||
+    jymObj.resetPasswordExpires < Date.now()
+  ) {
     return next(new CustomError("Authentication failed try again !!", 404));
   }
 
   jymObj.password = bcryptjs.hashSync(newPassword, 10); // hash new password
-  jymObj.resetPasswordToken = undefined;
-  jymObj.resetPasswordExpires = undefined;
+  jymObj.resetPasswordToken = "";
+  jymObj.resetPasswordExpires = 0;
   await jymObj.save();
+  await OTP.findByIdAndDelete({ _id: new ObjectId(otpDocument._id) });
 
   res.status(201).send({ success: true, message: "Password has been reset" });
 });

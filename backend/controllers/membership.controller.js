@@ -263,7 +263,6 @@ const getMembership = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
-  console.log("thi iw asdofasd");
   const userId = req.user._id;
   const { skip = 0 } = req.query; // Default values for skip
 
@@ -274,7 +273,7 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
     .limit(20) // Limit the number of records fetched per request
     .populate({
       path: "jymId",
-      select: "name jymUniqueId addressLocation owners  phoneNumbers", // Select only these fields from the Jym model
+      select: "name jymUniqueId addressLocation owners  phoneNumbers  ", // Select only these fields from the Jym model
     })
     .exec();
 

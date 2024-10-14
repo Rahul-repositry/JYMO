@@ -26,7 +26,7 @@ const userData = AsyncErrorHandler((req, res, next) => {
 });
 
 const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
-  const { name, birthday } = req.body;
+  const { name, birthday, isOwner } = req.body;
 
   // Find the user by ID (assuming `req.user._id` contains the user ID)
   const user = await User.findById({ _id: new ObjectId(req.user._id) });
@@ -52,6 +52,7 @@ const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
 
   // Update fields
   user.username = name || user.username;
+  user.isOwner = isOwner || user.isOwner;
 
   // Convert birthday to ISO string if it's not already in ISO format
   if (birthday) {
@@ -59,7 +60,6 @@ const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
     if (!isNaN(newBirthday.getTime())) {
       user.birthday = newBirthday.toISOString();
     } else {
-      console.log(newBirthday, "new bdiday", birthday);
       return next(new CustomError("Invalid birthday format", 400));
     }
   }

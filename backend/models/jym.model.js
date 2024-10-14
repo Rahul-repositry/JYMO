@@ -23,22 +23,28 @@ const addressLocationSchema = new Schema(
 const jymSchema = new Schema(
   {
     name: { type: String, required: true },
-    recoveryEmail: { type: String, required: true },
-    jymUniqueId: { type: Number, unique: true }, // necesaary will identify uniquely and user for login
+    recoveryNumber: { type: String },
+    jymUniqueId: {
+      type: Number,
+    },
     password: { type: String },
     geolocation: geolocationSchema,
     addressLocation: addressLocationSchema,
-    owners: [{ type: Schema.Types.ObjectId, ref: "users" }], // will get updated as new owners join and quit
+    owners: [{ type: Schema.Types.ObjectId, ref: "users" }],
     phoneNumbers: [
       {
         type: String,
         min: [10, "Not a valid Indian Number"],
-        max: [10, "Not a valid indian number"],
+        max: [10, "Not a valid Indian number"],
       },
     ],
+    img: {
+      type: String,
+      default: "https://jymo.s3.ap-south-1.amazonaws.com/icon.png",
+    },
     subscriptionFee: { type: String },
     subscriptionStartDate: { type: Date },
-    subscriptionEndDate: { type: Date }, // for jymo subscription for jyms
+    subscriptionEndDate: { type: Date },
     resetPasswordToken: String,
     jymoDietId: { type: Schema.Types.ObjectId, ref: "jymoDietIdForJymOwners" },
     jymDietAmount: Number,
@@ -47,7 +53,7 @@ const jymSchema = new Schema(
   { timestamps: true }
 );
 
-jymSchema.plugin(AutoIncrement, { inc_field: "jymUniqueId" });
+jymSchema.plugin(AutoIncrement, { inc_field: "jymUniqueId", start_seq: 1 });
 
 const Jym = mongoose.model("jym", jymSchema);
 

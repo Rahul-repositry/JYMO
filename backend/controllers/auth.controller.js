@@ -127,6 +127,10 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     gender,
   } = req.body;
 
+  if (!otpObj._id || !otpObj.phoneNumber || !otpObj.otp) {
+    return next(new CustomError("OTP details are incomplete", 404));
+  }
+
   const firebaseUser = await admin.auth().verifyIdToken(firebaseEmailIdToken);
 
   if (!firebaseUser.email) {
@@ -347,28 +351,28 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
   const otpPass = generateOTP();
 
-  console.log(process.env.FAST2SMS_API_KEY);
+  // console.log(process.env.FAST2SMS_API_KEY);
 
-  const options = {
-    method: "GET",
-    url: "https://www.fast2sms.com/dev/bulkV2",
-    params: {
-      authorization: process.env.FAST2SMS_API_KEY,
-      variables_values: otpPass,
-      route: "otp",
-      flash: "0",
-      numbers: phoneNumber,
-    },
-    headers: {
-      "cache-control": "no-cache",
-    },
-  };
+  // const options = {
+  //   method: "GET",
+  //   url: "https://www.fast2sms.com/dev/bulkV2",
+  //   params: {
+  //     authorization: process.env.FAST2SMS_API_KEY,
+  //     variables_values: otpPass,
+  //     route: "otp",
+  //     flash: "0",
+  //     numbers: phoneNumber,
+  //   },
+  //   headers: {
+  //     "cache-control": "no-cache",
+  //   },
+  // };
 
   try {
-    const response = await axios.request(options);
+    // const response = await axios.request(options);
 
     let otp = await storeOTP(phoneNumber, otpPass);
-
+    console.log(otp, 375);
     res.status(200).json({
       status: "success",
       message: "OTP Successfully Sent.",
