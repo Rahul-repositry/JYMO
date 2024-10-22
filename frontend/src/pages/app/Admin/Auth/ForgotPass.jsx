@@ -5,6 +5,7 @@ import OTPInput from "../../User/SignIn/components/OTPInput.jsx";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import PasswordInput from "../../User/SignIn/components/PasswordInput.jsx";
+import SelectJym from "./SelectJym.jsx";
 
 // Main ForgotPass component
 const ForgotPass = () => {
@@ -42,6 +43,20 @@ const ForgotPass = () => {
     setFormData((prev) => ({ ...prev, [id]: value }));
   };
 
+  const [selectedOption, setSelectedOption] = useState(null); // Initialize with null
+
+  // const [optionsData, setoptionsData] = useState(null);
+  const [optionsData, setoptionsData] = useState([
+    { name: "RPS Fitness Gym", jymUniqueId: 0 },
+    { name: "Well Fare Gym", jymUniqueId: 1 },
+    { name: "Speed Fitness Gym", jymUniqueId: 2 },
+  ]);
+  console.log(selectedOption);
+  // [
+  //   { name: "RPS Fitness Gym", jymUniqueId: 0 },
+  //   { name: "Well Fare Gym", jymUniqueId: 1 },
+  //   { name: "Speed Fitness Gym", jymUniqueId: 2 },
+  // ]
   // Start timer for resending OTP
   useEffect(() => {
     if (otpObj) {
@@ -164,11 +179,8 @@ const ForgotPass = () => {
       );
       const { data } = response;
       if (data.success) {
-        setFormData((prev) => ({
-          ...prev,
-          token: data.token,
-          jymId: data.jymId,
-        }));
+        setoptionsData(data.jymData);
+        setSelectedOption(data.jymData[0]);
         setCurrentStatus("Verify OTP");
       }
     } catch (error) {
@@ -182,6 +194,7 @@ const ForgotPass = () => {
       toast.error("Please enter the OTP");
       return;
     }
+
     setOtpObj((prev) => ({ ...prev, otp: otp }));
     try {
       const response = await axios.post(
@@ -192,10 +205,24 @@ const ForgotPass = () => {
           withCredentials: true,
         }
       );
+      const response2 = await axios.post(
+        `${process.env.REACT_APP_BACKEND_URI}/api/auth/jym/createsession`,
+        { jymId: selectedOption._id },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        }
+      );
 
       const result = response.data;
+      const result2 = response2.data;
 
       if (result.status === "success") {
+        setFormData((prev) => ({
+          ...prev,
+          token: result2.token,
+          jymId: selectedOption._id,
+        }));
         setCurrentStatus("Reset Password");
         toast.success("OTP Verified");
       } else {
@@ -241,69 +268,82 @@ const ForgotPass = () => {
   };
 
   return (
-    <form
-      className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
-      onSubmit={handleSubmit}
-    >
-      <div className="text-customButton text-3xl my-4 font-medium text-center">
-        <h2>Forgot Password</h2>
-      </div>
-      <label
-        htmlFor="recoveryNumber"
-        className="block mb-2 text-sm font-medium text-gray-900"
+    <>
+      {optionsData && (
+        <div>
+          <SelectJym
+            options={optionsData}
+            selectedOption={selectedOption}
+            setSelectedOption={setSelectedOption}
+          />
+        </div>
+      )}
+      <form
+        className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
+        onSubmit={handleSubmit}
       >
-        Recovery Number:
-      </label>
-      {error.status && <p className="mt-2 text-sm text-red-500">{error.msg}</p>}
+        <div className="text-customButton text-3xl my-4 font-medium text-center">
+          <h2>Forgot Password</h2>
+        </div>
+        <label
+          htmlFor="recoveryNumber"
+          className="block mb-2 text-sm font-medium text-gray-900"
+        >
+          Recovery Number:
+        </label>
+        {error.status && (
+          <p className="mt-2 text-sm text-red-500">{error.msg}</p>
+        )}
 
-      <input
-        type="text"
-        id="recoveryNumber"
-        className="input-field bg-gray-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full ps-10 p-2.5"
-        placeholder="XXXXX-XXXXX"
-        value={formData.recoveryNumber}
-        onChange={handleChange}
-        required
-      />
-
-      {/* OTP input for verification */}
-      {otpObj && (
-        <>
-          <OTPInput onChange={setOtp} />
-          {timer > 0 && (
-            <h2 className="text-center text-customButton">
-              Resend Otp in - {timer}
-            </h2>
-          )}
-          {resendEnabled && (
-            <div className="flex justify-center mt-4">
-              <button
-                type="button"
-                onClick={handleResendOTP}
-                className="text-sm text-orange-500 underline"
-                disabled={isRequestInProgress} // Disable button during request
-              >
-                Resend OTP
-              </button>
-            </div>
-          )}
-        </>
-      )}
-      {currentStatus === "Reset Password" && (
-        <PasswordInput
-          formData={formData}
-          handleChange={handleChange}
-          agree={false}
+        <input
+          type="text"
+          id="recoveryNumber"
+          className="input-field bg-gray-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full ps-10 p-2.5"
+          placeholder="XXXXX-XXXXX"
+          value={formData.recoveryNumber}
+          onChange={handleChange}
+          required
         />
-      )}
-      <CustomButton type="submit">
-        {currentStatus === "Send OTP"
-          ? "Send OTP"
-          : currentStatus === "Verify OTP"
-          ? "Verify OTP"
-          : "Reset Password"}
-      </CustomButton>
-    </form>
+
+        {/* OTP input for verification */}
+        {otpObj && (
+          <>
+            <OTPInput onChange={setOtp} />
+            {timer > 0 && (
+              <h2 className="text-center text-customButton">
+                Resend Otp in - {timer}
+              </h2>
+            )}
+            {resendEnabled && (
+              <div className="flex justify-center mt-4">
+                <button
+                  type="button"
+                  onClick={handleResendOTP}
+                  className="text-sm text-orange-500 underline"
+                  disabled={isRequestInProgress} // Disable button during request
+                >
+                  Resend OTP
+                </button>
+              </div>
+            )}
+          </>
+        )}
+        {currentStatus === "Reset Password" && (
+          <PasswordInput
+            formData={formData}
+            handleChange={handleChange}
+            agree={false}
+          />
+        )}
+        <CustomButton type="submit">
+          {currentStatus === "Send OTP"
+            ? "Send OTP"
+            : currentStatus === "Verify OTP"
+            ? "Verify OTP"
+            : "Reset Password"}
+        </CustomButton>
+      </form>
+    </>
   );
 };
 

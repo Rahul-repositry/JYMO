@@ -66,31 +66,56 @@ function App() {
 
   useEffect(() => {
     const fetchUserDetails = async () => {
-      if (!UNPROTECTED_ROUTES.includes(location.pathname)) {
-        try {
-          const response = await axios.get(
-            `${process.env.REACT_APP_BACKEND_URI}/api/user`,
-            {
-              withCredentials: true,
-              headers: {
-                "Cache-Control": "no-cache",
-              },
-            }
-          );
-          if (response.data.success) {
-            setObjectInLocalStorage("user", response.data.user);
-            console.log(response.data.user);
-          } else {
-            navigate("/login");
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URI}/api/user`,
+          {
+            withCredentials: true,
+            headers: {
+              "Cache-Control": "no-cache",
+            },
           }
-        } catch (err) {
-          console.error("Error fetching user details:", err);
+        );
+        if (response.data.success) {
+          setObjectInLocalStorage("user", response.data.user);
+          console.log(response.data.user);
+        } else {
           navigate("/login");
         }
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        navigate("/login");
+      }
+    };
+    const fetchAdminDetails = async () => {
+      try {
+        const response = await axios.get(
+          `${process.env.REACT_APP_BACKEND_URI}/api/user`,
+          {
+            withCredentials: true,
+            headers: {
+              "Cache-Control": "no-cache",
+            },
+          }
+        );
+        if (response.data.success) {
+          setObjectInLocalStorage("user", response.data.user);
+          console.log(response.data.user);
+        }
+      } catch (err) {
+        console.error("Error fetching user details:", err);
+        navigate("/login");
       }
     };
 
-    fetchUserDetails();
+    if (!UNPROTECTED_ROUTES.includes(location.pathname)) {
+      if (!location.pathname.includes("admin")) {
+        console.log("its working fetch user details");
+        fetchUserDetails();
+      } else if (location.pathname.includes("admin")) {
+        fetchAdminDetails();
+      }
+    }
   }, [location.pathname, navigate]);
 
   const applyNavbarStyles = !EXCLUDE_PATHS_NAVBAR.includes(location.pathname);
@@ -108,7 +133,7 @@ function App() {
         }`}
       >
         <div
-          className={`wrapper min-h-screen bg-white ${
+          className={`wrapper min-h-screen overflow-hidden bg-white ${
             applyBottomNavStyles ? "pb-20" : ""
           }`}
         >
@@ -144,7 +169,7 @@ function App() {
             {/* Admin flow routes */}
             <Route path="/admin/signup" element={<AdSignup />} />
             <Route path="/admin/login" element={<AdLogin />} />
-            <Route path="/admin/forgotpass" element={<AdForgot />} />
+            <Route path="/admin/forgotpassword" element={<AdForgot />} />
 
             <Route path="/admin/home" element={<AdHome />} />
           </Routes>

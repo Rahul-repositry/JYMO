@@ -1,0 +1,48 @@
+.adminHome .showBlock {
+  background: rgb(241 245 249);
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 15px;
+}
+
+.adminHome .value {
+  padding: 13px 0px;
+  font-size: 20px;
+}
+
+.adminHome .detailCont {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* gap-4 in Tailwind */
+}
+
+.adminHome .detailRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px; /* gap-4 in Tailwind */
+}
+
+.adminHome .block {
+  width: 48%; /* w-1/2 in Tailwind */
+  background: rgb(248 250 252);
+  padding: 12px;
+  border: 1px solid;
+  border-radius: 15px;
+}
+
+.adminHome .blockTitle {
+  font-size: 1.25rem; /* text-xl in Tailwind */
+  font-weight: 500; /* font-medium in Tailwind */
+  color: #1f2937; /* text-gray-900 in Tailwind */
+}
+
+.adminHome .value {
+  padding: 13px 0;
+  font-size: 20px;
+}
+
+/* Optional if you want to add hover effects or different styles */
+.adminHome .block:hover {
+  cursor: pointer;
+  background-color: rgb(226, 232, 240); /* Slightly lighter on hover */
+}
