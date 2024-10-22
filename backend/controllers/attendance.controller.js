@@ -1,11 +1,14 @@
 const CustomError = require("../utils/CustomError.utils.js");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const Attendance = require("../models/attendance.model.js");
-const { Jym } = require("../models/jym.model.js");
 const User = require("../models/user.model.js");
 const { UserDurationInJym } = require("../models/userDuration.model.js");
 const { ObjectId } = require("mongoose").Types;
 const dotenv = require("dotenv");
+const {
+  updateLastCheckInForMembership,
+  updateOrCreateCheckInSummary,
+} = require("../utils/ImpFunc.js");
 dotenv.config();
 
 /**
@@ -231,10 +234,24 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       )
     );
   } else if (latestAttendance.mode === "register") {
+    //this marks the attendance
     let obj = await markTrialAttendance(jymId, userId);
+
+    // this marks lastchqin in user memberhship
+    await updateLastCheckInForMembership(jymId, userId);
+
+    // this  totals chqins to display to dashboard
+    await updateOrCreateCheckInSummary(jymId);
     return res.status(200).json(obj);
   } else if (latestAttendance.mode === "trial") {
     // Handle trial period attendance
+
+    // this marks lastchqin in user memberhship
+    await updateLastCheckInForMembership(jymId, userId);
+
+    // this  totals chqins to display to dashboard
+    await updateOrCreateCheckInSummary(jymId);
+
     if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
       // Trial period is over, register user
       const attendanceObj = await markAttendance(userId, jymId, "registered");
@@ -285,6 +302,13 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
 
     if (!isToday) {
       const attendanceObj = await markAttendance(userId, jymId, "registered");
+
+      // this marks lastchqin in user memberhship
+      await updateLastCheckInForMembership(jymId, userId);
+
+      // this  totals chqins to display to dashboard
+      await updateOrCreateCheckInSummary(jymId);
+
       return res.status(201).json({
         success: true,
         message: "Attendance marked successfully.",
@@ -341,6 +365,13 @@ const registerAttendance = AsyncErrorHandler(async (req, res, next) => {
   if (attendance) {
     return next(new CustomError("Member already exists for this jym", 403));
   }
+
+  // this marks lastchqin in user memberhship
+  await updateLastCheckInForMembership(jymId, userId);
+
+  // this  totals chqins to display to dashboard
+  await updateOrCreateCheckInSummary(jymId);
+
   const newAttendance = new Attendance({
     userId,
     jymId,
@@ -368,6 +399,11 @@ const registerAgainAttendance = AsyncErrorHandler(async (req, res, next) => {
   if (!attendance) {
     return next(new CustomError("Get register First ", 404));
   }
+  // this marks lastchqin in user memberhship
+  await updateLastCheckInForMembership(jymId, userId);
+
+  // this  totals chqins to display to dashboard
+  await updateOrCreateCheckInSummary(jymId);
 
   const userDuration = await UserDurationInJym.findOne({
     userId: new ObjectId(userId),
@@ -458,9 +494,6 @@ module.exports = {
  * if last attendance  status is initiated then make a trial of the user for 2 days
  *
  * if last is registeragin then make registered attendance
- *
- *
- *
  *
  *
  *

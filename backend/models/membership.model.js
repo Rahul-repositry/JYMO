@@ -9,8 +9,15 @@ const membershipSchema = new Schema(
     amount: { type: Number },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date },
-    status: { type: String, enum: ["active", "Inactive"], default: "active" }, //at the time whten this is set to inactive then create a attendance with inactive and remove user from user currentUUids and update quitdates in userDuration
-    isPreviousMembership: { type: Boolean, default: false }, // mentioned bcz sometime people give fee of previous month so while creating membership we can know that this is a previous month fee
+    status: {
+      active: {
+        value: { type: Boolean, default: true }, // If true, membership is active
+        lastCheckIn: { type: Date, default: Date.now() }, // Date of the last check-in or attendance
+      },
+      // if person has not mark attendance from last  15days(process.env.days) then he inactive
+    }, //at the time whten this is set to inactive then create a attendance with inactive and remove user from user currentUUids and update quitdates in userDuration
+    userDuration: { type: Schema.Types.ObjectId, ref: "userDurationInJym" }, // Reference to user duration in the gym
+
     /**
      * if used in future then we can thik about this
      * isPaused: { type: Boolean, default: false },

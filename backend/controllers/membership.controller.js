@@ -33,10 +33,8 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
     jymId: new ObjectId(jymId),
   }).sort({ createdAt: -1 });
 
-  console.log({ latestMembership, user });
-
   if (!latestMembership) {
-    return next(new CustomError("No active membership found to renew", 404));
+    return next(new CustomError("Create Membership First to renew it .", 404));
   }
 
   // Calculate the new end date for the renewed membership
@@ -47,9 +45,6 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
     latestMembership.endDate.getTime() + adjustedDays * 24 * 60 * 60 * 1000
   );
 
-  // Determine if this renewal is for a previous period
-  let isPreviousMembership = newEndDate.getTime() < currentDate.getTime();
-
   // Update the existing membership with the new end date and amount
 
   const newMembership = new Membership({
@@ -57,9 +52,9 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
     userId: user._id,
     userUniqueId: user.userUniqueId,
     amount,
-    isPreviousMembership,
     startDate: currentDate,
     endDate: newEndDate,
+    userDuration: latestMembership.userDuration,
   });
 
   const savedMembership = await newMembership.save();
@@ -104,14 +99,21 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("User not found", 404));
   }
 
-  // Update the user's currentJymUUId
-  userData.currentJymUUId.push({ jymId, name: req.jym.name });
-  await userData.save();
+  // Check if this gym is already in currentJymUUId array
+  const isGymAlreadyAdded = userData.currentJymUUId.some(
+    (gym) => gym.jymId.toString() === jymId.toString()
+  );
+
+  // Only add the gym if it's not already present
+  if (!isGymAlreadyAdded) {
+    userData.currentJymUUId.push({ jymId, name: req.jym.name });
+    await userData.save();
+  }
 
   // Check for existing membership
   const latestMembership = await Membership.findOne({
     jymId: new ObjectId(jymId),
-    userId: new objectId(userData._id),
+    userId: new ObjectId(userData._id),
   })
     .sort({ createdAt: -1 })
     .exec();
@@ -119,26 +121,6 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
   if (latestMembership) {
     return next(new CustomError("Membership already exists", 409));
   }
-
-  // Calculate end date and membership status
-  const baseDays = month * 30;
-  const adjustedDays = baseDays + extraDays - totalExtraAttendedDays;
-  const endDate = new Date(
-    currentDate.getTime() + adjustedDays * 24 * 60 * 60 * 1000
-  );
-  const isPreviousMembership = endDate.getTime() < currentDate.getTime();
-
-  // Create new membership
-  const newMembership = new Membership({
-    jymId,
-    userId: userData._id,
-    userUniqueId: userData.userUniqueId,
-    amount,
-    isPreviousMembership,
-    endDate,
-  });
-
-  const savedMembership = await newMembership.save();
 
   // Update or create user duration
   /**
@@ -154,17 +136,31 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
     userDuration = new UserDurationInJym({
       userId: userData._id,
       jymId,
-      joinDates: [currentDate.toISOString()],
+      joinDates: [currentDate],
       isBecomeActiveUser: true,
     });
-  } else if (userDuration.isTrialUser) {
-    userDuration.isTrialUser = false;
-    userDuration.isBecomeActiveUser = true;
-    userDuration.joinDates.push(currentDate.toISOString());
+    await userDuration.save();
   }
 
-  await userDuration.save();
+  // Calculate end date and membership status
+  const baseDays = month * 30;
+  const adjustedDays = baseDays + extraDays - totalExtraAttendedDays;
+  const endDate = new Date(
+    currentDate.getTime() + adjustedDays * 24 * 60 * 60 * 1000
+  );
 
+  // Create new membership
+
+  const newMembership = new Membership({
+    jymId,
+    userId: userData._id,
+    userUniqueId: userData.userUniqueId,
+    amount,
+    endDate,
+    userDuration: userDuration._id,
+  });
+
+  const savedMembership = await newMembership.save();
   res.status(201).json({
     success: true,
     message: "Membership created successfully",
@@ -202,47 +198,47 @@ const isMember = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
-const markTrialAttendance = AsyncErrorHandler(async (req, res, next) => {
-  const jymId = req.jym._id;
-  const { userId } = req.body;
-  // Get the current date
-  const currentDate = new Date();
+// const markTrialAttendance = AsyncErrorHandler(async (req, res, next) => {
+//   const jymId = req.jym._id;
+//   const { userId } = req.body;
+//   // Get the current date
+//   const currentDate = new Date();
 
-  // Add 2 days to the current date
-  const twoDaysLater = new Date(
-    currentDate.getTime() + 2 * 24 * 60 * 60 * 1000
-  );
+//   // Add 2 days to the current date
+//   const twoDaysLater = new Date(
+//     currentDate.getTime() + 2 * 24 * 60 * 60 * 1000
+//   );
 
-  // Convert to ISO string if needed
-  const isoDate = twoDaysLater.toISOString();
+//   // Convert to ISO string if needed
+//   const isoDate = twoDaysLater.toISOString();
 
-  // after creating trial attendance i want to store it in jym but that will get too messy there for we have to create new models of
+//   // after creating trial attendance i want to store it in jym but that will get too messy there for we have to create new models of
 
-  const newAttendance = new Attendance({
-    userId: userId,
-    jymId: jymId,
-    mode: "trial",
-    isTrial: true,
-    trialTokenExpiry: isoDate,
-    checkIn: currentDate.toISOString(),
-  });
+//   const newAttendance = new Attendance({
+//     userId: userId,
+//     jymId: jymId,
+//     mode: "trial",
+//     isTrial: true,
+//     trialTokenExpiry: isoDate,
+//     checkIn: currentDate.toISOString(),
+//   });
 
-  const newUserDuration = new UserDurationInJym({
-    userId: userId,
-    jymId: jymId,
-    isTrialUser: true,
-    trialJoinDate: currentDate.toISOString(),
-  });
+//   const newUserDuration = new UserDurationInJym({
+//     userId: userId,
+//     jymId: jymId,
+//     isTrialUser: true,
+//     trialJoinDate: currentDate.toISOString(),
+//   });
 
-  const userDurationObj = await newUserDuration.save();
-  const attendanceObj = await newAttendance.save();
+//   const userDurationObj = await newUserDuration.save();
+//   const attendanceObj = await newAttendance.save();
 
-  return res.status(200).json({
-    success: true,
-    message: "User Attendance is marked as trial user ",
-    user: attendanceObj,
-  });
-});
+//   return res.status(200).json({
+//     success: true,
+//     message: "User Attendance is marked as trial user ",
+//     user: attendanceObj,
+//   });
+// });
 
 const getMembership = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.params.jymid;
@@ -293,7 +289,7 @@ module.exports = {
   createMembership,
   isMember,
   getAllMembership,
-  markTrialAttendance,
+  // markTrialAttendance,
   getMembership,
   renewMembership,
 };

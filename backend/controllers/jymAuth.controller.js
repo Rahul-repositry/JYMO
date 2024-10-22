@@ -160,9 +160,40 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
   const phonePattern = /^[6789]\d{9}$/;
 
   if (phonePattern.test(recoveryNumber)) {
-    const JymObj = await Jym.findOne({
-      recoveryNumber: recoveryNumber,
+    const JymObj = await Jym.find({ recoveryNumber: recoveryNumber }).select(
+      "name jymUniqueId"
+    );
+
+    if (JymObj.length === 0) {
+      return next(new CustomError("Jym not found with this number", 404));
+    }
+
+    // const token = generateToken();
+    // JymObj.resetPasswordToken = token;
+    // JymObj.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+    // await JymObj.save();
+
+    //otp will be send by sendotp route
+    // otp will be verified by verify otp route and then show the update password input in frontend
+    //then reset password with otp number and toke will be first these will be verified then changes will made
+
+    res.status(200).json({
+      success: true,
+      message: "jym Sent instructions sent",
+      // token: token,
+      jymData: JymObj,
     });
+    return;
+  }
+
+  next(new CustomError("Number is incorrect", 404));
+  return;
+});
+
+const createForgotSession = AsyncErrorHandler(async (req, res, next) => {
+  const { jymId } = req.body;
+  try {
+    const JymObj = await Jym.findOne({ _id: jymId });
 
     if (!JymObj) {
       return next(new CustomError("Jym not found with this number", 404));
@@ -173,21 +204,16 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
     JymObj.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
     await JymObj.save();
 
-    //otp will be send by sendotp route
-    // otp will be verified by verify otp route and then show the update password input in frontend
-    //then reset password with otp number and toke will be first these will be verified then changes will made
-
     res.status(200).json({
       success: true,
-      message: "Reset instructions sent",
+      message: "jym Sent instructions sent",
       token: token,
-      jymId: JymObj._id,
     });
     return;
+  } catch (err) {
+    next(new CustomError("Jym is incorrect", 404));
+    return;
   }
-
-  next(new CustomError("Number is incorrect", 404));
-  return;
 });
 
 const resetPassword = AsyncErrorHandler(async (req, res, next) => {
@@ -263,5 +289,6 @@ module.exports = {
   logout,
   jymId,
   forgotPassword,
+  createForgotSession,
   resetPassword,
 };

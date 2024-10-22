@@ -1,7 +1,11 @@
 const express = require("express");
-const { verifyUser } = require("../utils/Middleware.utils.js");
+const { verifyUser, verifyJym } = require("../utils/Middleware.utils.js");
 const router = express.Router();
-const { getJym, getJymById } = require("../controllers/jym.controller.js");
+const {
+  getJym,
+  getJymById,
+  getDashboardStats,
+} = require("../controllers/jym.controller.js");
 /**
  * @route GET /getjym/:JUID
  * @frontend
@@ -18,6 +22,7 @@ router.get("/getjym/:JUID", verifyUser, getJym);
 
 /**
  * @route GET /getjymbyid/:id
+ *
  * @frontend
  * - Sends a GET request to retrieve gym details using the gym's database ID.
  * - Typically triggered by user actions such as selecting a gym from a list.
@@ -29,5 +34,7 @@ router.get("/getjym/:JUID", verifyUser, getJym);
  * - Returns gym details if found, or an error message if the ID is incorrect.
  */
 router.get("/getjymbyid/:id", verifyUser, getJymById);
+
+router.get("/getDashboardStats", verifyUser, verifyJym, getDashboardStats);
 
 module.exports = router; //export the router to use in other files
