@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
-const { Jym } = require("../models/jym.model");
+const Jym = require("../models/jym.model");
 const User = require("../models/user.model");
 const CustomError = require("./CustomError.utils");
 const { filterUserDetails } = require("./ImpFunc");
@@ -11,7 +11,7 @@ dotenv.config("");
 const verifyUser = async (req, res, next) => {
   // if in future you update user model update here in req.user to add new properties
   const token = req.cookies.access_token;
-  console.log(token, "token for user");
+
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {
       if (err) {
@@ -20,12 +20,15 @@ const verifyUser = async (req, res, next) => {
           .status(401)
           .json({ success: false, message: "Token is not valid" });
       } else {
-        const user = await User.findById({ _id: decoded.user._id });
-        console.log(user, "user in verify");
+        const user = await User.findById({
+          _id: new ObjectId(decoded.user._id),
+        });
+
         if (!user) {
           return next(new CustomError("No User found", 404));
         }
         // Use filterUserDetails utility to standardize user object
+
         req.user = filterUserDetails(user);
         next();
       }
@@ -116,7 +119,6 @@ const verifyJym = (req, res, next) => {
           .status(401)
           .json({ success: false, message: "Token is not valid" });
       } else {
-        console.log(decoded);
         let decodedObj = {
           _id: decoded.id,
           ...decoded,
@@ -148,7 +150,7 @@ const verifyOwnership = async (req, res, next) => {
     }
 
     // Check if the authenticated user is an owner of the gym
-    if (!jym.owners.includes(ownerId)) {
+    if (!jym.owners.some((owner) => owner.equals(ownerId))) {
       return res.status(403).json({
         success: false,
         message: "Not authorized to mark attendance for this gym",
@@ -157,6 +159,7 @@ const verifyOwnership = async (req, res, next) => {
 
     next(); // Call next() on successful ownership verification
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };

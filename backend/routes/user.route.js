@@ -1,5 +1,5 @@
 const express = require("express");
-const { verifyUser } = require("../utils/Middleware.utils");
+const { verifyUser, verifyJym } = require("../utils/Middleware.utils");
 const router = express.Router();
 const {
   userData,
@@ -7,6 +7,8 @@ const {
   updateUserNameAndBdate,
   updateUserPhone,
   updateUserImg,
+  userDataById,
+  userDataByUserUniqueId,
 } = require("../controllers/user.controller");
 
 /**
@@ -19,6 +21,13 @@ const {
  * - Returns the user's data from the database.
  */
 router.get("/", verifyUser, userData);
+router.get("/userId/:userId", verifyUser, verifyJym, userDataById);
+router.get(
+  "/userUniqueId/:userUniqueId",
+  verifyUser,
+  verifyJym,
+  userDataByUserUniqueId
+);
 
 /**
  * @route POST /updateuseremail

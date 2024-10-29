@@ -5,15 +5,12 @@ const {
   verifyOwnership,
 } = require("../utils/Middleware.utils");
 const {
-  membershipHandler,
-  membershipPauseHandler,
-  membershipResumeHandler,
   createMembership,
-  markTrialAttendance,
-  isMember,
   renewMembership,
   getMembership,
   getAllMembership,
+  memberStatus,
+  getMembershipByUserId,
 } = require("../controllers/membership.controller");
 const router = express.Router();
 
@@ -66,8 +63,13 @@ router.post(
  * - Verifies user, gym, and ownership.
  * - Determines if the user is a new member or has an existing membership.
  */
-router.get("/ismember/:id", verifyUser, verifyJym, verifyOwnership, isMember);
-
+router.get(
+  "/memberstatus",
+  verifyUser,
+  verifyJym,
+  verifyOwnership,
+  memberStatus
+);
 /**
  * @route GET /getallmembership
  * @frontend
@@ -87,5 +89,11 @@ router.get("/getallmembership", verifyUser, getAllMembership);
  * - Fetches the latest membership for the user in the specified gym.
  */
 router.get("/getmembership/:jymid", verifyUser, getMembership);
+router.get(
+  "/getmembershipbyuserid/:userId",
+  verifyUser,
+  verifyJym,
+  getMembershipByUserId
+);
 
 module.exports = router;

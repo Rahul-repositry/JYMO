@@ -2,25 +2,28 @@ const Membership = require("../models/membership.model.js");
 const User = require("../models/user.model.js");
 const CustomError = require("../utils/CustomError.utils.js");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
-const { Jym } = require("../models/jym.model.js");
-const Attendance = require("../models/attendance.model.js");
 const { UserDurationInJym } = require("../models/userDuration.model.js");
+const { filterUserDetails } = require("../utils/ImpFunc.js");
 const { ObjectId } = require("mongoose").Types;
+const dotenv = require("dotenv");
+
+dotenv.config();
 
 const renewMembership = AsyncErrorHandler(async (req, res, next) => {
   let {
     userUniqueId,
     userId,
     amount,
+    startDate,
     month = 1, // Default to 1 month if not provided
-    totalAttendedDays = 0, // attendance days that are marked as registered after last membership
-    extraDays = 0, // extra days will be like days after 6 days of holidays and if someone is paying fee of next month before ending those remaing days will also be considered as extra days
+    // totalAttendedDays = 0, // attendance days that are marked as registered after last membership
+    // extraDays = 0, // extra days will be like days after 6 days of holidays and if someone is paying fee of next month before ending those remaing days will also be considered as extra days
   } = req.body;
   const jymId = req.jym._id;
-
+  const newStartDate = new Date(startDate);
   // Find user by userId or userUniqueId
   const user = userId
-    ? await User.findById({ _id: userId })
+    ? await User.findById({ _id: new ObjectId(userId) })
     : await User.findOne({ userUniqueId });
 
   if (!user) {
@@ -38,13 +41,12 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
   }
 
   // Calculate the new end date for the renewed membership
-  const currentDate = new Date();
   let baseDays = month * 30; // Total days based on the number of months
-  let adjustedDays = baseDays + extraDays - totalAttendedDays;
+  // let adjustedDays = baseDays + extraDays - totalAttendedDays;
   let newEndDate = new Date(
-    latestMembership.endDate.getTime() + adjustedDays * 24 * 60 * 60 * 1000
+    newStartDate.getTime() + baseDays * 24 * 60 * 60 * 1000
   );
-
+  console.log({ baseDays, newEndDate, newStartDate });
   // Update the existing membership with the new end date and amount
 
   const newMembership = new Membership({
@@ -52,7 +54,7 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
     userId: user._id,
     userUniqueId: user.userUniqueId,
     amount,
-    startDate: currentDate,
+    startDate: newStartDate,
     endDate: newEndDate,
     userDuration: latestMembership.userDuration,
   });
@@ -168,34 +170,75 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
-const isMember = AsyncErrorHandler(async (req, res, next) => {
-  const _id = req.params.id;
+const memberStatus = AsyncErrorHandler(async (req, res, next) => {
+  const { userId, userUniqueId } = req.query; // Use req.query for URL parameters
   const jymId = req.jym._id;
-  let newMember = true;
+  console.log("is this working ");
+  let status = {
+    "In-active": false, // if true means user is inactive
+    Register: false,
+    "Register-Again": false,
+    Renew: false,
+  };
+
+  // Ensure at least one identifier is provided
+  if (!userId && !userUniqueId) {
+    return next(
+      new CustomError("User ID or User Unique ID must be provided", 400)
+    );
+  }
+
   // Check if user exists
-  const user = await User.findById({ _id: new ObjectId(_id) });
+  const user = userId
+    ? await User.findById({ _id: new ObjectId(userId) })
+    : await User.findOne({ userUniqueId });
 
   if (!user) {
     return next(new CustomError("User not found", 404));
   }
-  const wasMember = await Membership.findOne({
-    jymId: new ObjectId(jymId),
-    userId: new ObjectId(_id),
-  });
 
-  if (!wasMember) {
+  // Find the latest membership record for the user in this gym
+  const membership = await Membership.findOne({
+    jymId: new ObjectId(jymId),
+    userId: new ObjectId(user._id),
+  }).sort({ createdAt: -1 });
+
+  if (!membership) {
     return res.status(200).json({
       success: true,
-      newMember,
-      user,
-    });
-  } else {
-    return res.status(200).json({
-      success: true,
-      newMember: false,
-      user,
+      message: "You must create a membership first.",
+      status: { ...status, Register: true },
+      user: filterUserDetails(user),
     });
   }
+
+  const lastCheckIn = membership?.status?.active?.lastCheckIn;
+  if (!lastCheckIn) {
+    return next(new CustomError("Invalid membership data", 500));
+  }
+
+  const lastCheckInDate = new Date(lastCheckIn);
+  const currentDate = new Date();
+  const FIFTEEN_DAYS = process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
+  const timeSinceLastCheckIn = currentDate - lastCheckInDate;
+
+  // User attended within the last 15 days, so renew
+  if (timeSinceLastCheckIn <= FIFTEEN_DAYS) {
+    return res.status(200).json({
+      success: true,
+      message: "You can renew membership.",
+      status: { ...status, Renew: true },
+      user: filterUserDetails(user),
+    });
+  }
+
+  // User has not attended in over 15 days, require re-registration
+  return res.status(200).json({
+    success: true,
+    message: "You must register again for membership.",
+    status: { ...status, "Register-Again": true },
+    user: filterUserDetails(user),
+  });
 });
 
 // const markTrialAttendance = AsyncErrorHandler(async (req, res, next) => {
@@ -258,6 +301,24 @@ const getMembership = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
+const getMembershipByUserId = AsyncErrorHandler(async (req, res, next) => {
+  const jymId = req.jym._id;
+  const userId = req.params.userId;
+  console.log({ jymId, userId });
+  const membership = await Membership.findOne({
+    jymId: new ObjectId(jymId),
+    userId: new ObjectId(userId),
+  }).sort({ createdAt: -1 });
+  if (!membership) {
+    return next(new CustomError("Create Membership with this jym", 404));
+  }
+  return res.status(200).json({
+    success: true,
+    message: "Membership found",
+    membership: membership,
+  });
+});
+
 const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
   const userId = req.user._id;
   const { skip = 0 } = req.query; // Default values for skip
@@ -287,9 +348,10 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
 
 module.exports = {
   createMembership,
-  isMember,
+  memberStatus,
   getAllMembership,
   // markTrialAttendance,
+  getMembershipByUserId,
   getMembership,
   renewMembership,
 };

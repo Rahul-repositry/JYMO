@@ -7,7 +7,8 @@ const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const CustomError = require("../utils/CustomError.utils.js");
 const { filterJymDetails } = require("../utils/ImpFunc.js");
 const { ObjectId } = require("mongoose").Types;
-
+const dotenv = require("dotenv");
+dotenv.config();
 const getJym = AsyncErrorHandler(async (req, res, next) => {
   const { JUID } = req.params;
   console.log(req.params);
@@ -16,8 +17,21 @@ const getJym = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("JUID is incorrect", 404));
   }
   return res.status(200).json({
-    sucess: true,
+    success: true,
     data: filterJymDetails(jym),
+    message: "Jym found",
+  });
+});
+
+const jymDetails = AsyncErrorHandler(async (req, res, next) => {
+  const { _id } = req.jym;
+  const jym = await Jym.findOne({ _id: new ObjectId(_id) });
+  if (!jym) {
+    return next(new CustomError("JUID is incorrect", 404));
+  }
+  return res.status(200).json({
+    success: true,
+    jymData: filterJymDetails(jym),
     message: "Jym found",
   });
 });
@@ -40,7 +54,7 @@ const getJymById = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("ID is incorrect", 404));
   }
   return res.status(200).json({
-    sucess: true,
+    success: true,
     jymData: jym,
     message: "Jym found",
   });
@@ -60,8 +74,9 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
     currentDate.getMonth(),
     1
   );
-  const FIFTEEN_DAYS = 15 * 24 * 60 * 60 * 1000;
-  const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+  const FIFTEEN_DAYS = process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
+  const FIVE_DAYS =
+    process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000;
 
   try {
     const membershipStats = await Membership.aggregate([
@@ -233,4 +248,4 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { getJym, getJymById, getDashboardStats };
+module.exports = { getJym, getJymById, jymDetails, getDashboardStats };

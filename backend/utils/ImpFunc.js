@@ -75,7 +75,7 @@ const filterJymDetails = (jym) => {
   } = jym;
 
   return {
-    _id,
+    _id, // Convert ObjectId to string
     name,
     jymUniqueId,
     addressLocation,
@@ -85,7 +85,7 @@ const filterJymDetails = (jym) => {
   };
 };
 
-const updateLastCheckInForMembership = async (jymId, userId) => {
+const updateLastCheckInForMembership = async (jymId, userId, status) => {
   // Fetch the latest membership
   const latestMembership = await Membership.findOne({
     jymId: new ObjectId(jymId),
@@ -98,6 +98,17 @@ const updateLastCheckInForMembership = async (jymId, userId) => {
   }
 
   // Update the lastCheckIn date in the membership's status
+  if (status === "inactive") {
+    let currentDate = new Date();
+    let membershipEnds = new Date(latestMembership.endDate);
+    if (currentDate.getTime() > membershipEnds.getTime()) {
+      return "no membership to make inactive";
+    }
+
+    latestMembership.status.active.value = false; // Set to current date
+  } else if (status === "active") {
+    latestMembership.status.active.value = true; // Set to current date
+  }
   latestMembership.status.active.lastCheckIn = new Date(); // Set to current date
 
   // Save the updated membership

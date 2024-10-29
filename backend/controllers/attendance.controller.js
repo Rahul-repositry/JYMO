@@ -209,11 +209,17 @@ const gapDays = (lastChqIn) => {
 
 //make attendance registratiton by admins
 const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
-  let { jymId, userId: userIdFromBody } = req.body;
-  let userId = userIdFromBody || req.user._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
+  // here jymId means jymUnique Id
+
+  let { jymId, userId } = req.body;
+  userId = userId || req.user._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
+  jymId = jymId || req.jym._id;
 
   const today = new Date();
-  let latestAttendance = await Attendance.findOne({ userId, jymId }).sort({
+  let latestAttendance = await Attendance.findOne({
+    userId: new ObjectId(userId),
+    jymId: new ObjectId(jymId),
+  }).sort({
     createdAt: -1,
   });
 
@@ -227,12 +233,7 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       )
     );
   } else if (latestAttendance.mode === "inactive") {
-    return next(
-      new CustomError(
-        "Ask owner to register again you came after a long time",
-        404
-      )
-    );
+    return next(new CustomError("Ask owner to activate your membership", 404));
   } else if (latestAttendance.mode === "register") {
     //this marks the attendance
     let obj = await markTrialAttendance(jymId, userId);
@@ -336,8 +337,9 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const getAttendanceByDate = AsyncErrorHandler(async (req, res, next) => {
-  const userId = req.user._id;
-  const jymId = req.body.jymId;
+  const userId = req.body.userId || req.user._id; // `userId` from body for admin, otherwise from `req.user`
+  const jymId = req.body.jymId || req.jym._id; // `jymId` from body for regular user, otherwise from `req.jym`
+
   const startDate = req.body.startDate;
   const endDate = req.body.endDate;
 
@@ -359,21 +361,33 @@ const getAttendanceByDate = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const registerAttendance = AsyncErrorHandler(async (req, res, next) => {
-  const { userId } = req.body;
-  const { jymId } = req.jym._id;
-  const attendance = await Attendance.findOne({ userId, jymId });
+  const { userId, userUniqueId } = req.body;
+
+  // while using this func if you have userId available then send it and make other userUniqueId = null and vice versa
+  const userData = userId
+    ? await User.findById({ _id: userId })
+    : await User.findOne({ userUniqueId });
+
+  if (!userData) {
+    return next(new CustomError("User not found ", 404));
+  }
+  const jymId = req.jym._id;
+  const attendance = await Attendance.findOne({
+    userId: new ObjectId(userData._id),
+    jymId: new ObjectId(jymId),
+  });
   if (attendance) {
     return next(new CustomError("Member already exists for this jym", 403));
   }
 
   // this marks lastchqin in user memberhship
-  await updateLastCheckInForMembership(jymId, userId);
+  await updateLastCheckInForMembership(jymId, userData._id);
 
   // this  totals chqins to display to dashboard
   await updateOrCreateCheckInSummary(jymId);
 
   const newAttendance = new Attendance({
-    userId,
+    userId: userData._id,
     jymId,
     mode: "register",
   });
@@ -388,25 +402,33 @@ const registerAttendance = AsyncErrorHandler(async (req, res, next) => {
 
 const registerAgainAttendance = AsyncErrorHandler(async (req, res, next) => {
   // update user duration quit dates if user is not making attendance for process.env. REGISTERAGAININ days or dont do it if user is inactive because in that case that will be already done
+  const { userId, userUniqueId } = req.body;
+  const jymId = req.jym._id;
 
-  const { userId } = req.body;
-  const { jymId } = req.jym._id;
+  // while using this func if you have userId available then send it and make other userUniqueId = null and vice versa
+  const userData = userId
+    ? await User.findById(userId)
+    : await User.findOne({ userUniqueId });
+
+  if (!userData) {
+    return next(new CustomError("User not found ", 404));
+  }
   const today = new Date();
   const attendance = await Attendance.findOne({
-    userId: new ObjectId(userId),
+    userId: new ObjectId(userData._id),
     jymId: new ObjectId(jymId),
   }).sort({ createdAt: -1 });
   if (!attendance) {
     return next(new CustomError("Get register First ", 404));
   }
   // this marks lastchqin in user memberhship
-  await updateLastCheckInForMembership(jymId, userId);
+  await updateLastCheckInForMembership(jymId, userData._id);
 
   // this  totals chqins to display to dashboard
   await updateOrCreateCheckInSummary(jymId);
 
   const userDuration = await UserDurationInJym.findOne({
-    userId: new ObjectId(userId),
+    userId: new ObjectId(userData._id),
     jymId: new ObjectId(jymId),
   });
   if (userDuration) {
@@ -416,7 +438,7 @@ const registerAgainAttendance = AsyncErrorHandler(async (req, res, next) => {
   }
 
   const newAttendance = new Attendance({
-    userId,
+    userId: userData._id,
     jymId,
     mode: "registerAgain",
   });
@@ -429,30 +451,148 @@ const registerAgainAttendance = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
-const inactiveAttendance = async (jymId, userId, userUniqueId) => {
-  // while using this func if you have userId available then send it and make other userUniqueId = null and vice versa
-  const userData = userId
-    ? await User.findById(userId)
-    : await User.findOne({ userUniqueId });
+const inactiveAttendance = AsyncErrorHandler(async (req, res, next) => {
+  const { userId, userUniqueId } = req.body;
+  const jymId = req.jym._id;
 
+  // Log the incoming request data for debugging
+  console.log("is this working", req.body);
+
+  // Fetch the user data based on either userId or userUniqueId
+  const userData = userId
+    ? await User.findById({ _id: new ObjectId(userId) })
+    : await User.findOne({ userUniqueId: Number(userUniqueId) });
+
+  if (!userData) {
+    return next(new CustomError("User not found", 404));
+  }
+  let result = await updateLastCheckInForMembership(
+    jymId,
+    userData._id,
+    "inactive"
+  );
+  if (result === "no membership to make inactive") {
+    next(new CustomError("No membership present to make inactive", 404));
+    return;
+  }
+  // Check if there is an existing "inactive" attendance record for this user and gym
+  let latestAttendance = await Attendance.findOne({
+    userId: new ObjectId(userData._id),
+    jymId: new ObjectId(jymId),
+  }).sort({
+    createdAt: -1,
+  });
+  console.log({ latestAttendance });
+  // If found, return a response without saving a new record
+  if (latestAttendance.mode === "inactive") {
+    return res.status(200).json({
+      success: true,
+      message: "User is already in inactive mode",
+      attendance: latestAttendance,
+    });
+  }
+
+  const userDuration = await UserDurationInJym.findOne({
+    userId: new ObjectId(userData._id),
+    jymId: new ObjectId(jymId),
+  });
+  if (userDuration) {
+    userDuration.quitDates.push(new Date());
+    await userDuration.save();
+  }
+
+  // Create a new attendance record if no existing inactive record is found
   const newAttendance = new Attendance({
     userId: userData._id,
     jymId: jymId,
     mode: "inactive",
   });
-  let att = await newAttendance.save();
+
+  /// on renewing this will get renewd not registerAgain membership
+
+  // this marks lastchqin in user memberhship
+
+  const att = await newAttendance.save();
+  console.log({ att });
 
   return res.status(200).json({
     success: true,
-    message: "Attendance initiated",
+    message: "User is successfully deactivated",
     attendance: att,
   });
-};
+});
+
+const makeInactiveToActiveAttendance = AsyncErrorHandler(
+  async (req, res, next) => {
+    const { userId, userUniqueId } = req.body;
+    const jymId = req.jym._id;
+
+    // Log the incoming request data for debugging
+    console.log("is this working", req.body);
+
+    // Fetch the user data based on either userId or userUniqueId
+    const userData = userId
+      ? await User.findById({ _id: new ObjectId(userId) })
+      : await User.findOne({ userUniqueId: Number(userUniqueId) });
+
+    if (!userData) {
+      return next(new CustomError("User not found", 404));
+    }
+
+    // Check if there is an existing "inactive" attendance record for this user and gym
+    let latestAttendance = await Attendance.findOne({
+      userId: new ObjectId(userData._id),
+      jymId: new ObjectId(jymId),
+    }).sort({
+      createdAt: -1,
+    });
+    console.log({ latestAttendance });
+    // If found, return a response without saving a new record
+    if (latestAttendance.mode !== "inactive") {
+      return res.status(200).json({
+        success: true,
+        message: "User is already in active mode",
+        attendance: latestAttendance,
+      });
+    }
+
+    const userDuration = await UserDurationInJym.findOne({
+      userId: new ObjectId(userData._id),
+      jymId: new ObjectId(jymId),
+    });
+    if (userDuration) {
+      userDuration.joinDates.push(new Date());
+      await userDuration.save();
+    }
+
+    // Create a new attendance record if no existing inactive record is found
+    const newAttendance = new Attendance({
+      userId: userData._id,
+      jymId: jymId,
+      mode: "registered",
+    });
+
+    /// on renewing this will get renewd not registerAgain membership
+
+    // this marks lastchqin in user memberhship
+    await updateLastCheckInForMembership(jymId, userData._id, "active");
+
+    const att = await newAttendance.save();
+    console.log({ att });
+
+    return res.status(200).json({
+      success: true,
+      message: "User is successfully activated",
+      attendance: att,
+    });
+  }
+);
 
 module.exports = {
   inactiveAttendance,
   registerAgainAttendance,
   attendanceHandler,
+  makeInactiveToActiveAttendance,
   registerAttendance,
   getAttendanceByDate,
 };

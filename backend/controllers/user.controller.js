@@ -25,6 +25,46 @@ const userData = AsyncErrorHandler((req, res, next) => {
   return res.status(200).json({ success: true, user: req.user });
 });
 
+const userDataById = AsyncErrorHandler(async (req, res, next) => {
+  const userId = req.params.userId;
+
+  try {
+    const user = await User.findById({ _id: new ObjectId(userId) });
+
+    if (!user) {
+      return next(new CustomError("User not found", 404));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User found",
+      user: filterUserDetails(user),
+    });
+  } catch (err) {
+    return next(new CustomError("Error fetching user", 500));
+  }
+});
+
+const userDataByUserUniqueId = AsyncErrorHandler(async (req, res, next) => {
+  const userUniqueId = req.params.userUniqueId;
+
+  try {
+    const user = await User.findOne({ userUniqueId: userUniqueId });
+
+    if (!user) {
+      return next(new CustomError("User not found", 404));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User found",
+      user: filterUserDetails(user),
+    });
+  } catch (err) {
+    return next(new CustomError("Error fetching user", 500));
+  }
+});
+
 const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
   const { name, birthday, isOwner } = req.body;
 
@@ -217,6 +257,8 @@ module.exports = {
   userData,
   updateUserPhone,
   updateUserEmail,
+  userDataById,
+  userDataByUserUniqueId,
   updateUserNameAndBdate,
   updateUserImg,
 };

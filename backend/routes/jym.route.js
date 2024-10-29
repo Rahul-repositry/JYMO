@@ -5,6 +5,7 @@ const {
   getJym,
   getJymById,
   getDashboardStats,
+  jymDetails,
 } = require("../controllers/jym.controller.js");
 /**
  * @route GET /getjym/:JUID
@@ -19,6 +20,9 @@ const {
  * - Returns gym details if found, or an error message if the JUID is incorrect.
  */
 router.get("/getjym/:JUID", verifyUser, getJym);
+
+// @des this will fetch details for jym owner and send jymdetails to use in localstorage
+router.get("/gymDetails", verifyUser, verifyJym, jymDetails);
 
 /**
  * @route GET /getjymbyid/:id

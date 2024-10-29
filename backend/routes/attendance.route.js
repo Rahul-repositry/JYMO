@@ -9,6 +9,10 @@ const {
 const {
   attendanceHandler,
   getAttendanceByDate,
+  registerAgainAttendance,
+  registerAttendance,
+  inactiveAttendance,
+  makeInactiveToActiveAttendance,
 } = require("../controllers/attendance.controller.js");
 
 /**
@@ -35,8 +39,40 @@ router.post(
   verifyUser,
   verifyJym,
   verifyOwnership,
-  verifyActiveUser,
   attendanceHandler
+);
+
+// register again attendance by  admin
+router.post(
+  "/registeragain",
+  verifyUser,
+  verifyJym,
+  verifyOwnership,
+  registerAgainAttendance
+);
+// create register attendance by  admin
+router.post(
+  "/register",
+  verifyUser,
+  verifyJym,
+  verifyOwnership,
+  registerAttendance
+);
+// create inactive attendance by  admin for that jym
+router.post(
+  "/inactive",
+  verifyUser,
+  verifyJym,
+  verifyOwnership,
+  inactiveAttendance
+);
+// create inactive attendance by  admin for that jym
+router.post(
+  "/activate",
+  verifyUser,
+  verifyJym,
+  verifyOwnership,
+  makeInactiveToActiveAttendance
 );
 
 /**
@@ -57,5 +93,11 @@ router.post(
  * - If no records are found, it responds with an appropriate error message.
  */
 router.post("/getattendancebydate", verifyUser, getAttendanceByDate);
+router.post(
+  "/getattendancebydateByAdmin",
+  verifyUser,
+  verifyJym,
+  getAttendanceByDate
+);
 
 module.exports = router;
