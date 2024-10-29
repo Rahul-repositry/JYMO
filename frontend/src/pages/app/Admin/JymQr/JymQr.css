@@ -1,0 +1,16 @@
+.myqr .qrBox::after,
+.myqr .qrBox::before {
+  content: "";
+  position: absolute;
+  height: 100%;
+  width: 1px;
+  background: rgb(70, 69, 69);
+}
+/* .homeContainer .qrBox::after, */
+.myqr .qrBox::before {
+  left: 65px;
+}
+
+.myqr .qrBox::after {
+  right: 65px;
+}

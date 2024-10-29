@@ -33,7 +33,7 @@ const Calendar = () => {
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   const daysWithStatus = useAttendance(currentMonth, firstDayCurrentMonth);
   const workout = useWorkoutPlans();
-
+  console.log(daysWithStatus);
   const getWeekDates = () => {
     const weekDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     const today = new Date();

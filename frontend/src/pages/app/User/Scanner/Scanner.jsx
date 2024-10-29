@@ -14,6 +14,7 @@ function Scanner({ setLoading }) {
   const navigate = useNavigate();
   const readerRef = useRef(null);
   const juidRef = useRef("");
+
   const markAttendance = useCallback(
     async (jymData) => {
       try {

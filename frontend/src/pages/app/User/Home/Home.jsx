@@ -61,7 +61,10 @@ const Home = () => {
     date: "-",
     month: "-",
     year: "-",
+    startDate: undefined,
     endDate: undefined,
+    Inactive: false,
+    lastChqInDate: "",
   });
 
   const membershipCache = useRef(null);
@@ -76,7 +79,7 @@ const Home = () => {
     const membershipEndDate = new Date(data.membership.endDate);
     const diffOfEndDateAndToday =
       calculateDiffOfEndDateAndToday(membershipEndDate);
-
+    console.log(data);
     if (diffOfEndDateAndToday < 0) {
       setMembership({
         expired: true,
@@ -84,6 +87,9 @@ const Home = () => {
         date: membershipEndDate.getDate(),
         month: membershipEndDate.getMonth() + 1,
         year: membershipEndDate.getFullYear(),
+        Inactive: !data.membership.status.active.value,
+        lastChqInDate: data.membership.status.active.lastCheckIn,
+        startDate: data.membership.startDate,
         endDate: membershipEndDate,
       });
     } else {
@@ -91,6 +97,9 @@ const Home = () => {
         ...prev,
         expired: false,
         days: diffOfEndDateAndToday,
+        startDate: data.membership.startDate,
+        Inactive: !data.membership.status.active.value,
+        lastChqInDate: data.membership.status.active.lastCheckIn,
         endDate: membershipEndDate,
       }));
     }
@@ -117,6 +126,7 @@ const Home = () => {
 
     return;
   };
+  console.log(membership);
 
   useEffect(() => {
     const loadData = async () => {
@@ -129,6 +139,7 @@ const Home = () => {
           currentJym.jymId,
           membershipCache
         );
+        console.log(membershipData);
         const attendnaceData = await fetchAttendanceData(
           currentJym.jymId,
           startOfMonth(currentDate),

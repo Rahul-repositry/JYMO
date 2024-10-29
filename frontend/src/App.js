@@ -31,6 +31,9 @@ import AdSignup from "./pages/app/Admin/Auth/Signup.jsx";
 import AdLogin from "./pages/app/Admin/Auth/Login.jsx";
 import AdForgot from "./pages/app/Admin/Auth/ForgotPass.jsx";
 import AdHome from "./pages/app/Admin/Home/Home.jsx";
+import AdJymQr from "./pages/app/Admin/JymQr/JymQr.jsx";
+import AdScanner from "./pages/app/Admin/AdScanner/AdScanner.jsx";
+import Member from "./pages/app/Admin/Member/Member.jsx";
 
 // Constants
 const UNPROTECTED_ROUTES = [
@@ -87,10 +90,10 @@ function App() {
         navigate("/login");
       }
     };
-    const fetchAdminDetails = async () => {
+    const fetchJymDetails = async () => {
       try {
         const response = await axios.get(
-          `${process.env.REACT_APP_BACKEND_URI}/api/user`,
+          `${process.env.REACT_APP_BACKEND_URI}/api/jym/gymDetails`,
           {
             withCredentials: true,
             headers: {
@@ -98,9 +101,10 @@ function App() {
             },
           }
         );
+
         if (response.data.success) {
-          setObjectInLocalStorage("user", response.data.user);
-          console.log(response.data.user);
+          setObjectInLocalStorage("adminJym", response.data.jymData);
+          console.log(response.data.jymData, "here wokring");
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
@@ -113,7 +117,7 @@ function App() {
         console.log("its working fetch user details");
         fetchUserDetails();
       } else if (location.pathname.includes("admin")) {
-        fetchAdminDetails();
+        fetchJymDetails();
       }
     }
   }, [location.pathname, navigate]);
@@ -171,7 +175,10 @@ function App() {
             <Route path="/admin/login" element={<AdLogin />} />
             <Route path="/admin/forgotpassword" element={<AdForgot />} />
 
+            <Route path="/admin/jymqr" element={<AdJymQr />} />
             <Route path="/admin/home" element={<AdHome />} />
+            <Route path="/admin/scanner" element={<AdScanner />} />
+            <Route path="/admin/member" element={<Member />} />
           </Routes>
           {applyBottomNavStyles && <BottomNavigation />}
         </div>

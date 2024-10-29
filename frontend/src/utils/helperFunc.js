@@ -8,6 +8,11 @@ export const setObjectInLocalStorage = (key, value) => {
   }
 };
 
+// utils/getQueryParams.js
+export const getQueryParams = (search) => {
+  return new URLSearchParams(search);
+};
+
 // Function to retrieve an object from localStorage
 export const getObjectFromLocalStorage = (key) => {
   try {

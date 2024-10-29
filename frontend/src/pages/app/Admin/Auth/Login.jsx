@@ -6,6 +6,7 @@ import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setAdmin } from "../../../../redux/slices/admin.slice";
+import { getQueryParams } from "../../../../utils/helperFunc";
 const LogIn = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -23,10 +24,6 @@ const LogIn = () => {
       ...prev,
       [id]: value,
     }));
-  };
-
-  const getQueryParams = (search) => {
-    return new URLSearchParams(search);
   };
 
   const togglePasswordVisibility = () => {

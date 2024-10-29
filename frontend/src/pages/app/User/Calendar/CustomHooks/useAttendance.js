@@ -8,7 +8,7 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 
-const useAttendance = (currentMonth, firstDayCurrentMonth) => {
+const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
   const [daysWithStatus, setDaysWithStatus] = useState([]);
   const [hasFetchedData, setHasFetchedData] = useState(false);
   const attendanceMonthCache = useRef({});
@@ -32,11 +32,21 @@ const useAttendance = (currentMonth, firstDayCurrentMonth) => {
         return attendanceMonthCache.current[currentMonth];
       }
       try {
-        const response = await axios.post(
-          `${process.env.REACT_APP_BACKEND_URI}/api/attendance/getattendancebydate`,
-          { jymId: currentJymId, startDate, endDate },
-          { withCredentials: true }
-        );
+        let response;
+        if (user) {
+          response = await axios.post(
+            `${process.env.REACT_APP_BACKEND_URI}/api/attendance/getattendancebydateByAdmin`,
+            { userId: user._id, startDate, endDate },
+            { withCredentials: true }
+          );
+        } else {
+          response = await axios.post(
+            `${process.env.REACT_APP_BACKEND_URI}/api/attendance/getattendancebydate`,
+            { jymId: currentJymId, startDate, endDate },
+            { withCredentials: true }
+          );
+        }
+
         attendanceMonthCache.current[currentMonth] = response.data;
         return response.data;
       } catch (err) {

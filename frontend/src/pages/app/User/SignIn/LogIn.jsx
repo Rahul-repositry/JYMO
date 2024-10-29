@@ -133,7 +133,7 @@ const LogIn = () => {
                 type="text"
                 id="numberOrGmail"
                 aria-describedby="helper-text-explanation"
-                className="input-field bg-gray-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full ps-10 p-2.5"
+                className="input-field "
                 placeholder="Number or Gmail"
                 value={formData.numberOrGmail}
                 onChange={handleChange}
