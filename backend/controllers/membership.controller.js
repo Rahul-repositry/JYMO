@@ -320,11 +320,13 @@ const getMembershipByUserId = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
-  const userId = req.user._id;
+  const userId = req.body.userId || req.user._id;
+  const jymId = req.body.jymId || req.jym._id;
   const { skip = 0 } = req.query; // Default values for skip
 
   const memberships = await Membership.find({
     userId: new ObjectId(userId),
+    jymId: new Object(jymId),
   })
     .skip(Number(skip)) // Skip the records based on the current page
     .limit(20) // Limit the number of records fetched per request

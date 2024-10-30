@@ -183,15 +183,7 @@ const verifyActiveUser = async (req, res, next) => {
       });
     }
 
-    // Logic to allow attendance marking for users in trial period or active users
-    if (latestAttendance.mode != "inactive") {
-      next(); // Call next() on successfull active user verification
-    } else {
-      return res.status(400).json({
-        success: false,
-        message: "User is not an active member",
-      });
-    }
+    next();
   } catch (error) {
     return res.status(500).json({ success: false, message: "Server error" });
   }

@@ -71,14 +71,15 @@ router.get(
   memberStatus
 );
 /**
- * @route GET /getallmembership
+ * @route POST /getallmembership
  * @frontend
  * - Fetches all memberships for the user.
  *
  * @backend
  * - Retrieves all memberships associated with the user.
  */
-router.get("/getallmembership", verifyUser, getAllMembership);
+router.post("/getallmembership", verifyUser, getAllMembership);
+router.post("/getallmembership/admin", verifyUser, verifyJym, getAllMembership);
 
 /**
  * @route GET /getmembership/:jymid
