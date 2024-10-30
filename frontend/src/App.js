@@ -34,6 +34,7 @@ import AdHome from "./pages/app/Admin/Home/Home.jsx";
 import AdJymQr from "./pages/app/Admin/JymQr/JymQr.jsx";
 import AdScanner from "./pages/app/Admin/AdScanner/AdScanner.jsx";
 import Member from "./pages/app/Admin/Member/Member.jsx";
+import FeeRecord from "./pages/app/Admin/Member/FeeRecord.jsx";
 
 // Constants
 const UNPROTECTED_ROUTES = [
@@ -179,6 +180,7 @@ function App() {
             <Route path="/admin/home" element={<AdHome />} />
             <Route path="/admin/scanner" element={<AdScanner />} />
             <Route path="/admin/member" element={<Member />} />
+            <Route path="/admin/member/feerecord" element={<FeeRecord />} />
           </Routes>
           {applyBottomNavStyles && <BottomNavigation />}
         </div>

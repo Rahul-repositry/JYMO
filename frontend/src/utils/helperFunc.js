@@ -28,6 +28,10 @@ export const getObjectFromLocalStorage = (key) => {
 };
 
 export const capitalizeFLetter = (text) => {
+  if (!text) {
+    return undefined;
+  }
+  console.log({ text });
   let data = text[0].toUpperCase() + text.slice(1);
 
   return data ? data : "";

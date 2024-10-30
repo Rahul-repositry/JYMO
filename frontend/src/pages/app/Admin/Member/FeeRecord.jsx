@@ -1,17 +1,19 @@
 import axios from "axios";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { format } from "date-fns";
 import Loader from "../../../../components/Loader/Loader";
 import MembershipCon from "../../../../components/MembershipCon/MembershipCon";
-import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
+import { useLocation } from "react-router-dom";
+import { getQueryParams } from "../../../../utils/helperFunc";
 
-const PastRecords = () => {
+const FeeRecord = () => {
   const [skip, setSkip] = useState(0);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
-  const currentJym = getObjectFromLocalStorage("currentJym");
-
+  const location = useLocation();
+  const queryParams = getQueryParams(location.search);
+  console.log(location.search);
+  const userId = queryParams.get("userId");
   const dataCache = useRef(new Map()); // Cache to store membership data
 
   const fetchDetails = useCallback(async () => {
@@ -20,8 +22,8 @@ const PastRecords = () => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URI}/api/membership/getallmembership?skip=${skip}`,
-        { jymId: currentJym.jymId },
+        `${process.env.REACT_APP_BACKEND_URI}/api/membership/getallmembership/admin?skip=${skip}`,
+        { userId: userId },
         { withCredentials: true }
       );
       const responseData = response.data;
@@ -92,4 +94,4 @@ const PastRecords = () => {
   );
 };
 
-export default PastRecords;
+export default FeeRecord;

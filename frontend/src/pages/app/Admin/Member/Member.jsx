@@ -12,11 +12,13 @@ import axios from "axios";
 import { addDays, format } from "date-fns";
 import CustomButton from "../../../../components/Button/Button";
 import { toast } from "react-toastify";
+import MemberRecordBar from "./components/MemberRecordBar";
 
 const Member = () => {
   const location = useLocation();
   const queryParams = getQueryParams(location.search);
   const navigate = useNavigate();
+  console.log(location.search);
 
   const userId = queryParams.get("userId");
   const userUniqueId = queryParams.get("userUniqueId");
@@ -184,6 +186,7 @@ const Member = () => {
 
   return (
     <div>
+      <MemberRecordBar locationSearch={`?userId=${user._id}`} />
       {!status.Register && (
         <Calendar
           setSelectedDate={setSelectedDate}
