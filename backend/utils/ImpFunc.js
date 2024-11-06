@@ -2,7 +2,7 @@ const CheckInSummary = require("../models/checkInSummary.model");
 const Membership = require("../models/membership.model");
 const CustomError = require("./CustomError.utils");
 const { ObjectId } = require("mongoose").Types;
-
+const mongoose = require("mongoose");
 const checkCooldown = (lastUpdated, cooldownMinutes = 2) => {
   const currentTime = new Date();
   const timeDifferenceInMinutes = Math.floor(

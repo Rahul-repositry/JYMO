@@ -244,8 +244,197 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
     return;
   } catch (error) {
     console.error("Error fetching membership stats:", error);
-    throw error;
   }
 });
 
-module.exports = { getJym, getJymById, jymDetails, getDashboardStats };
+const getUsersByStatus = AsyncErrorHandler(async (req, res, next) => {
+  const jymId = req.jym._id;
+  const { statusType, skip = 0 } = req.query;
+
+  if (!ObjectId.isValid(jymId)) {
+    return next(new CustomError("Invalid gym ID", 400));
+  }
+
+  const currentDate = new Date();
+  const checkInDateLimit = new Date(
+    currentDate.getTime() - process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+  const fiveDaysAgo = new Date(
+    currentDate.getTime() -
+      process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+  const fiveDaysFromNow = new Date(
+    currentDate.getTime() +
+      process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+
+  try {
+    const results = await Membership.aggregate([
+      { $match: { jymId: new ObjectId(jymId) } },
+
+      // Sort by userId and endDate to get the latest membership first
+      { $sort: { userId: 1, endDate: -1 } },
+
+      // Group by userId, retaining only the latest membership per user
+      {
+        $group: {
+          _id: "$userId",
+          mostRecentMembership: { $first: "$$ROOT" },
+        },
+      },
+
+      // Replace the root document with the most recent membership
+      {
+        $replaceRoot: { newRoot: "$mostRecentMembership" },
+      },
+
+      // Apply status-based filters on the latest memberships
+      ...(statusType.toLowerCase() === "active"
+        ? [
+            {
+              $match: {
+                "status.active.lastCheckIn": { $gte: checkInDateLimit },
+              },
+            },
+          ]
+        : statusType.toLowerCase() === "inactive"
+        ? [
+            {
+              $match: {
+                "status.active.lastCheckIn": { $lt: checkInDateLimit },
+              },
+            },
+          ]
+        : statusType.toLowerCase() === "newlyregistered"
+        ? [
+            {
+              $lookup: {
+                from: "userdurations",
+                let: { userId: "$userId" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: { $eq: ["$userId", "$$userId"] },
+                      isQuitted: false,
+                    },
+                  },
+                  {
+                    $project: {
+                      userId: 1,
+                      firstJoinDate: { $arrayElemAt: ["$joinDates", 0] },
+                    },
+                  },
+                  { $match: { firstJoinDate: { $gte: fiveDaysAgo } } },
+                ],
+                as: "recentJoinInfo",
+              },
+            },
+            { $match: { recentJoinInfo: { $ne: [] } } },
+          ]
+        : statusType.toLowerCase() === "expiringsoon"
+        ? [{ $match: { endDate: { $lte: fiveDaysFromNow } } }]
+        : statusType.toLowerCase() === "paid"
+        ? [{ $match: { endDate: { $gt: currentDate } } }]
+        : statusType.toLowerCase() === "unpaid"
+        ? [{ $match: { "status.active.lastCheckIn": { $gt: "$endDate" } } }]
+        : []),
+
+      { $skip: parseInt(skip) },
+      { $limit: 20 },
+
+      // Lookup user details and project fields
+      {
+        $lookup: {
+          from: "users",
+          localField: "userId",
+          foreignField: "_id",
+          as: "userInfo",
+        },
+      },
+      { $unwind: "$userInfo" },
+
+      // Apply gender filter after populating userInfo
+      ...(["male", "female", "others"].includes(statusType.toLowerCase())
+        ? [{ $match: { "userInfo.gender": statusType.toLowerCase() } }]
+        : []),
+
+      {
+        $project: {
+          img: "$userInfo.img",
+          username: "$userInfo.username",
+          startDate: "$startDate",
+          endDate: "$endDate",
+          lastCheckIn: "$status.active.lastCheckIn",
+          status: "$status",
+          phone: "$userInfo.phone",
+          userId: "$userInfo._id",
+        },
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: results,
+    });
+  } catch (error) {
+    console.error("Error fetching users by status:", error);
+    return next(new CustomError("Failed to fetch users by status", 500));
+  }
+});
+
+const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
+  const { userId } = req.params;
+  const jymId = req.jym._id;
+  if (!ObjectId.isValid(userId)) {
+    return next(new CustomError("Invalid user ID", 400));
+  }
+
+  try {
+    // Fetch the most recent membership data for the specified user
+    const userMembershipData = await Membership.findOne({
+      userId: new ObjectId(userId),
+      jymId: new ObjectId(jymId),
+    })
+      .sort({ endDate: -1 }) // Sorting by endDate to get the most recent membership
+      .populate({
+        path: "userId",
+        select: "username phone img _id", // Populate selected fields
+      });
+
+    if (!userMembershipData) {
+      return next(
+        new CustomError("Membership data not found for the user", 404)
+      );
+    }
+
+    // Format the response to match `getUsersByStatus`
+    const formattedData = {
+      img: userMembershipData.userId.img,
+      username: userMembershipData.userId.username,
+      startDate: userMembershipData.startDate,
+      endDate: userMembershipData.endDate,
+      lastCheckIn: userMembershipData.status?.active?.lastCheckIn,
+      status: userMembershipData.status,
+      phone: userMembershipData.userId.phone,
+      userId: userMembershipData.userId._id,
+    };
+
+    res.status(200).json({
+      success: true,
+      data: formattedData,
+      message: "Member found",
+    });
+  } catch (err) {
+    console.error("Error fetching user by search:", err);
+    return next(new CustomError("This user is not present in you jym", 500));
+  }
+});
+
+module.exports = {
+  getJym,
+  getJymById,
+  jymDetails,
+  getDashboardStats,
+  getUsersByStatus,
+  getUserBySearch,
+};

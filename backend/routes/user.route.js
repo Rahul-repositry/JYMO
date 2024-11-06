@@ -9,6 +9,7 @@ const {
   updateUserImg,
   userDataById,
   userDataByUserUniqueId,
+  userDataByPhoneNumber,
 } = require("../controllers/user.controller");
 
 /**
@@ -23,10 +24,16 @@ const {
 router.get("/", verifyUser, userData);
 router.get("/userId/:userId", verifyUser, verifyJym, userDataById);
 router.get(
-  "/userUniqueId/:userUniqueId",
+  "/useruniqueid/:userUniqueId",
   verifyUser,
   verifyJym,
   userDataByUserUniqueId
+);
+router.get(
+  "/userphonenumber/:number",
+  verifyUser,
+  verifyJym,
+  userDataByPhoneNumber
 );
 
 /**

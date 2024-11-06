@@ -4,14 +4,14 @@ const { Schema } = mongoose;
 const membershipSchema = new Schema(
   {
     jymId: { type: Schema.Types.ObjectId, ref: "jym", required: true },
-    userId: { type: Schema.Types.ObjectId, ref: "users", required: true },
+    userId: { type: Schema.Types.ObjectId, ref: "user", required: true },
     userUniqueId: { type: Number },
     amount: { type: Number },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date },
     status: {
       active: {
-        value: { type: Boolean, default: true }, // If true, membership is active
+        value: { type: Boolean, default: true }, // If true, membership is active (there will be automatic func that will run at midnight and turns every bson's this value false if user lastCheckIn value is not updated from last)
         lastCheckIn: { type: Date, default: Date.now() }, // Date of the last check-in or attendance
       },
       // if person has not mark attendance from last  15days(process.env.days) then he inactive

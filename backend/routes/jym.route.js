@@ -6,6 +6,8 @@ const {
   getJymById,
   getDashboardStats,
   jymDetails,
+  getUsersByStatus,
+  getUserBySearch,
 } = require("../controllers/jym.controller.js");
 /**
  * @route GET /getjym/:JUID
@@ -22,7 +24,7 @@ const {
 router.get("/getjym/:JUID", verifyUser, getJym);
 
 // @des this will fetch details for jym owner and send jymdetails to use in localstorage
-router.get("/gymDetails", verifyUser, verifyJym, jymDetails);
+router.get("/gymdetails", verifyUser, verifyJym, jymDetails);
 
 /**
  * @route GET /getjymbyid/:id
@@ -39,6 +41,10 @@ router.get("/gymDetails", verifyUser, verifyJym, jymDetails);
  */
 router.get("/getjymbyid/:id", verifyUser, getJymById);
 
-router.get("/getDashboardStats", verifyUser, verifyJym, getDashboardStats);
+router.get("/getdashboardstats", verifyUser, verifyJym, getDashboardStats);
+
+router.get("/getuserbystatus", verifyUser, verifyJym, getUsersByStatus);
+
+router.get("/getuserbysearch/:userId", verifyUser, verifyJym, getUserBySearch);
 
 module.exports = router; //export the router to use in other files

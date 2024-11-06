@@ -45,6 +45,26 @@ const userDataById = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
+const userDataByPhoneNumber = AsyncErrorHandler(async (req, res, next) => {
+  const phoneNumber = req.params.number;
+
+  try {
+    const user = await User.findOne({ phone: phoneNumber });
+
+    if (!user) {
+      return next(new CustomError("User not found", 404));
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User found",
+      user: filterUserDetails(user),
+    });
+  } catch (err) {
+    return next(new CustomError("Error fetching user", 500));
+  }
+});
+
 const userDataByUserUniqueId = AsyncErrorHandler(async (req, res, next) => {
   const userUniqueId = req.params.userUniqueId;
 
@@ -259,6 +279,7 @@ module.exports = {
   updateUserEmail,
   userDataById,
   userDataByUserUniqueId,
+  userDataByPhoneNumber,
   updateUserNameAndBdate,
   updateUserImg,
 };
