@@ -18,7 +18,7 @@ const SelectJym = ({ options, selectedOption, setSelectedOption }) => {
                 onChange={() => setSelectedOption(option)}
               />
               <div
-                className={`w-72 max-w-xl rounded-md bg-white p-5 text-gray-600 ring-2 ring-transparent transition-all hover:shadow border border-gray-200 rounded 2xl ${
+                className={`w-72 max-w-xl  bg-white p-5 text-gray-600 ring-2 ring-transparent transition-all hover:shadow border border-gray-200 rounded 2xl ${
                   selectedOption?.jymUniqueId === option.jymUniqueId
                     ? "peer-checked:text-sky-600 peer-checked:ring-blue-400 peer-checked:ring-offset-2"
                     : ""

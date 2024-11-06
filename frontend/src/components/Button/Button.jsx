@@ -49,7 +49,7 @@ const CustomButton = ({
   return (
     <button
       type={type}
-      className={buttonClass}
+      className={`mainbtn ${buttonClass}`}
       onClick={(event) => {
         handleRipple(event);
         if (onClick) onClick(event);

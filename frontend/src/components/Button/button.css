@@ -30,13 +30,13 @@
 }
 
 /* Ensure the button has relative positioning */
-button {
+.mainbtn {
   position: relative;
   overflow: hidden; /* Hide the ripple overflow */
 }
 
 /* Additional button styles for MUI-like appearance */
-button {
+.mainbtn {
   outline: none;
   border: none;
   cursor: pointer;

@@ -28,7 +28,7 @@ const BottomNavigation = () => {
       icon: isAdminPage ? ScannerIcon : undefined,
     },
     {
-      path: isAdminPage ? "/admin/members" : "/scanner",
+      path: isAdminPage ? "/admin/users?statusType=active" : "/scanner",
       label: isAdminPage ? "Users" : "Scanner",
       icon: isAdminPage ? UsersIcon : ScannerIcon,
     },
