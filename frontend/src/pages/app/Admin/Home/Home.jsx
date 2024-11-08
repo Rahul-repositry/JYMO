@@ -8,7 +8,7 @@ import UserSearch from "../../../../components/UserSearch/UserSearch";
 const Home = () => {
   const [data, setData] = useState({});
   const [BarNumArr, setBarNumArr] = useState(Array(7).fill(0));
-
+  const [pieDataArr, setPieDataArr] = useState(Array(3).fill(0));
   const checkInDataToBarNumArr = (checkInData) => {
     const weeklyData = Array(7).fill(0); // Array to hold check-ins for each day
 
@@ -23,6 +23,27 @@ const Home = () => {
     setBarNumArr(weeklyData);
   };
 
+  function getGenderCounts(data) {
+    // Default values
+    let maleCount = 0;
+    let femaleCount = 0;
+    let othersCount = 0;
+
+    // Iterate through the data to find counts for each gender
+    data.forEach((item) => {
+      if (item.gender === "male") {
+        maleCount = item.count;
+      } else if (item.gender === "female") {
+        femaleCount = item.count;
+      } else {
+        othersCount += item.count; // any other genders fall under 'others'
+      }
+    });
+
+    // Return the counts in the specified order
+    setPieDataArr([maleCount, femaleCount, othersCount]);
+  }
+  console.log({ pieDataArr, BarNumArr });
   const fetchStats = async () => {
     try {
       const response = await axios.get(
@@ -31,10 +52,12 @@ const Home = () => {
           withCredentials: true,
         }
       );
-      console.log(JSON.stringify(response.data.jymData.chqInSummaryOfJym));
+      console.log(JSON.stringify(response.data.jymData.genderCounts));
+      console.log(response.data.jymData);
       if (response.data.success) {
         setData(response.data.jymData);
         checkInDataToBarNumArr(response.data.jymData.chqInSummaryOfJym);
+        getGenderCounts(response.data.jymData.genderCounts);
       }
     } catch (err) {
       console.log(err);
@@ -49,7 +72,7 @@ const Home = () => {
     <div className="adminHome px-5 mb-4">
       <UserSearch />
       <BarComp dataArr={BarNumArr} />
-      <PieChart />
+      <PieChart pieDataArr={pieDataArr} />
       <div className="detailCont">
         <div className="detailRow ">
           <div className="block    newlyRegistered !w-full">

@@ -7,14 +7,16 @@ import "./pie.css";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 // PieChart Component
-const PieChart = () => {
+const PieChart = ({ pieDataArr }) => {
   // Data for the pie chart
+  console.log(pieDataArr);
   const data = {
-    labels: ["Men", "Women", "Others"], // Labels for each segment
+    labels: ["Male", "Female", "Others"], // Labels for each segment
     datasets: [
       {
         label: "Gender Distribution",
-        data: [50, 40, 10], // Data for each segment
+        // data: [50, 40, 10], // Data for each segment
+        data: pieDataArr,
         backgroundColor: [
           "rgba(255, 201, 111, 0.5)",
           "rgba(255, 138, 99, 0.5)",
@@ -98,19 +100,28 @@ const PieChart = () => {
           <div className=" ChartDetails relative flex flex-col  translate-x-12  gap-3">
             <div className="men text-stone-400">
               MEN : &nbsp;&nbsp;
-              <span className="text-[18px]  text-darkBlack">50</span>
+              <span className="text-[18px]  text-darkBlack">
+                {pieDataArr[0]}
+              </span>
             </div>
             <div className="women text-stone-400">
               WOMEN :&nbsp;
-              <span className="text-[18px]  text-darkBlack">40</span>
+              <span className="text-[18px]  text-darkBlack">
+                {pieDataArr[1]}
+              </span>
             </div>
             <div className="others text-stone-400">
               OTHERS :&nbsp;
-              <span className="text-[18px]  text-darkBlack">10</span>
+              <span className="text-[18px]  text-darkBlack">
+                {pieDataArr[2]}
+              </span>
             </div>
             <div className="Total text-stone-400 pl-1">
               <span className="text-2xl font-semibold text-darkBlack">
-                0100
+                {pieDataArr
+                  .reduce((acc, count) => acc + count, 0)
+                  .toString()
+                  .padStart(4, "0")}
               </span>
               &nbsp; Total
             </div>
