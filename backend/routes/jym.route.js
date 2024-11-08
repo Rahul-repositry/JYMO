@@ -8,6 +8,7 @@ const {
   jymDetails,
   getUsersByStatus,
   getUserBySearch,
+  editJymDetails,
 } = require("../controllers/jym.controller.js");
 /**
  * @route GET /getjym/:JUID
@@ -25,6 +26,9 @@ router.get("/getjym/:JUID", verifyUser, getJym);
 
 // @des this will fetch details for jym owner and send jymdetails to use in localstorage
 router.get("/gymdetails", verifyUser, verifyJym, jymDetails);
+
+// @des this will edit details for jym  and send jymdetails to use in localstorage
+router.put("/editgymdetails", verifyUser, verifyJym, editJymDetails);
 
 /**
  * @route GET /getjymbyid/:id

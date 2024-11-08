@@ -16,6 +16,7 @@ const addressLocationSchema = new Schema(
     city: { type: String },
     state: { type: String },
     zipCode: { type: String },
+    Country: { type: String },
   },
   { _id: false }
 );

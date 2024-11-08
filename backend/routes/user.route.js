@@ -10,6 +10,7 @@ const {
   userDataById,
   userDataByUserUniqueId,
   userDataByPhoneNumber,
+  getUserThroughId,
 } = require("../controllers/user.controller");
 
 /**
@@ -35,6 +36,8 @@ router.get(
   verifyJym,
   userDataByPhoneNumber
 );
+
+router.post("/getusersthroughid", verifyUser, verifyJym, getUserThroughId);
 
 /**
  * @route POST /updateuseremail

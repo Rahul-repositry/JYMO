@@ -62,21 +62,27 @@ const getJymById = AsyncErrorHandler(async (req, res, next) => {
 
 const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.jym._id;
-  console.log(jymId);
-  if (!ObjectId.isValid(jymId)) {
-    next(new CustomError("Invalid jymId", 403));
-    return;
-  }
-
   const currentDate = new Date();
   const startOfMonth = new Date(
     currentDate.getFullYear(),
     currentDate.getMonth(),
     1
   );
+
+  // Calculate the start of the current week (Monday)
+  const startOfWeek = new Date(currentDate);
+  const dayOfWeek = startOfWeek.getDay();
+  const diff = (dayOfWeek + 6) % 7; // Move back to Monday
+  startOfWeek.setDate(currentDate.getDate() - diff);
+  startOfWeek.setHours(0, 0, 0, 0);
+
   const FIFTEEN_DAYS = process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
   const FIVE_DAYS =
     process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000;
+
+  if (!ObjectId.isValid(jymId)) {
+    return next(new CustomError("Invalid jymId", 403));
+  }
 
   try {
     const membershipStats = await Membership.aggregate([
@@ -84,6 +90,16 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
         $match: {
           jymId: new ObjectId(jymId),
         },
+      },
+      { $sort: { userId: 1, endDate: -1 } },
+      {
+        $group: {
+          _id: "$userId",
+          mostRecentMembership: { $first: "$$ROOT" },
+        },
+      },
+      {
+        $replaceRoot: { newRoot: "$mostRecentMembership" },
       },
       {
         $facet: {
@@ -187,17 +203,20 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
       },
     ]);
 
+    // Fetch check-ins for the current week with .lean()
     const chqInSummaryOfJym = await CheckInSummary.findOne({
-      jymId: new ObjectId(jymId),
-    });
+      jymId: jymId,
+      startOfWeek: startOfWeek,
+    }).lean(); // .lean() to avoid circular references
 
+    // Aggregation for gender counts
     const genderCounts = await User.aggregate([
       {
         $unwind: "$currentJymUUId",
       },
       {
         $match: {
-          currentJymUUId: new ObjectId(jymId),
+          "currentJymUUId.jymId": new ObjectId(jymId),
         },
       },
       {
@@ -208,6 +227,7 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
       },
     ]);
 
+    // Default values if no data found
     const activeInactiveStats = membershipStats[0]?.activeInactive[0] || {
       active: 0,
       inactive: 0,
@@ -224,7 +244,7 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
     };
     const newlyRegisteredStats = userDurationStats[0] || { newlyRegistered: 0 };
 
-    let data = {
+    const data = {
       active: activeInactiveStats.active,
       inactive: activeInactiveStats.inactive,
       paid: paidUnpaidStats.paid,
@@ -233,17 +253,22 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
       totalRevenue: totalRevenueStats.totalRevenue,
       newlyRegistered: newlyRegisteredStats.newlyRegistered,
       chqInSummaryOfJym: chqInSummaryOfJym || {},
-      genderCounts,
+      genderCounts: genderCounts.length
+        ? genderCounts
+        : [
+            { _id: "male", count: 0 },
+            { _id: "female", count: 0 },
+          ],
     };
 
     res.status(200).json({
       success: true,
       jymData: data,
-      message: "dashboard data",
+      message: "Dashboard data fetched successfully",
     });
-    return;
   } catch (error) {
-    console.error("Error fetching membership stats:", error);
+    console.error("Error fetching dashboard stats:", error);
+    next(new CustomError("Failed to fetch dashboard stats", 500));
   }
 });
 
@@ -430,6 +455,57 @@ const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
+const editJymDetails = AsyncErrorHandler(async (req, res, next) => {
+  const { name, recoveryNumber, addressLocation, phoneNumbers, _id } = req.body;
+
+  // Validate input: ensure all fields are of expected type
+  if (name && typeof name !== "string") {
+    return next(new CustomError("Invalid name format", 400));
+  }
+
+  if (recoveryNumber && typeof recoveryNumber !== "string") {
+    return next(new CustomError("Invalid recovery number format", 400));
+  }
+
+  if (addressLocation && typeof addressLocation !== "object") {
+    return next(new CustomError("Invalid address format", 400));
+  }
+
+  if (phoneNumbers && !Array.isArray(phoneNumbers)) {
+    return next(new CustomError("Phone numbers must be an array", 400));
+  }
+
+  // Construct the update object, including only provided fields
+  const updateData = {};
+  if (name) updateData.name = name;
+  if (recoveryNumber) updateData.recoveryNumber = recoveryNumber;
+  if (addressLocation) updateData.addressLocation = addressLocation;
+  if (phoneNumbers) updateData.phoneNumbers = phoneNumbers;
+
+  try {
+    // Find the gym by ID and update only allowed fields
+    const updatedJym = await Jym.findByIdAndUpdate(
+      { _id: new ObjectId(_id) },
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    // If no gym found, send an error
+    if (!updatedJym) {
+      return next(new CustomError("Gym not found", 404));
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Gym details updated successfully",
+      data: filterJymDetails(updatedJym),
+    });
+  } catch (error) {
+    console.error("Error updating gym details:", error);
+    return next(new CustomError("Failed to update gym details", 500));
+  }
+});
+
 module.exports = {
   getJym,
   getJymById,
@@ -437,4 +513,5 @@ module.exports = {
   getDashboardStats,
   getUsersByStatus,
   getUserBySearch,
+  editJymDetails,
 };

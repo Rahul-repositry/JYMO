@@ -267,7 +267,7 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
 
 const logout = AsyncErrorHandler(async (req, res, next) => {
   const ownerId = req.user._id;
-  const validJym = await Jym.findOne({ _id: req.jym._id });
+  const validJym = await Jym.findById({ _id: new ObjectId(req.jym._id) });
 
   if (!validJym) throw new Error("Jym not found");
 

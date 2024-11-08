@@ -102,9 +102,11 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
   }
 
   // Check if this gym is already in currentJymUUId array
-  const isGymAlreadyAdded = userData.currentJymUUId.some(
-    (gym) => gym.jymId.toString() === jymId.toString()
-  );
+  const isGymAlreadyAdded =
+    Array.isArray(userData.currentJymUUId) &&
+    userData.currentJymUUId.some(
+      (gym) => gym?.jymId && gym.jymId.toString() === jymId.toString()
+    );
 
   // Only add the gym if it's not already present
   if (!isGymAlreadyAdded) {
@@ -348,12 +350,60 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
+const updateInactiveMemberships = async () => {
+  try {
+    const FIFTEEN_DAYS_MS = process.env.MAXABSENTDAYS * 24 * 60 * 60 * 1000;
+    const currentDate = new Date();
+
+    // Aggregate pipeline to get the latest membership per userId and jymId, filter for inactivity, and update the status in one go
+    const result = await Membership.aggregate([
+      // Sort memberships by userId and endDate in descending order to get the latest memberships first
+      { $sort: { userId: 1, endDate: -1 } },
+      // Group by userId and jymId, keeping only the most recent membership
+      {
+        $group: {
+          _id: { userId: "$userId", jymId: "$jymId" },
+          mostRecentMembership: { $first: "$$ROOT" },
+        },
+      },
+      // Replace the root document with the most recent membership data
+      { $replaceRoot: { newRoot: "$mostRecentMembership" } },
+      // Match memberships where the status is active and last check-in was over 15 days ago
+      {
+        $match: {
+          "status.active.value": true,
+          "status.active.lastCheckIn": {
+            $lt: new Date(currentDate.getTime() - FIFTEEN_DAYS_MS),
+          },
+        },
+      },
+      // Update each matched document to set active.value to false
+      {
+        $set: { "status.active.value": false },
+      },
+      // Save the changes to the database
+      {
+        $merge: {
+          into: "memberships", // replace with your actual collection name if different
+          whenMatched: "merge",
+          whenNotMatched: "discard",
+        },
+      },
+    ]);
+
+    console.log("Memberships updated for inactivity:", result);
+  } catch (error) {
+    console.error("Error updating memberships for inactivity:", error);
+  }
+};
+
 module.exports = {
   createMembership,
   memberStatus,
   getAllMembership,
   // markTrialAttendance,
   getMembershipByUserId,
+  updateInactiveMemberships,
   getMembership,
   renewMembership,
 };

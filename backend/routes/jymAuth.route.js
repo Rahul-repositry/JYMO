@@ -17,6 +17,6 @@ router.post("/jymId", verifyUser, jymId);
 router.post("/forgotpassword", verifyUser, forgotPassword);
 router.post("/createsession", verifyUser, createForgotSession);
 router.post("/resetpassword", verifyUser, resetPassword);
-router.post("/logout", verifyUser, verifyJym, logout);
+router.delete("/logout", verifyUser, verifyJym, logout);
 
 module.exports = router;

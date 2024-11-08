@@ -72,6 +72,7 @@ const filterJymDetails = (jym) => {
     owners,
     phoneNumbers,
     subscriptionFee,
+    recoveryNumber,
   } = jym;
 
   return {
@@ -81,6 +82,7 @@ const filterJymDetails = (jym) => {
     addressLocation,
     owners,
     phoneNumbers,
+    recoveryNumber,
     subscriptionFee,
   };
 };
@@ -124,45 +126,49 @@ const updateLastCheckInForMembership = async (jymId, userId, status) => {
  * @param {Number} checkInCount - The check-ins to add for today.
  * @returns {Promise} - The updated or created CheckInSummary document.
  */
+
 const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
   const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
 
-  // Calculate start of today
-  const startOfToday = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    currentDate.getDate()
-  );
+  // Calculate the start of the current week (Monday)
+  const startOfWeek = new Date(currentDate);
+  const dayOfWeek = startOfWeek.getDay();
+  const diff = (dayOfWeek + 6) % 7; // Move back to Monday
+  startOfWeek.setDate(currentDate.getDate() - diff);
+  startOfWeek.setHours(0, 0, 0, 0);
 
   try {
-    // Find the summary for the specific gym
+    // Find the current week summary for the specific gym
     let summary = await CheckInSummary.findOne({
-      jymId: mongoose.Types.ObjectId(jymId),
+      jymId: jymId,
+      startOfWeek: startOfWeek,
     });
 
     if (summary) {
-      // Check if today's date exists in the checkInArr
+      // Check if today's date exists in checkInArr
       const existingEntry = summary.checkInArr.find(
-        (entry) => entry.date.getTime() === startOfToday.getTime()
+        (entry) => entry.date.getTime() === currentDate.getTime()
       );
 
       if (existingEntry) {
         // If today's entry exists, update the totalCheckIns
         existingEntry.totalCheckIns += checkInCount;
       } else {
-        // If today's entry doesn't exist, push a new entry into checkInArr
+        // If today's entry doesn't exist, push a new entry
         summary.checkInArr.push({
-          date: startOfToday,
+          date: currentDate,
           totalCheckIns: checkInCount,
         });
       }
     } else {
-      // If the summary doesn't exist, create a new one with today's entry
+      // If no summary exists for the week, create a new one
       summary = new CheckInSummary({
-        jymId: mongoose.Types.ObjectId(jymId),
+        jymId: jymId,
+        startOfWeek: startOfWeek,
         checkInArr: [
           {
-            date: startOfToday,
+            date: currentDate,
             totalCheckIns: checkInCount,
           },
         ],
@@ -171,8 +177,7 @@ const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
 
     // Save or update the summary
     await summary.save();
-
-    return summary; // Return the updated or created summary
+    return summary;
   } catch (error) {
     console.error("Error updating or creating check-in summary:", error);
     throw error;

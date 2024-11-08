@@ -12,6 +12,10 @@ const membershipRoutes = require("./routes/membership.route.js");
 const jymoDietRoutes = require("./routes/jymoDiet.route.js");
 const userRoutes = require("./routes/user.route.js");
 const cors = require("cors");
+const cron = require("node-cron");
+const {
+  updateInactiveMemberships,
+} = require("./controllers/membership.controller.js");
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -38,6 +42,11 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
+
+// Schedule the cron job to run at midnight every day
+cron.schedule("0 0 * * *", updateInactiveMemberships, {
+  timezone: "Asia/Kolkata", // Adjust timezone if needed
+});
 
 app.get("/", (req, res) => {
   res.send("hello world");

@@ -273,6 +273,41 @@ const updateUserImg = AsyncErrorHandler(async (req, res, next) => {
   });
 });
 
+const getUserThroughId = AsyncErrorHandler(async (req, res, next) => {
+  const { userIdArr } = req.body;
+
+  // Check if userIdArr exists and is an array
+  if (!Array.isArray(userIdArr) || userIdArr.length === 0) {
+    return next(new CustomError("Invalid or missing userId array", 400));
+  }
+
+  // Filter and convert valid IDs to ObjectId instances
+  const validObjectIds = userIdArr
+    .filter((id) => ObjectId.isValid(id)) // Check validity
+    .map((id) => new ObjectId(id)); // Convert to ObjectId
+
+  // If no valid IDs are left after filtering
+  if (validObjectIds.length === 0) {
+    return next(new CustomError("No valid user IDs provided", 400));
+  }
+
+  try {
+    // Query users with valid ObjectIds
+    const users = await User.find({ _id: { $in: validObjectIds } });
+
+    if (users.length === 0) {
+      return next(new CustomError("No users found with provided IDs", 404));
+    }
+
+    const realUsers = users.map((userObj) => filterUserDetails(userObj));
+
+    res.status(200).json({ success: true, data: realUsers });
+  } catch (error) {
+    console.error("Error fetching users by ID:", error);
+    return next(new CustomError("Failed to fetch users", 500));
+  }
+});
+
 module.exports = {
   userData,
   updateUserPhone,
@@ -282,4 +317,5 @@ module.exports = {
   userDataByPhoneNumber,
   updateUserNameAndBdate,
   updateUserImg,
+  getUserThroughId,
 };
