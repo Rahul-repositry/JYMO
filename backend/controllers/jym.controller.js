@@ -210,19 +210,38 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
     }).lean(); // .lean() to avoid circular references
 
     // Aggregation for gender counts
-    const genderCounts = await User.aggregate([
+
+    const genderCounts = await Membership.aggregate([
+      // Match memberships with the given gym ID and active status
+      { $match: { jymId: new ObjectId(jymId), "status.active.value": true } },
+
+      // Lookup the associated user data
       {
-        $unwind: "$currentJymUUId",
-      },
-      {
-        $match: {
-          "currentJymUUId.jymId": new ObjectId(jymId),
+        $lookup: {
+          from: "users", // The user collection
+          localField: "userId", // Field from membership to join on
+          foreignField: "_id", // Field from user to join on
+          as: "userDetails", // Alias for the joined user data
         },
       },
+
+      // Unwind the user details array (to make each document contain a single user)
+      { $unwind: "$userDetails" },
+
+      // Group by gender
       {
         $group: {
-          _id: "$gender",
-          count: { $sum: 1 },
+          _id: "$userDetails.gender", // Group by gender field
+          count: { $sum: 1 }, // Count each occurrence
+        },
+      },
+
+      // Optional: Project the results to make it more readable
+      {
+        $project: {
+          gender: "$_id",
+          count: 1,
+          _id: 0,
         },
       },
     ]);
@@ -258,6 +277,7 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
         : [
             { _id: "male", count: 0 },
             { _id: "female", count: 0 },
+            { _id: "others", count: 0 },
           ],
     };
 
