@@ -51,7 +51,7 @@ const PhoneNumberInput = ({ phoneNumbers, setFormData }) => {
           />
           <button
             type="button"
-            className="bg-customButton rounded-lg mb-6"
+            className="bg-customButton rounded-lg p-2 mb-6"
             onClick={() => deletePhoneNumberField(index)}
             style={{
               display: index === 0 ? "none" : "block",

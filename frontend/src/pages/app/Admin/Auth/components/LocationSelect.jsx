@@ -42,6 +42,13 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
         </label>
         <Select
           options={countryOptions}
+          value={
+            addressLocation.country
+              ? countryOptions.find(
+                  (option) => option.label === addressLocation.country
+                )
+              : null
+          }
           onChange={(option) => handleLocationChange("country", option.value)}
           placeholder="Select Country"
         />
@@ -53,6 +60,13 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
         </label>
         <Select
           options={stateOptions}
+          value={
+            addressLocation.state
+              ? stateOptions.find(
+                  (option) => option.label === addressLocation.state
+                )
+              : null
+          }
           onChange={(option) => handleLocationChange("state", option.value)}
           placeholder="Select State"
           isDisabled={!addressLocation.country}
@@ -65,9 +79,51 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
         </label>
         <Select
           options={cityOptions}
+          value={
+            addressLocation.city
+              ? cityOptions.find(
+                  (option) => option.label === addressLocation.city
+                )
+              : null
+          }
           onChange={(option) => handleLocationChange("city", option.value)}
           placeholder="Select City"
           isDisabled={!addressLocation.state}
+        />
+      </div>
+
+      <div className="mb-6">
+        <label
+          htmlFor="address"
+          className="block mb-2 text-sm font-medium text-gray-900"
+        >
+          Address:
+        </label>
+        <input
+          type="text"
+          id="address"
+          className="input-field"
+          placeholder="Full Address"
+          required
+          value={addressLocation.address}
+          onChange={(e) => handleLocationChange("address", e.target.value)}
+        />
+      </div>
+      <div className="mb-6">
+        <label
+          htmlFor="zipCode"
+          className="block mb-2 text-sm font-medium text-gray-900"
+        >
+          Zip Code:
+        </label>
+        <input
+          type="text"
+          id="zipCode"
+          className="input-field"
+          placeholder="Zip Code"
+          required
+          value={addressLocation.zipCode}
+          onChange={(e) => handleLocationChange("zipCode", e.target.value)}
         />
       </div>
     </>

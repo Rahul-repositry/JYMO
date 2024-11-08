@@ -36,6 +36,9 @@ import AdScanner from "./pages/app/Admin/AdScanner/AdScanner.jsx";
 import Member from "./pages/app/Admin/Member/Member.jsx";
 import FeeRecord from "./pages/app/Admin/Member/FeeRecord.jsx";
 import Users from "./pages/app/Admin/Users/Users.jsx";
+import AdProfile from "./pages/app/Admin/Profile/Profile.jsx";
+import Admins from "./pages/app/Admin/Profile/Admins.jsx";
+import EditJym from "./pages/app/Admin/Profile/EditJym.jsx";
 
 // Constants
 const UNPROTECTED_ROUTES = [
@@ -182,6 +185,9 @@ function App() {
             <Route path="/admin/scanner" element={<AdScanner />} />
             <Route path="/admin/users" element={<Users />} />
             <Route path="/admin/member" element={<Member />} />
+            <Route path="/admin/profile" element={<AdProfile />} />
+            <Route path="/admin/profile/admins" element={<Admins />} />
+            <Route path="/admin/profile/editjymdetails" element={<EditJym />} />
             <Route path="/admin/member/feerecord" element={<FeeRecord />} />
           </Routes>
           {applyBottomNavStyles && <BottomNavigation />}

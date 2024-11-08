@@ -28,7 +28,8 @@ const BarComp = ({ dataArr }) => {
     datasets: [
       {
         label: "Weekly Data",
-        data: [5, 25, 48, 38, 16, 45, 94],
+        // data: [5, 25, 48, 38, 16, 45, 94],
+        data: dataArr,
         backgroundColor: "rgba(255, 138, 99, 0.5)", // Lighter version of #FF8A63 with some transparency
         borderColor: "rgba(255, 138, 99, .8)", // Darker solid color of #FF8A63
         borderWidth: 1,

@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { capitalizeFLetter } from "../../../../../utils/helperFunc";
 import { format, startOfDay, isSameDay } from "date-fns";
 import axios from "axios";
@@ -11,7 +11,9 @@ const UserDetailCont = ({ user }) => {
   const todayStart = startOfDay(new Date());
   const lastCheckInStart = startOfDay(new Date(user.lastCheckIn));
 
-  const isAttendanceMarked = isSameDay(todayStart, lastCheckInStart);
+  const [isAttendanceMarked, setIsAttendanceMarked] = useState(
+    isSameDay(todayStart, lastCheckInStart) || todayStart <= lastCheckInStart
+  );
 
   const handleMarkAttendance = useCallback(async () => {
     if (!isAttendanceMarked) {
@@ -23,6 +25,8 @@ const UserDetailCont = ({ user }) => {
         );
         if (res.data.success) {
           toast.success("Attendance is marked");
+          setIsAttendanceMarked(true);
+          return;
         }
         // Optionally, you can update the UI or notify the user of success
       } catch (error) {
@@ -63,6 +67,11 @@ const UserDetailCont = ({ user }) => {
                 alt="user"
                 referrerPolicy="no-referrer"
                 className="rounded-full w-14 border-2 border-white"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevents an infinite loop if the fallback also fails
+                  e.target.src =
+                    "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465";
+                }}
               />
             </div>
             <div className="nameAndDate flex flex-col">

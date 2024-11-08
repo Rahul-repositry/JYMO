@@ -7,13 +7,14 @@ import {
   getDay,
   eachDayOfInterval,
 } from "date-fns";
+import { useLocation } from "react-router-dom";
 
 const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
   const [daysWithStatus, setDaysWithStatus] = useState([]);
   const [hasFetchedData, setHasFetchedData] = useState(false);
   const attendanceMonthCache = useRef({});
   const daysWithStatusCache = useRef({});
-
+  const location = useLocation();
   useEffect(() => {
     const initializeDaysWithStatus = () => {
       const days = eachDayOfInterval({
@@ -33,13 +34,13 @@ const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
       }
       try {
         let response;
-        if (user) {
+        if (user?._id) {
           response = await axios.post(
             `${process.env.REACT_APP_BACKEND_URI}/api/attendance/getattendancebydateByAdmin`,
             { userId: user._id, startDate, endDate },
             { withCredentials: true }
           );
-        } else {
+        } else if (!location.pathname.includes("admin")) {
           response = await axios.post(
             `${process.env.REACT_APP_BACKEND_URI}/api/attendance/getattendancebydate`,
             { jymId: currentJymId, startDate, endDate },

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import BarComp from "./components/Bar";
 import "./home.css";
 import PieChart from "./components/PieChart";
@@ -6,6 +6,23 @@ import PieChart from "./components/PieChart";
 import axios from "axios";
 import UserSearch from "../../../../components/UserSearch/UserSearch";
 const Home = () => {
+  const [data, setData] = useState({});
+  const [BarNumArr, setBarNumArr] = useState(Array(7).fill(0));
+
+  const checkInDataToBarNumArr = (checkInData) => {
+    const weeklyData = Array(7).fill(0); // Array to hold check-ins for each day
+
+    if (checkInData.checkInArr && checkInData.checkInArr.length > 0) {
+      checkInData.checkInArr.forEach((entry) => {
+        const checkInDate = new Date(entry.date);
+        const dayIndex = (checkInDate.getDay() + 6) % 7; // Adjust to get 0 as Monday, 1 as Tuesday, etc.
+        weeklyData[dayIndex] = entry.totalCheckIns; // Fill check-ins for the respective day
+      });
+    }
+
+    setBarNumArr(weeklyData);
+  };
+
   const fetchStats = async () => {
     try {
       const response = await axios.get(
@@ -14,7 +31,11 @@ const Home = () => {
           withCredentials: true,
         }
       );
-      console.log(response);
+      console.log(JSON.stringify(response.data.jymData.chqInSummaryOfJym));
+      if (response.data.success) {
+        setData(response.data.jymData);
+        checkInDataToBarNumArr(response.data.jymData.chqInSummaryOfJym);
+      }
     } catch (err) {
       console.log(err);
     }
@@ -27,7 +48,7 @@ const Home = () => {
   return (
     <div className="adminHome px-5 mb-4">
       <UserSearch />
-      <BarComp />
+      <BarComp dataArr={BarNumArr} />
       <PieChart />
       <div className="detailCont">
         <div className="detailRow ">

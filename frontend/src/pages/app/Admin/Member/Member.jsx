@@ -18,7 +18,6 @@ const Member = () => {
   const location = useLocation();
   const queryParams = getQueryParams(location.search);
   const navigate = useNavigate();
-  console.log(location.search);
 
   const userId = queryParams.get("userId");
   const userUniqueId = queryParams.get("userUniqueId");
@@ -79,8 +78,9 @@ const Member = () => {
         console.error("Error fetching membership status:", err);
       }
     };
-    fetchMembershipStatus();
-  }, [userId, userUniqueId]);
+
+    if (user) fetchMembershipStatus(); // Only fetch if user exists
+  }, [user, userId, userUniqueId]);
 
   useEffect(() => {
     setEndDate(addDays(selectedDate, formData.month * 30));
@@ -120,18 +120,20 @@ const Member = () => {
       }
     } catch (err) {
       console.error("Error in membership handling:", err);
-      toast.error("An error occurred. Please try again.");
+      toast.error(
+        err?.response?.data?.message || "An error occurred. Please try again."
+      );
     }
   };
 
   const handleSubmit = () => {
+    if (!formData?.amount) {
+      toast.error("fill payment fee");
+      return;
+    }
+
     switch (currentStatus) {
       case "Renew":
-        handleSubmission(
-          `${process.env.REACT_APP_BACKEND_URI}/api/membership/renewmembership`,
-          "Member renewed successfully"
-        );
-        break;
       case "In-active":
         handleSubmission(
           `${process.env.REACT_APP_BACKEND_URI}/api/membership/renewmembership`,
@@ -166,7 +168,6 @@ const Member = () => {
       if (response.data.success) {
         toast.success(response.data.message);
         navigate(0); // Re-renders the component without full page reload
-        return;
       }
     } catch (error) {
       console.error("Error configuring membership:", error);
@@ -176,27 +177,31 @@ const Member = () => {
     }
   };
 
-  // Check if user not found error occurs and handle it
   useEffect(() => {
     if (error?.message === "User not found") {
       navigate("/admin/scanner");
-      toast.error("User does not Exists!!!");
+      toast.error("User does not exist!");
     }
   }, [error, navigate]);
 
+  if (loading) return <div>Loading...</div>; // Show loading state until user data is available
+
   return (
     <div>
-      <MemberRecordBar locationSearch={`?userId=${user._id}`} />
-      {!status.Register && (
+      {user && <MemberRecordBar locationSearch={`?userId=${user._id || ""}`} />}
+      {user && !status.Register && (
         <Calendar
+          user={user}
           setSelectedDate={setSelectedDate}
           selectedDate={selectedDate}
           membershipPreviousEndDate={membership?.endDate}
         />
       )}
       <div className="wrapper mx-4">
-        {!status.Register && <Membership user={user} membership={membership} />}
-        {!membership.Inactive && (
+        {user && !status.Register && (
+          <Membership user={user} membership={membership} />
+        )}
+        {user && !membership.Inactive && (
           <form className="my-4 bg-slate-100 px-4 py-4 rounded-xl border border-stone-300">
             <div className="details">
               <h2 className="text-lightBlack text-2xl my-4 font-medium text-center">
@@ -249,10 +254,10 @@ const Member = () => {
           </form>
         )}
       </div>
-      {membership.Inactive && (
+      {user && membership.Inactive && (
         <div className="px-4 my-6">
           <button
-            className=" bg-slate-50 p-3 w-full  border border-solid text-xl font-medium text-lightBlack text-center border-slate-300  rounded-lg "
+            className=" bg-slate-50 p-3 w-full border border-solid text-xl font-medium text-lightBlack text-center border-slate-300 rounded-lg"
             onClick={activateMember}
           >
             Activate Member

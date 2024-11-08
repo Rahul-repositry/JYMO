@@ -38,10 +38,6 @@ const Calendar = ({
       return;
     }
     setSelectedDate(date);
-    console.log({
-      realmembershipPreviousEndDate,
-      date,
-    });
   };
 
   return (
