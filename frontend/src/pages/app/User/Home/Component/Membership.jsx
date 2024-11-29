@@ -56,7 +56,7 @@ const Membership = ({ user, membership }) => {
           }`}
         >
           <p>
-            {daysLabel}: <span>{Math.max(remainingDays, 1)} days</span>
+            {daysLabel}: <span>{Math.max(remainingDays)} days</span>
           </p>
         </div>
       </div>

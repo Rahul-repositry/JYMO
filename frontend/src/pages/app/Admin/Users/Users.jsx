@@ -82,7 +82,6 @@ const Users = () => {
     // 3. Check for URL params as a fallback
     if (statusType) {
       console.log({ statusType });
-      console.log("working 2nd");
 
       const formattedStatus =
         statusType.charAt(0).toUpperCase() +
@@ -118,12 +117,13 @@ const Users = () => {
       fetchUserData(activeButton.toLowerCase().replace(/-/g, ""), page);
     }
   }, [page]);
-
+  console.log({ userData: userData });
   return (
     <div onScroll={handleScroll} className="overflow-y-auto h-screen">
       <div className="px-5">
         <UserSearch />
       </div>
+
       <div className="buttons flex overflow-x-scroll w-full space-x-2 px-5">
         {buttons.map((button) => (
           <button
@@ -143,7 +143,7 @@ const Users = () => {
       <div className="px-5 my-5 flex flex-col gap-2">
         {loading && <Loader />}
         {userData.map((obj) => (
-          <UserDetailCont key={obj.id} user={obj} />
+          <UserDetailCont key={obj._id} user={obj} />
         ))}
         {!hasMoreData && !loading && (
           <div className="text-center text-gray-500">No more users to load</div>

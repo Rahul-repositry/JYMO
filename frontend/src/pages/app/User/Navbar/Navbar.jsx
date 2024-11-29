@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import NotificationIcon from "../../../../images/Notifications-Icon.svg";
+
 import Logo from "../../../../images/Logo.svg";
 
 import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
@@ -8,11 +8,9 @@ import arrow from "../../../../images/arrow.svg";
 const Navbar = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [user, setUser] = useState(
-    () => getObjectFromLocalStorage("user") || null
-  );
+
   const [showAdminNavbar, setShowAdminNavbar] = useState(false);
-  const [jymDetails, setJymDetails] = useState("");
+  const [jymDetails, setJymDetails] = useState(false);
   const handleBackClick = () => {
     navigate(-1);
   };
@@ -22,14 +20,16 @@ const Navbar = () => {
       setShowAdminNavbar(true);
       const jym = getObjectFromLocalStorage("adminJym") || "";
       setJymDetails(jym);
+    } else {
+      setJymDetails(false);
     }
   }, [location.pathname]);
-  console.log({ showAdminNavbar }, "asdjlfsd");
+
   return (
     <div className="mobileNavbar relative  z-50 border-b border-gray-200">
       <div className="navbarWrapper py-3 px-1 flex justify-between">
         <div className="cont flex items-center  ">
-          <div className="backarrow  " onClick={handleBackClick}>
+          <div className="backarrow cursor-pointer  " onClick={handleBackClick}>
             <img src={arrow} alt="arrow" />
           </div>
           {!showAdminNavbar && (

@@ -13,6 +13,7 @@ import { addDays, format } from "date-fns";
 import CustomButton from "../../../../components/Button/Button";
 import { toast } from "react-toastify";
 import MemberRecordBar from "./components/MemberRecordBar";
+import Loader from "../../../../components/Loader/Loader";
 
 const Member = () => {
   const location = useLocation();
@@ -68,6 +69,7 @@ const Member = () => {
         );
 
         if (res.data.success) {
+          console.log(res.data, "status");
           setStatus(res.data.status);
           const activeStatus = Object.entries(res.data.status)
             .filter(([_, value]) => value === true)
@@ -184,7 +186,12 @@ const Member = () => {
     }
   }, [error, navigate]);
 
-  if (loading) return <div>Loading...</div>; // Show loading state until user data is available
+  if (loading)
+    return (
+      <div>
+        <Loader />
+      </div>
+    ); // Show loading state until user data is available
 
   return (
     <div>

@@ -130,6 +130,7 @@ const ForgotPass = () => {
 
     switch (currentStatus) {
       case "Send OTP":
+        console.log(selectedOption);
         await sendOTP();
         break;
       case "Verify OTP":

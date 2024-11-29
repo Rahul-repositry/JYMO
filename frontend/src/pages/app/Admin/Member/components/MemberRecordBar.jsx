@@ -18,7 +18,7 @@ const MemberRecordBar = ({ locationSearch }) => {
           <div
             key={index}
             onClick={() => navigate(route.path)}
-            className={`p-3 w-full text-center border-customButton border-opacity-60 font-semibold ${
+            className={`p-3 w-full text-center cursor-pointer border-customButton border-opacity-60 font-semibold ${
               location.pathname === routePathname
                 ? "text-customButton bg-slate-100"
                 : "bg-white text-gray-600"

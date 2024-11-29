@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -23,8 +23,11 @@ ChartJS.register(
 );
 const BarComp = ({ dataArr }) => {
   // Data for the bar chart
+  const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+  const [todayChqIn, setTodayChqIn] = useState(0);
   const data = {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+    labels: labels,
     datasets: [
       {
         label: "Weekly Data",
@@ -80,15 +83,23 @@ const BarComp = ({ dataArr }) => {
     },
   };
 
+  useEffect(() => {
+    const today = new Date().toLocaleDateString("en-US", { weekday: "short" });
+    const dayIndex = labels.indexOf(today);
+    const todayData = dataArr[dayIndex];
+    setTodayChqIn(todayData);
+  });
+
   // const options = {
   //   responsive: true,
   //   indexAxis: "y", // This makes the bars horizontal
   // };
+
   return (
     <div className="barChart">
       <div className="details py-2 flex flex-col gap-2 mb-5">
         <p className="text-slate-700"> Today's Check-ins</p>
-        <p className="text-3xl font-bold ">25</p>
+        <p className="text-3xl font-bold ">{todayChqIn}</p>
         <p className="text-slate-400 "> Past 7 days report </p>
       </div>
       <div className="bar h-[350px] md:h-[500px]">

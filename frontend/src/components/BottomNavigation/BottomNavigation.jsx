@@ -39,19 +39,21 @@ const BottomNavigation = () => {
       icon: ProfileIcon,
     },
   ];
-  const validNavItems = navItems.filter(({ path }) => path); // Only items with a valid path
-  const gridCols = `grid-cols-${validNavItems.length}`; // Set grid columns dynamically
 
   return (
     <div
       className="fixed mx-auto max-w-screen-custom-md500 bottom-0 z-50 w-full h-16 bg-white border-t border-gray-200"
       style={{ transform: "translate(-50%,0)", left: "50%" }}
     >
-      <div className={`grid h-full max-w-lg ${gridCols} mx-auto font-medium`}>
+      <div className="flex h-full max-w-lg mx-auto font-medium">
         {navItems.map(({ path, label, icon: Icon }) => {
           if (path) {
             return (
-              <Link key={path} to={path} className="flex place-content-center">
+              <Link
+                key={path}
+                to={path}
+                className="flex flex-grow place-content-center"
+              >
                 <button
                   type="button"
                   onClick={() => setActivePath(path)}

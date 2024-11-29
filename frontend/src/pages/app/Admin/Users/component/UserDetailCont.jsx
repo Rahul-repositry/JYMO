@@ -51,6 +51,8 @@ const UserDetailCont = ({ user }) => {
     navigate(`/admin/member?userId=${user.userId}`);
   }, [navigate, user.userId]);
 
+  console.log({ userCont: user }, "is running");
+
   return (
     <div>
       <div

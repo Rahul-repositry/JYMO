@@ -208,11 +208,13 @@ const Profile = () => {
           </div>
 
           {user.isOwner && (
-            <div className="adminButton border rounded-lg border-stone-400 my-4 bg-white">
-              <p className="flex justify-center py-2 text-lg font-medium text-stone-600">
-                Admin Panel
-              </p>
-            </div>
+            <Link to="/admin/home">
+              <div className="adminButton cursor-pointer border  rounded-lg border-stone-400 my-4 bg-white">
+                <p className="flex justify-center   py-2 text-lg font-medium text-stone-600">
+                  Admin Panel
+                </p>
+              </div>
+            </Link>
           )}
         </div>
         <div className="line bg-slate-50 w-screen h-[1px]"></div>
@@ -279,7 +281,7 @@ const Profile = () => {
           if (data.text === "Get Help") {
             return (
               <div
-                className={`${data.text} flex  place-items-center`}
+                className={`${data.text} flex  place-items-center cursor-pointer`}
                 key={data.text}
                 onClick={() => setIsHelpModalOpen(true)}
               >
@@ -298,7 +300,7 @@ const Profile = () => {
           } else if (data.text === "Log Out") {
             return (
               <div
-                className={`${data.text} flex  place-items-center`}
+                className={`${data.text} flex  place-items-center cursor-pointer`}
                 key={data.text}
                 onClick={() => setIsLogoutModalOpen(true)}
               >
@@ -317,7 +319,9 @@ const Profile = () => {
           } else {
             return (
               <Link to={data?.link} key={data.text}>
-                <div className={`${data.text} flex  place-items-center`}>
+                <div
+                  className={`${data.text} flex  place-items-center cursor-pointer`}
+                >
                   <div className="svg">
                     <img src={data.logo} alt={data.text} />
                   </div>
@@ -351,13 +355,16 @@ const Profile = () => {
         <h2 className="text-xl font-medium py-2">Get Help ?</h2>
         <p className="text-lightBlack text-center">
           For any query, message us at{" "}
-          <span className="text-xl font-bold text-customButton">
+          <a
+            href="mailto:jyymmoo@gmail.com"
+            className="text-xl font-bold cursor-pointer text-customButton"
+          >
             jyymmoo@gmail.com
-          </span>
+          </a>
         </p>
         <button
           onClick={() => setIsHelpModalOpen(false)}
-          className="bg-red-400 w-full rounded-lg text-white my-2"
+          className="bg-red-400 w-full rounded-lg text-white my-2 py-2"
         >
           Close
         </button>

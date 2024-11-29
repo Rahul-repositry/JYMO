@@ -5,8 +5,17 @@ import PieChart from "./components/PieChart";
 
 import axios from "axios";
 import UserSearch from "../../../../components/UserSearch/UserSearch";
+import { Link } from "react-router-dom";
 const Home = () => {
-  const [data, setData] = useState({});
+  const [data, setData] = useState({
+    expiringSoon: 0,
+    inactive: 0,
+    active: 0,
+    newlyRegistered: 0,
+    paid: 0,
+    totalRevenue: 0,
+    unpaid: 0,
+  });
   const [BarNumArr, setBarNumArr] = useState(Array(7).fill(0));
   const [pieDataArr, setPieDataArr] = useState(Array(3).fill(0));
   const checkInDataToBarNumArr = (checkInData) => {
@@ -75,43 +84,73 @@ const Home = () => {
       <PieChart pieDataArr={pieDataArr} />
       <div className="detailCont">
         <div className="detailRow ">
-          <div className="block    newlyRegistered !w-full">
-            <h2 className="blockTitle text-center !text-red-400">
-              Expires In 5 Days
-            </h2>
-            <p className="value text-center !text-3xl">0012</p>
-          </div>
+          <Link
+            to="/admin/users?statusType=expiringsoon"
+            className="block    expirySoon !w-full"
+          >
+            <div>
+              <h2 className="blockTitle text-center !text-red-400">
+                Expires In 5 Days
+              </h2>
+              <p className="value text-center !text-3xl">
+                {data.expiringSoon.toString().padStart(4, "0")}
+              </p>
+            </div>
+          </Link>
         </div>
         <div className="detailRow">
-          <div className="block activeMem">
-            <h2 className="blockTitle">Active Members</h2>
-            <p className="value">0092</p>
-          </div>
-          <div className="block inActiveMem">
-            <h2 className="blockTitle">In-Active Members</h2>
-            <p className="value">0032</p>
-          </div>
+          <Link to="/admin/users?statusType=active" className="block activeMem">
+            <div>
+              <h2 className="blockTitle">Active Members</h2>
+              <p className="value">{data.active.toString().padStart(4, "0")}</p>
+            </div>
+          </Link>
+          <Link
+            to="/admin/users?statusType=inactive"
+            className="block inActiveMem"
+          >
+            <div>
+              <h2 className="blockTitle">In-Active Members</h2>
+              <p className="value">
+                {data.inactive.toString().padStart(4, "0")}
+              </p>
+            </div>
+          </Link>
         </div>
 
         <div className="detailRow">
-          <div className="block paidMem">
-            <h2 className="blockTitle">Paid</h2>
-            <p className="value">0062</p>
-          </div>
-          <div className="block unpaidMem">
-            <h2 className="blockTitle">Unpaid</h2>
-            <p className="value">0022</p>
-          </div>
+          <Link to="/admin/users?statusType=paid" className="block paidMem">
+            <div>
+              <h2 className="blockTitle">Paid</h2>
+              <p className="value">{data.paid.toString().padStart(4, "0")}</p>
+            </div>
+          </Link>
+          <Link to="/admin/users?statusType=unpaid" className="block unpaidMem">
+            <div>
+              <h2 className="blockTitle">Unpaid</h2>
+              <p className="value">{data.unpaid.toString().padStart(4, "0")}</p>
+            </div>
+          </Link>
         </div>
 
         <div className="detailRow">
-          <div className="block newlyRegistered">
-            <h2 className="blockTitle">Newly Registered</h2>
-            <p className="value">0012</p>
-          </div>
+          <Link
+            to="/admin/users?statusType=newlyregistered"
+            className="block newlyRegistered"
+          >
+            <div>
+              <h2 className="blockTitle">Newly Registered</h2>
+              <p className="value">
+                {data.newlyRegistered.toString().padStart(4, "0")}
+              </p>
+            </div>
+          </Link>
+
           <div className="block totalRevenue">
             <h2 className="blockTitle">Total Revenue</h2>
-            <p className="value">₹22,899</p>
+            <p className="value">
+              ₹{data.totalRevenue.toString().padStart(4, "0")}
+            </p>
           </div>
         </div>
       </div>
