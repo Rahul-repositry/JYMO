@@ -9,6 +9,7 @@ const { filterJymDetails } = require("../utils/ImpFunc.js");
 const { ObjectId } = require("mongoose").Types;
 const dotenv = require("dotenv");
 dotenv.config();
+
 const getJym = AsyncErrorHandler(async (req, res, next) => {
   const { JUID } = req.params;
   console.log(req.params);
@@ -130,24 +131,9 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
                   $sum: { $cond: [{ $gt: ["$endDate", currentDate] }, 1, 0] },
                 },
                 unpaid: {
-                  $sum: { $cond: [{ $lte: ["$endDate", currentDate] }, 1, 0] },
-                },
-              },
-            },
-          ],
-          expiringSoon: [
-            {
-              $group: {
-                _id: null,
-                expiringSoon: {
                   $sum: {
                     $cond: [
-                      {
-                        $lte: [
-                          "$endDate",
-                          new Date(currentDate.getTime() + FIVE_DAYS),
-                        ],
-                      },
+                      { $gt: ["$status.active.lastCheckIn", "$endDate"] },
                       1,
                       0,
                     ],
@@ -156,6 +142,32 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
               },
             },
           ],
+          expiringSoon: [
+            {
+              $addFields: {
+                isExpiringSoon: {
+                  $and: [
+                    { $gte: ["$endDate", currentDate] },
+                    {
+                      $lte: [
+                        "$endDate",
+                        new Date(currentDate.getTime() + FIVE_DAYS),
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: null,
+                expiringSoon: {
+                  $sum: { $cond: ["$isExpiringSoon", 1, 0] },
+                },
+              },
+            },
+          ],
+
           totalRevenue: [
             {
               $match: { createdAt: { $gte: startOfMonth } },
@@ -215,11 +227,22 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
       // Match memberships with the given gym ID and active status
       { $match: { jymId: new ObjectId(jymId), "status.active.value": true } },
 
+      // Sort memberships by userId and startDate (or createdAt) in descending order
+      { $sort: { userId: 1, startDate: -1 } }, // Sort by userId first, then by recency
+
+      // Group by userId to keep only the most recent membership
+      {
+        $group: {
+          _id: "$userId", // Group by userId
+          mostRecentMembership: { $first: "$$ROOT" }, // Take the most recent membership
+        },
+      },
+
       // Lookup the associated user data
       {
         $lookup: {
           from: "users", // The user collection
-          localField: "userId", // Field from membership to join on
+          localField: "_id", // userId from the grouped data
           foreignField: "_id", // Field from user to join on
           as: "userDetails", // Alias for the joined user data
         },
@@ -228,23 +251,27 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
       // Unwind the user details array (to make each document contain a single user)
       { $unwind: "$userDetails" },
 
-      // Group by gender
+      // Group by gender and aggregate memberships
       {
         $group: {
           _id: "$userDetails.gender", // Group by gender field
           count: { $sum: 1 }, // Count each occurrence
+          memberships: { $push: "$mostRecentMembership" }, // Collect the most recent memberships
         },
       },
 
-      // Optional: Project the results to make it more readable
+      // Project the results to make it more readable
       {
         $project: {
           gender: "$_id",
           count: 1,
+          memberships: 1,
           _id: 0,
         },
       },
     ]);
+
+    console.log(genderCounts);
 
     // Default values if no data found
     const activeInactiveStats = membershipStats[0]?.activeInactive[0] || {
@@ -292,140 +319,550 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
+// const getUsersByStatus = AsyncErrorHandler(async (req, res, next) => {
+//   const jymId = req.jym._id;
+//   const { statusType, skip = 0 } = req.query;
+
+//   if (!ObjectId.isValid(jymId)) {
+//     return next(new CustomError("Invalid gym ID", 400));
+//   }
+
+//   const currentDate = new Date();
+//   const checkInDateLimit = new Date(
+//     currentDate.getTime() - process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000
+//   );
+//   const fiveDaysAgo = new Date(
+//     currentDate.getTime() -
+//       process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+//   );
+//   const fiveDaysFromNow = new Date(
+//     currentDate.getTime() +
+//       process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+//   );
+
+//   try {
+//     let newlyRegisteredUserIds = [];
+
+//     // Step 1: Fetch user IDs of newly registered users if requested
+//     if (statusType.toLowerCase() === "newlyregistered") {
+//       const newlyRegisteredUsers = await UserDurationInJym.aggregate([
+//         { $match: { jymId: new ObjectId(jymId), isQuitted: false } },
+//         {
+//           $project: {
+//             userId: 1,
+//             firstJoinDate: { $arrayElemAt: ["$joinDates", 0] },
+//           },
+//         },
+//         { $match: { firstJoinDate: { $gte: fiveDaysAgo } } },
+//         { $group: { _id: "$userId" } },
+//       ]);
+//       newlyRegisteredUserIds = newlyRegisteredUsers.map((doc) => doc._id);
+//     }
+
+//     // Step 2: Aggregate the latest memberships based on the specified status
+//     const results = await Membership.aggregate([
+//       { $match: { jymId: new ObjectId(jymId) } },
+//       { $sort: { userId: 1, endDate: -1 } },
+//       {
+//         $group: {
+//           _id: "$userId",
+//           mostRecentMembership: { $first: "$$ROOT" },
+//         },
+//       },
+//       { $replaceRoot: { newRoot: "$mostRecentMembership" } },
+
+//       // Step 3: Apply status-based filtering
+//       ...getStatusMatchPipeline(
+//         statusType,
+//         checkInDateLimit,
+//         fiveDaysFromNow,
+//         currentDate,
+//         newlyRegisteredUserIds
+//       ),
+
+//       // Step 4: Pagination
+//       { $skip: parseInt(skip) },
+//       // { $limit: 20 },
+//       { $limit: 2 },
+
+//       // Step 5: Populate user info
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "userId",
+//           foreignField: "_id",
+//           as: "userInfo",
+//         },
+//       },
+//       { $unwind: "$userInfo" },
+
+//       // Step 6: Gender-based filtering (optional)
+//       ...getGenderMatchPipeline(statusType),
+
+//       // Step 7: Projection for final output
+//       {
+//         $project: {
+//           img: "$userInfo.img",
+//           username: "$userInfo.username",
+//           startDate: "$startDate",
+//           endDate: "$endDate",
+//           lastCheckIn: "$status.active.lastCheckIn",
+//           status: "$status",
+//           phone: "$userInfo.phone",
+//           userId: "$userInfo._id",
+//         },
+//       },
+//     ]);
+//     console.log(results, skip);
+//     res.status(200).json({
+//       success: true,
+//       data: results,
+//     });
+//   } catch (error) {
+//     console.error("Error fetching users by status:", error);
+//     return next(new CustomError("Failed to fetch users by status", 500));
+//   }
+// });
+
+// // Helper function to handle status-based matching logic
+// function getStatusMatchPipeline(
+//   statusType,
+//   checkInDateLimit,
+//   fiveDaysFromNow,
+//   currentDate,
+//   newlyRegisteredUserIds
+// ) {
+//   const today = new Date(); // Current date
+
+//   switch (statusType.toLowerCase()) {
+//     case "active":
+//       return [
+//         { $match: { "status.active.lastCheckIn": { $gte: checkInDateLimit } } },
+//       ];
+//     case "inactive":
+//       return [
+//         { $match: { "status.active.lastCheckIn": { $lt: checkInDateLimit } } },
+//       ];
+//     case "newlyregistered":
+//       return [{ $match: { userId: { $in: newlyRegisteredUserIds } } }];
+//     case "expiringsoon":
+//       return [
+//         {
+//           $match: {
+//             endDate: {
+//               $gt: today, // Greater than today
+//               $lte: fiveDaysFromNow, // Less than or equal to five days from now
+//             },
+//           },
+//         },
+//       ];
+//     case "paid":
+//       return [{ $match: { endDate: { $gt: currentDate } } }];
+//     case "unpaid":
+//       return [
+//         {
+//           $match: {
+//             $expr: { $gt: ["$status.active.lastCheckIn", "$endDate"] },
+//           },
+//         },
+//       ];
+//     default:
+//       return [];
+//   }
+// }
+
+// // Helper function to handle gender-based matching
+// function getGenderMatchPipeline(statusType) {
+//   const genderTypes = ["male", "female", "others"];
+//   if (genderTypes.includes(statusType.toLowerCase())) {
+//     return [{ $match: { "userInfo.gender": statusType.toLowerCase() } }];
+//   }
+//   return [];
+// }
+
 const getUsersByStatus = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.jym._id;
-  const { statusType, skip = 0 } = req.query;
+  const { statusType, skip = 0, limit = 20 } = req.query;
 
   if (!ObjectId.isValid(jymId)) {
     return next(new CustomError("Invalid gym ID", 400));
   }
 
-  const currentDate = new Date();
-  const checkInDateLimit = new Date(
-    currentDate.getTime() - process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000
-  );
-  const fiveDaysAgo = new Date(
-    currentDate.getTime() -
-      process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
-  );
-  const fiveDaysFromNow = new Date(
-    currentDate.getTime() +
-      process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
-  );
-
   try {
-    const results = await Membership.aggregate([
-      { $match: { jymId: new ObjectId(jymId) } },
-
-      // Sort by userId and endDate to get the latest membership first
-      { $sort: { userId: 1, endDate: -1 } },
-
-      // Group by userId, retaining only the latest membership per user
-      {
-        $group: {
-          _id: "$userId",
-          mostRecentMembership: { $first: "$$ROOT" },
-        },
-      },
-
-      // Replace the root document with the most recent membership
-      {
-        $replaceRoot: { newRoot: "$mostRecentMembership" },
-      },
-
-      // Apply status-based filters on the latest memberships
-      ...(statusType.toLowerCase() === "active"
-        ? [
-            {
-              $match: {
-                "status.active.lastCheckIn": { $gte: checkInDateLimit },
-              },
-            },
-          ]
-        : statusType.toLowerCase() === "inactive"
-        ? [
-            {
-              $match: {
-                "status.active.lastCheckIn": { $lt: checkInDateLimit },
-              },
-            },
-          ]
-        : statusType.toLowerCase() === "newlyregistered"
-        ? [
-            {
-              $lookup: {
-                from: "userdurations",
-                let: { userId: "$userId" },
-                pipeline: [
-                  {
-                    $match: {
-                      $expr: { $eq: ["$userId", "$$userId"] },
-                      isQuitted: false,
-                    },
-                  },
-                  {
-                    $project: {
-                      userId: 1,
-                      firstJoinDate: { $arrayElemAt: ["$joinDates", 0] },
-                    },
-                  },
-                  { $match: { firstJoinDate: { $gte: fiveDaysAgo } } },
-                ],
-                as: "recentJoinInfo",
-              },
-            },
-            { $match: { recentJoinInfo: { $ne: [] } } },
-          ]
-        : statusType.toLowerCase() === "expiringsoon"
-        ? [{ $match: { endDate: { $lte: fiveDaysFromNow } } }]
-        : statusType.toLowerCase() === "paid"
-        ? [{ $match: { endDate: { $gt: currentDate } } }]
-        : statusType.toLowerCase() === "unpaid"
-        ? [{ $match: { "status.active.lastCheckIn": { $gt: "$endDate" } } }]
-        : []),
-
-      { $skip: parseInt(skip) },
-      { $limit: 20 },
-
-      // Lookup user details and project fields
-      {
-        $lookup: {
-          from: "users",
-          localField: "userId",
-          foreignField: "_id",
-          as: "userInfo",
-        },
-      },
-      { $unwind: "$userInfo" },
-
-      // Apply gender filter after populating userInfo
-      ...(["male", "female", "others"].includes(statusType.toLowerCase())
-        ? [{ $match: { "userInfo.gender": statusType.toLowerCase() } }]
-        : []),
-
-      {
-        $project: {
-          img: "$userInfo.img",
-          username: "$userInfo.username",
-          startDate: "$startDate",
-          endDate: "$endDate",
-          lastCheckIn: "$status.active.lastCheckIn",
-          status: "$status",
-          phone: "$userInfo.phone",
-          userId: "$userInfo._id",
-        },
-      },
-    ]);
+    const queryHandler = getStatusQueryHandler(statusType);
+    const results = await queryHandler(jymId, parseInt(skip), parseInt(limit));
 
     res.status(200).json({
       success: true,
       data: results,
+      hasMore: results.length === limit, // Indicate if there's more data to load
     });
   } catch (error) {
     console.error("Error fetching users by status:", error);
     return next(new CustomError("Failed to fetch users by status", 500));
   }
 });
+
+function getStatusQueryHandler(statusType) {
+  const handlers = {
+    active: fetchActiveUsers,
+    inactive: fetchInactiveUsers,
+    newlyregistered: fetchNewlyRegisteredUsers,
+    expiringsoon: fetchExpiringSoonUsers,
+    paid: fetchPaidUsers,
+    unpaid: fetchUnpaidUsers,
+    male: fetchUsersByGender.bind(null, "male"),
+    female: fetchUsersByGender.bind(null, "female"),
+    others: fetchUsersByGender.bind(null, "others"),
+  };
+
+  return (
+    handlers[statusType.toLowerCase()] ||
+    (() => {
+      throw new Error("Invalid status type");
+    })
+  );
+}
+
+async function fetchActiveUsers(jymId, skip = 0, limit = 20) {
+  const checkInDateLimit = new Date(
+    Date.now() - process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+
+  // Fetch memberships sorted by userId and endDate, then filter on the server side
+  const memberships = await Membership.find({
+    jymId: new ObjectId(jymId),
+    "status.active.lastCheckIn": { $gte: checkInDateLimit },
+  })
+    .sort({ userId: 1, endDate: -1 }) // Sort to ensure latest membership comes first for each user
+    .skip(skip)
+    .limit(limit * 2) // Fetch more than needed to allow filtering
+    .lean();
+
+  // Filter memberships to keep only the latest per userId
+  const uniqueMemberships = [];
+  const seenUserIds = new Set();
+
+  for (const membership of memberships) {
+    if (!seenUserIds.has(membership.userId.toString())) {
+      uniqueMemberships.push(membership);
+      seenUserIds.add(membership.userId.toString());
+    }
+    if (uniqueMemberships.length >= limit) break; // Stop once we have enough records
+  }
+
+  // Fetch user details for these user IDs
+  const userIds = uniqueMemberships.map((membership) => membership.userId);
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("img username phone")
+    .lean();
+
+  // Combine user data with the filtered memberships
+  return uniqueMemberships.map((membership) => {
+    const userInfo = users.find((user) => user._id.equals(membership.userId));
+    return {
+      img: userInfo?.img || null,
+      username: userInfo?.username || null,
+      phone: userInfo?.phone || null,
+      userId: membership.userId,
+      startDate: membership.startDate,
+      endDate: membership.endDate,
+      lastCheckIn: membership.status.active.lastCheckIn,
+      status: membership.status,
+    };
+  });
+}
+
+async function fetchInactiveUsers(jymId, skip = 0, limit = 20) {
+  const checkInDateLimit = new Date(
+    Date.now() - process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+
+  const inactiveMemberships = await Membership.aggregate([
+    {
+      $match: {
+        jymId: new ObjectId(jymId),
+      },
+    },
+    {
+      $sort: { startDate: -1 },
+    },
+    {
+      $group: {
+        _id: "$userId",
+        latestMembership: { $first: "$$ROOT" },
+      },
+    },
+    {
+      $match: {
+        "latestMembership.status.active.lastCheckIn": { $lt: checkInDateLimit },
+      },
+    },
+    {
+      $replaceRoot: { newRoot: "$latestMembership" },
+    },
+    {
+      $skip: skip,
+    },
+    {
+      $limit: limit,
+    },
+  ]);
+
+  // Extract userIds from the latest memberships
+  const userIds = inactiveMemberships.map((membership) => membership.userId);
+
+  // Fetch user details
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("img username phone")
+    .lean();
+
+  // Format the final response
+  return inactiveMemberships.map((membership) => {
+    const userInfo = users.find((user) => user._id.equals(membership.userId));
+    return {
+      img: userInfo?.img || null,
+      username: userInfo?.username || null,
+      phone: userInfo?.phone || null,
+      userId: membership.userId,
+      startDate: membership.startDate,
+      endDate: membership.endDate,
+      lastCheckIn: membership.status.active.lastCheckIn,
+      status: membership.status,
+    };
+  });
+}
+
+async function fetchNewlyRegisteredUsers(jymId, skip = 0, limit = 20) {
+  const newlyRegisteredDate = new Date(
+    Date.now() -
+      process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+
+  const userDurations = await UserDurationInJym.find({
+    jymId: new ObjectId(jymId),
+    isQuitted: false,
+    joinDates: { $gte: newlyRegisteredDate },
+  })
+    .select("userId")
+    .lean();
+
+  const userIds = userDurations.map((duration) => duration.userId);
+
+  const newlyRegisteredMemberships = await Membership.find({
+    jymId: new ObjectId(jymId),
+    userId: { $in: userIds },
+  })
+    .sort({ userId: 1, endDate: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("img username phone")
+    .lean();
+
+  return newlyRegisteredMemberships.map((membership) => {
+    const userInfo = users.find((user) => user._id.equals(membership.userId));
+    return {
+      img: userInfo?.img || null,
+      username: userInfo?.username || null,
+      phone: userInfo?.phone || null,
+      userId: membership.userId,
+      startDate: membership.startDate,
+      endDate: membership.endDate,
+      lastCheckIn: membership.status.active.lastCheckIn,
+      status: membership.status,
+    };
+  });
+}
+
+async function fetchExpiringSoonUsers(jymId, skip = 0, limit = 20) {
+  const expiryDateLimit = new Date(
+    Date.now() +
+      process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+  );
+
+  try {
+    // Step 1: Fetch expiring memberships
+    const expiringMemberships = await Membership.find({
+      jymId: new ObjectId(jymId),
+      endDate: { $gte: new Date(), $lte: expiryDateLimit }, // Ensure endDate is within the correct range
+    })
+      .sort({ userId: 1, endDate: -1 }) // Sort by userId and most recent endDate
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    if (expiringMemberships.length === 0) {
+      return []; // No memberships found within the range
+    }
+
+    // Step 2: Extract user IDs from memberships
+    const userIds = expiringMemberships.map((membership) => membership.userId);
+
+    // Step 3: Fetch user details
+    const users = await User.find({ _id: { $in: userIds } })
+      .select("img username phone")
+      .lean();
+
+    // Step 4: Map memberships to user details
+    return expiringMemberships.map((membership) => {
+      const userInfo = users.find((user) => user._id.equals(membership.userId));
+      return {
+        img: userInfo?.img || null,
+        username: userInfo?.username || null,
+        phone: userInfo?.phone || null,
+        userId: membership.userId,
+        startDate: membership.startDate,
+        endDate: membership.endDate,
+        lastCheckIn: membership.status.active.lastCheckIn,
+        status: membership.status,
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching expiring soon users:", error);
+    throw error; // Re-throw to handle the error in the calling function
+  }
+}
+
+async function fetchPaidUsers(jymId, skip = 0, limit = 20) {
+  const paidMemberships = await Membership.find({
+    jymId: new ObjectId(jymId),
+    endDate: { $gt: new Date() },
+  })
+    .sort({ userId: 1, endDate: -1 })
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  const userIds = paidMemberships.map((membership) => membership.userId);
+
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("img username phone")
+    .lean();
+
+  return paidMemberships.map((membership) => {
+    const userInfo = users.find((user) => user._id.equals(membership.userId));
+    return {
+      img: userInfo?.img || null,
+      username: userInfo?.username || null,
+      phone: userInfo?.phone || null,
+      userId: membership.userId,
+      startDate: membership.startDate,
+      endDate: membership.endDate,
+      lastCheckIn: membership.status.active.lastCheckIn,
+      status: membership.status,
+    };
+  });
+}
+
+async function fetchUnpaidUsers(jymId, skip = 0, limit = 20) {
+  const unpaidMemberships = await Membership.aggregate([
+    {
+      $match: {
+        jymId: new ObjectId(jymId), // Filter by gym ID
+      },
+    },
+    {
+      $sort: {
+        userId: 1, // Sort by user ID
+        endDate: -1, // Within each user, sort by most recent end date
+      },
+    },
+    {
+      $group: {
+        _id: "$userId", // Group by userId
+        latestMembership: { $first: "$$ROOT" }, // Keep the first document in each group (latest membership)
+      },
+    },
+    {
+      $replaceRoot: {
+        newRoot: "$latestMembership", // Replace the root document with the latest membership
+      },
+    },
+    {
+      $match: {
+        $expr: { $gt: ["$status.active.lastCheckIn", "$endDate"] }, // Apply the condition to the latest membership
+      },
+    },
+    {
+      $skip: skip, // Apply pagination
+    },
+    {
+      $limit: limit, // Apply pagination
+    },
+  ]);
+
+  const userIds = unpaidMemberships.map((membership) => membership.userId);
+
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("img username phone")
+    .lean();
+
+  return unpaidMemberships.map((membership) => {
+    const userInfo = users.find((user) => user._id.equals(membership.userId));
+    return {
+      img: userInfo?.img || null,
+      username: userInfo?.username || null,
+      phone: userInfo?.phone || null,
+      userId: membership.userId,
+      startDate: membership.startDate,
+      endDate: membership.endDate,
+      lastCheckIn: membership.status.active.lastCheckIn,
+      status: membership.status,
+    };
+  });
+}
+
+async function fetchUsersByGender(gender, jymId, skip = 0, limit = 20) {
+  // Step 1: Fetch users who match the given gender and are part of the given jymId
+  const users = await User.find({
+    gender, // Match the gender
+    "currentJymUUId.jymId": new ObjectId(jymId), // Match the currentJymUUId array containing the jymId
+  })
+    .select("img username phone gender _id") // Select only necessary fields
+    .lean();
+
+  const userIds = users.map((user) => user._id); // Extract user IDs for the next step
+
+  // Step 2: Fetch the latest membership for each user
+  const memberships = await Membership.find({
+    userId: { $in: userIds }, // Filter memberships for the selected users
+    jymId: new ObjectId(jymId), // Ensure memberships belong to the given jymId
+    "status.active.value": true, // Only include active memberships
+  })
+    .sort({ userId: 1, endDate: -1 }) // Sort by userId and latest endDate
+    .skip(skip)
+    .limit(limit)
+    .lean();
+
+  // Step 3: Map the memberships to the user data and ensure valid memberships only
+  return memberships
+    .map((membership) => {
+      const userInfo = users.find((user) => user._id.equals(membership.userId)); // Find user by ID
+      if (!userInfo) {
+        return null; // Skip this membership if no corresponding user found
+      }
+      // if (!membership?.status?.active?.value) {
+      //   return null;
+      // }
+      return {
+        img: userInfo.img || null,
+        username: userInfo.username || null,
+        phone: userInfo.phone || null,
+        userId: membership.userId,
+        gender: userInfo.gender || null,
+        startDate: membership.startDate,
+        endDate: membership.endDate,
+        lastCheckIn: membership.status.active.lastCheckIn,
+        status: membership.status,
+      };
+    })
+    .filter((membershipData) => membershipData !== null); // Filter out memberships with no matching user
+}
+
+// Additional functions for specific queries can be added here
 
 const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
   const { userId } = req.params;

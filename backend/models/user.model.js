@@ -37,9 +37,6 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    /* isActive: {
-    //   type: String,
-    // },*/
     gender: {
       type: String,
       enum: ["male", "female", "others"],
@@ -59,6 +56,10 @@ const userSchema = new mongoose.Schema(
 
 // Add the auto-increment plugin to the schema
 userSchema.plugin(AutoIncrement, { inc_field: "userUniqueId" });
+
+// Add the index for currentJymUUId.jymId field
+userSchema.index({ "currentJymUUId.jymId": 1 });
+userSchema.index({ userUniqueId: 1 });
 
 const User = mongoose.model("user", userSchema);
 

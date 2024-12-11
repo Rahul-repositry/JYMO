@@ -47,6 +47,7 @@ router.get("/getjymbyid/:id", verifyUser, getJymById);
 
 router.get("/getdashboardstats", verifyUser, verifyJym, getDashboardStats);
 
+/** this willl get status on the bassis of statuses like active inactive and others  */
 router.get("/getuserbystatus", verifyUser, verifyJym, getUsersByStatus);
 
 router.get("/getuserbysearch/:userId", verifyUser, verifyJym, getUserBySearch);

@@ -136,7 +136,6 @@ const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
 
 const updateUserEmail = AsyncErrorHandler(async (req, res, next) => {
   const { firebaseEmailIdToken } = req.body;
-  console.log(req.body);
 
   // Build Firebase credential with the Google ID token.
 

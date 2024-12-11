@@ -15,6 +15,8 @@ const checkInSummarySchema = new Schema(
   { timestamps: true }
 );
 
+checkInSummarySchema.index({ jymId: 1 });
+
 const CheckInSummary = mongoose.model("checkInSummary", checkInSummarySchema);
 
 module.exports = CheckInSummary;

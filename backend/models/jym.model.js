@@ -47,14 +47,14 @@ const jymSchema = new Schema(
     subscriptionStartDate: { type: Date },
     subscriptionEndDate: { type: Date },
     resetPasswordToken: String,
-    jymoDietId: { type: Schema.Types.ObjectId, ref: "jymoDietIdForJymOwners" },
-    jymDietAmount: Number,
     resetPasswordExpires: Date,
   },
   { timestamps: true }
 );
 
 jymSchema.plugin(AutoIncrement, { inc_field: "jymUniqueId", start_seq: 1 });
+
+jymSchema.index({ jymUniqueId: 1 });
 
 const Jym = mongoose.model("jym", jymSchema);
 

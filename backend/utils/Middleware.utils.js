@@ -189,29 +189,6 @@ const verifyActiveUser = async (req, res, next) => {
   }
 };
 
-const verifyJymoDietBackendUser = (req, res, next) => {
-  const token = req.cookies.jymoDietBackendUser_token;
-
-  if (token) {
-    jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-      if (err) {
-        return res
-          .status(401)
-          .json({ success: false, message: "Token is not valid" });
-      } else {
-        req.jymoDietBackendUser = decoded.jymoDietBackendUser;
-
-        next();
-      }
-    });
-  } else {
-    return res.status(401).json({
-      success: false,
-      message: "You are not authenticated",
-    });
-  }
-};
-
 // verify is user registered to this jym whose attendance is gonna marked by owner  ( for attendance purpose only)
 
 // const verifyOwnershipAndActiveUser = async (req, res, next) => {
@@ -269,5 +246,4 @@ module.exports = {
   verifyJym,
   verifyOwnership,
   verifyActiveUser,
-  verifyJymoDietBackendUser,
 };

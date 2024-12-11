@@ -34,19 +34,19 @@ const manageWorkoutPlan = AsyncErrorHandler(async (req, res, next) => {
 
 const getAllWorkoutPlans = AsyncErrorHandler(async (req, res, next) => {
   const workoutPlans = await Workout.find({ userId: req.user._id });
-  console.log({ workoutPlans, id: req.user._id });
+
   res.json({ success: true, workoutPlans });
 });
 
 const getWorkoutByDay = AsyncErrorHandler(async (req, res, next) => {
   const { dayOfWeek } = req.params;
-  console.log(req.params);
+
   if (dayOfWeek) {
     const workoutPlans = await Workout.find({
       userId: req.user._id,
       dayOfWeek: dayOfWeek,
     });
-    console.log({ workoutPlans, id: req.user._id });
+
     return res.json({
       success: true,
       workoutPlans,

@@ -8,6 +8,7 @@ const OTPSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+OTPSchema.index({ phoneNumber: 1 });
 
 const Otp = mongoose.model("otp", OTPSchema);
 module.exports = Otp;

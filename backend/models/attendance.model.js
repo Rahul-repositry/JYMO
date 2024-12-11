@@ -23,12 +23,14 @@ const attendanceSchema = new Schema(
        */
     },
     isTrial: { type: Boolean, default: false },
+    isMarkedByAdmin: { type: Boolean, default: false },
     trialTokenExpiry: { type: Date },
     checkIn: { type: Date, default: Date.now() },
     checkOut: { type: String },
   },
   { timestamps: true }
 );
+attendanceSchema.index({ userId: 1, jymId: 1 });
 
 const Attendance = mongoose.model("attendance", attendanceSchema);
 

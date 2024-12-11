@@ -25,7 +25,7 @@ const duplicateKeyErrorHandler = (err) => {
   const key = Object.keys(obj);
   const value = Object.values(obj);
   const msg = `User already exists with ${key} - ${value}. Please use another ${key}!`;
-  console.log("is working duplicater error control", msg);
+
   return new CustomError(msg, 400);
 };
 

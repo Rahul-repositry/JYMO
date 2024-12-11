@@ -95,7 +95,7 @@ const getWalletDetails = async () => {
   };
   const walletResponse = await axios.request(walletOptions);
   const wallet = walletResponse.data.wallet;
-  console.log(wallet);
+
   return wallet;
 };
 
@@ -180,7 +180,7 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
   }
  */
   const savedUser = await newUser.save();
-  console.log("saved", savedUser);
+
   await OTP.findByIdAndDelete({ _id: new ObjectId(otpDocument._id) });
 
   res
@@ -242,7 +242,7 @@ const google = AsyncErrorHandler(async (req, res, next) => {
 
     // Check if the user exists in the database.
     const existingUser = await User.findOne({ email: firebaseUser.email });
-    console.log(existingUser);
+
     if (existingUser && existingUser?.phone) {
       // If the user exists, create a JWT token and send it to the client.
       const { password, resetPasswordToken, resetPasswordExpires, ...rest } =
@@ -289,7 +289,7 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
 
 const resetPassword = AsyncErrorHandler(async (req, res, next) => {
   const { token, newPassword } = req.body;
-  console.log(req.body);
+
   const user = await User.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() },
@@ -336,7 +336,7 @@ const logout = AsyncErrorHandler(async (req, res, next) => {
 
 //   console.log(wallet);
 
-//   // await sendOTPViaFast2SMS(phoneNumber, otp);
+//   await sendOTPViaFast2SMS(phoneNumber, otp);
 //   await storeOTP(phoneNumber, otp, idToken);
 //   console.log(response, "yhi hai ");
 //   res
@@ -345,13 +345,17 @@ const logout = AsyncErrorHandler(async (req, res, next) => {
 // });
 
 const sendOtp = AsyncErrorHandler(async (req, res, next) => {
-  // same used as in user for updating data
   const { phoneNumber } = req.body;
-  console.log(phoneNumber);
+
+  // Validate the phone number
+  if (!phoneNumber || typeof phoneNumber !== "string") {
+    return res.status(400).json({
+      status: "error",
+      message: "Invalid or missing phone number.",
+    });
+  }
 
   const otpPass = generateOTP();
-
-  // console.log(process.env.FAST2SMS_API_KEY);
 
   // const options = {
   //   method: "GET",
@@ -369,24 +373,41 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
   // };
 
   try {
-    // const response = await axios.request(options);
+    // Send the OTP via Fast2SMS API
+    // await axios.request(options);
 
-    let otp = await storeOTP(phoneNumber, otpPass);
-    console.log(otp, 375);
-    res.status(200).json({
+    // Log response status for debugging
+
+    // Store the OTP in the database
+    const otp = await storeOTP(phoneNumber, otpPass);
+
+    // Respond with success
+    return res.status(200).json({
       status: "success",
-      message: "OTP Successfully Sent.",
+      message: "OTP successfully sent.",
       otp: {
         _id: otp._id,
         phoneNumber: otp.phoneNumber,
       },
     });
   } catch (error) {
-    console.error("Error sending OTP: ", error);
-    res.status(500).json({
-      status: "error",
-      msg: "Failed to send OTP. Please try again later.",
-    });
+    // Distinguish between API errors and other issues
+    if (error.response) {
+      console.error(
+        `Fast2SMS API error: ${error.response.status} - ${error.response.data}`
+      );
+      return res.status(502).json({
+        status: "error",
+        message:
+          "Failed to send OTP due to an external service error. Please try again later.",
+      });
+    } else {
+      console.error(`Internal error while sending OTP: ${error.message}`);
+      return res.status(500).json({
+        status: "error",
+        message: "An internal error occurred. Please try again later.",
+      });
+    }
   }
 });
 
@@ -394,9 +415,8 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
 const verifyOtp = AsyncErrorHandler(async (req, res, next) => {
   const { phoneNumber, otp, _id } = req.body;
-  console.log(phoneNumber, otp, _id);
+
   const otpDocument = await OTP.findById({ _id: new ObjectId(_id) });
-  console.log(otpDocument);
 
   if (!otpDocument) {
     return next(new CustomError("Not Found", 404));
@@ -428,8 +448,6 @@ const putObject = AsyncErrorHandler(async (req, res, next) => {
 const deleteObject = AsyncErrorHandler(async (req, res, next) => {
   const { imgUrl } = req.query; // Get imgUrl from query params
   const userId = req.user._id;
-
-  console.log({ imgUrl });
 
   if (!imgUrl) {
     return next(new CustomError("upload img to delete", 400));

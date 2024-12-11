@@ -5,7 +5,7 @@ const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const OTP = require("../models/OTP.model.js");
 const nodemailer = require("nodemailer");
 const Jym = require("../models/jym.model.js");
-const JymId = require("../models/jymId.model.js");
+
 const crypto = require("crypto");
 const CustomError = require("../utils/CustomError.utils.js");
 const { filterJymDetails } = require("../utils/ImpFunc.js");
@@ -58,7 +58,6 @@ ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
 });
 
 const jymSignup = AsyncErrorHandler(async (req, res, next) => {
-  console.log(req.user);
   //img be updated manually by admin
 
   const {
@@ -143,17 +142,17 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
     .json({ success: true, message: "SignIn successfully", jymobj });
 });
 
-const jymId = AsyncErrorHandler(async (req, res, next) => {
-  const userId = req.user._id;
-  const newjymId = new JymId({
-    userId,
-  });
-  const savedjym = await newjymId.save();
+// const jymId = AsyncErrorHandler(async (req, res, next) => {
+//   const userId = req.user._id;
+//   const newjymId = new JymId({
+//     userId,
+//   });
+//   const savedjym = await newjymId.save();
 
-  res
-    .status(201)
-    .json({ success: true, message: "Jym created successfully", savedjym });
-});
+//   res
+//     .status(201)
+//     .json({ success: true, message: "Jym created successfully", savedjym });
+// });
 
 const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
   const { recoveryNumber } = req.body;
@@ -218,10 +217,7 @@ const createForgotSession = AsyncErrorHandler(async (req, res, next) => {
 
 const resetPassword = AsyncErrorHandler(async (req, res, next) => {
   const { jymId, token, password: newPassword, otpObj } = req.body;
-  console.log({
-    body: req.body,
-  });
-  console.log({ jymId, token, newPassword, otpObj });
+
   if (!otpObj._id || !otpObj.phoneNumber || !otpObj.otp) {
     return next(new CustomError("OTP details are incomplete", 404));
   }
@@ -287,7 +283,6 @@ module.exports = {
   jymSignup,
   jymSignin,
   logout,
-  jymId,
   forgotPassword,
   createForgotSession,
   resetPassword,

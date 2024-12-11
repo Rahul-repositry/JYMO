@@ -46,7 +46,7 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
   let newEndDate = new Date(
     newStartDate.getTime() + baseDays * 24 * 60 * 60 * 1000
   );
-  console.log({ baseDays, newEndDate, newStartDate });
+
   // Update the existing membership with the new end date and amount
 
   const newMembership = new Membership({
@@ -132,14 +132,14 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
    *
    */
   let userDuration = await UserDurationInJym.findOne({
-    userId: userData._id,
-    jymId,
+    userId: new ObjectId(userData._id),
+    jymId: new ObjectId(jymId),
   });
 
   if (!userDuration) {
     userDuration = new UserDurationInJym({
       userId: userData._id,
-      jymId,
+      jymId: jymId,
       joinDates: [currentDate],
       isBecomeActiveUser: true,
     });
@@ -175,7 +175,7 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
 const memberStatus = AsyncErrorHandler(async (req, res, next) => {
   const { userId, userUniqueId } = req.query; // Use req.query for URL parameters
   const jymId = req.jym._id;
-  console.log("is this working ");
+
   let status = {
     "In-active": false, // if true means user is inactive
     Register: false,
@@ -288,7 +288,6 @@ const memberStatus = AsyncErrorHandler(async (req, res, next) => {
 const getMembership = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.params.jymid;
   const userId = req.user._id;
-  console.log({ jymId, userId });
   const membership = await Membership.findOne({
     jymId: new ObjectId(jymId),
     userId: new ObjectId(userId),
@@ -306,7 +305,7 @@ const getMembership = AsyncErrorHandler(async (req, res, next) => {
 const getMembershipByUserId = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.jym._id;
   const userId = req.params.userId;
-  console.log({ jymId, userId });
+
   const membership = await Membership.findOne({
     jymId: new ObjectId(jymId),
     userId: new ObjectId(userId),
@@ -324,11 +323,11 @@ const getMembershipByUserId = AsyncErrorHandler(async (req, res, next) => {
 const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
   const userId = req.body.userId || req.user._id;
   const jymId = req.body.jymId || req.jym._id;
-  const { skip = 0 } = req.query; // Default values for skip
+  const { skip = 0 } = req.body; // Default values for skip
 
   const memberships = await Membership.find({
     userId: new ObjectId(userId),
-    jymId: new Object(jymId),
+    jymId: new ObjectId(jymId),
   })
     .skip(Number(skip)) // Skip the records based on the current page
     .limit(20) // Limit the number of records fetched per request
@@ -338,9 +337,12 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
     })
     .exec();
 
-  console.log(memberships);
   if (!memberships.length) {
-    return next(new CustomError("No more memberships found", 404));
+    return res.status(200).json({
+      success: true,
+      message: "Memberships Ended successfully",
+      memberships: memberships,
+    });
   }
 
   return res.status(200).json({
@@ -352,48 +354,50 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
 
 const updateInactiveMemberships = async () => {
   try {
-    const FIFTEEN_DAYS_MS = process.env.MAXABSENTDAYS * 24 * 60 * 60 * 1000;
-    const currentDate = new Date();
+    const MAX_ABSENT_DAYS_MS = process.env.MAXABSENTDAYS * 24 * 60 * 60 * 1000;
+    const cutoffDate = new Date(Date.now() - MAX_ABSENT_DAYS_MS);
 
-    // Aggregate pipeline to get the latest membership per userId and jymId, filter for inactivity, and update the status in one go
+    // Perform aggregation and update in one operation
     const result = await Membership.aggregate([
-      // Sort memberships by userId and endDate in descending order to get the latest memberships first
+      // Sort memberships by userId and endDate in descending order
       { $sort: { userId: 1, endDate: -1 } },
-      // Group by userId and jymId, keeping only the most recent membership
+      // Group by userId and jymId to get the latest membership per combination
       {
         $group: {
           _id: { userId: "$userId", jymId: "$jymId" },
           mostRecentMembership: { $first: "$$ROOT" },
         },
       },
-      // Replace the root document with the most recent membership data
+      // Replace the root document with the most recent membership
       { $replaceRoot: { newRoot: "$mostRecentMembership" } },
-      // Match memberships where the status is active and last check-in was over 15 days ago
+      // Dynamically set active status based on lastCheckIn and cutoffDate
       {
-        $match: {
-          "status.active.value": true,
-          "status.active.lastCheckIn": {
-            $lt: new Date(currentDate.getTime() - FIFTEEN_DAYS_MS),
+        $set: {
+          "status.active.value": {
+            $cond: {
+              if: {
+                $and: [
+                  { $eq: ["$status.active.value", true] }, // Only update if currently true
+                  { $lt: ["$status.active.lastCheckIn", cutoffDate] }, // Last check-in is before cutoff
+                ],
+              },
+              then: false,
+              else: "$status.active.value", // Keep the current value unchanged
+            },
           },
         },
       },
-      // Update each matched document to set active.value to false
-      {
-        $set: { "status.active.value": false },
-      },
-      // Save the changes to the database
+      // Save updates to the database
       {
         $merge: {
-          into: "memberships", // replace with your actual collection name if different
+          into: "memberships", // Replace with your actual collection name
           whenMatched: "merge",
-          whenNotMatched: "discard",
+          whenNotMatched: "discard", // Ignore unmatched documents
         },
       },
     ]);
-
-    console.log("Memberships updated for inactivity:", result);
   } catch (error) {
-    console.error("Error updating memberships for inactivity:", error);
+    console.error("Error in cron job updating memberships:", error);
   }
 };
 

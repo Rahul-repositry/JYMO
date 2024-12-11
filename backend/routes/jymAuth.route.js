@@ -2,7 +2,7 @@ const express = require("express");
 const {
   jymSignup,
   jymSignin,
-  jymId,
+
   forgotPassword,
   resetPassword,
   logout,
@@ -13,7 +13,6 @@ const router = express.Router();
 
 router.post("/signup", verifyUser, jymSignup);
 router.post("/signin", verifyUser, jymSignin);
-router.post("/jymId", verifyUser, jymId);
 router.post("/forgotpassword", verifyUser, forgotPassword);
 router.post("/createsession", verifyUser, createForgotSession);
 router.post("/resetpassword", verifyUser, resetPassword);

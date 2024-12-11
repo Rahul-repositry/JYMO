@@ -15,7 +15,7 @@ const { Schema } = mongoose;
 const userDurationInJymSchema = new Schema(
   {
     userId: { type: Schema.Types.ObjectId, ref: "users" },
-    jymid: { type: Schema.Types.ObjectId, ref: "jyms" },
+    jymId: { type: Schema.Types.ObjectId, ref: "jyms" },
     isQuitted: { type: Boolean, default: false }, // person if quits this jym (this.jymId) set to true
     isTrialUser: { type: Boolean, default: false }, // for new gymee  set to true by owner
     isBecomeActiveUser: { type: Boolean, default: false }, // after trial period if he comes again then it will be considered as active user and this property will be set to true
@@ -25,6 +25,8 @@ const userDurationInJymSchema = new Schema(
   },
   { timestamps: true }
 );
+
+userDurationInJymSchema.index({ userId: 1, jymId: 1 });
 
 const UserDurationInJym = mongoose.model(
   "userdurationinjym",

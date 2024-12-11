@@ -26,5 +26,7 @@ workoutSchema.pre("save", function (next) {
   next();
 });
 
+workoutSchema.index({ userId: 1 });
+
 const Workout = mongoose.model("workout", workoutSchema);
 module.exports = Workout;

@@ -51,6 +51,8 @@ const membershipSchema = new Schema(
 //   }
 // };
 
+membershipSchema.index({ userId: 1, jymId: 1 });
+
 const Membership = mongoose.model("membership", membershipSchema);
 
 module.exports = Membership;
