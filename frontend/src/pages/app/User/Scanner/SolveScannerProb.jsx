@@ -132,7 +132,7 @@ const Scanner = () => {
 
   // Adjust initScanner to avoid running if cameraAllowed is false
 
-  const stopScanner = useCallback(async (consolelog) => {
+  const stopScanner = useCallback(async () => {
     if (html5QrCodeRef.current) {
       const state = html5QrCodeRef.current.getState();
       if (state === 2) {
@@ -188,28 +188,6 @@ const Scanner = () => {
       reinitializeScanner(); // Reinitialize scanner after processing
     }
   };
-
-  // useEffect(() => {
-  //   const initializeScannerIfNeeded = () => {
-  //     if (cameraAllowed && readerRef.current && !html5QrCodeRef.current) {
-  //       console.log("Initializing scanner...");
-  //       initScanner();
-  //     }
-  //   };
-
-  //   // Only initialize the scanner when the camera is allowed
-  //   if (cameraAllowed) {
-  //     console.log("Camera allowed. Initializing scanner...");
-  //     initializeScannerIfNeeded();
-  //   }
-
-  //   return () => {
-  //     console.log("Cleaning up scanner...");
-  //     stopScanner("Cleanup on unmount");
-  //   };
-  // }, [cameraAllowed, initScanner, stopScanner]);
-
-  // Update the requestCameraPermission function to ensure correct handling
 
   useEffect(() => {
     if (cameraAllowed && readerRef.current && !html5QrCodeRef.current) {

@@ -2,7 +2,6 @@
 import React from "react";
 
 const PhoneInput = ({ phoneNumber, validatePhoneNumber, phoneError }) => {
-  console.log(phoneNumber);
   return (
     <div className="phone">
       <label

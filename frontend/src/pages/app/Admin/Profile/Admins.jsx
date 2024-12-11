@@ -14,7 +14,6 @@ const Admins = () => {
           { withCredentials: true }
         );
 
-        console.log(res);
         if (res.data.success) {
           setUsers(res.data.data);
         }
@@ -42,6 +41,10 @@ const Admins = () => {
                 src={userObj.img || process.env.REACT_APP_DEFAULT_IMG}
                 alt="jymo user"
                 className="border border-gray-400 rounded-full "
+                onError={(e) => {
+                  e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
+                  e.target.src = process.env.REACT_APP_DEFAULT_IMG;
+                }}
               />
             </div>
             <div className=" pl-4 details">

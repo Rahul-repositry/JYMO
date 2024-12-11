@@ -9,7 +9,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 // PieChart Component
 const PieChart = ({ pieDataArr }) => {
   // Data for the pie chart
-  console.log(pieDataArr);
+
   const data = {
     labels: ["Male", "Female", "Others"], // Labels for each segment
     datasets: [

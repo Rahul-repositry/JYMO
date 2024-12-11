@@ -51,8 +51,6 @@ const UserDetailCont = ({ user }) => {
     navigate(`/admin/member?userId=${user.userId}`);
   }, [navigate, user.userId]);
 
-  console.log({ userCont: user }, "is running");
-
   return (
     <div>
       <div
@@ -62,17 +60,13 @@ const UserDetailCont = ({ user }) => {
           <div className="imgAnddate flex place-items-center gap-3">
             <div className="rounded-full border bg-orange-500 border-black">
               <img
-                src={
-                  user.img ||
-                  "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465"
-                }
+                src={user.img || process.env.REACT_APP_DEFAULT_IMG}
                 alt="user"
                 referrerPolicy="no-referrer"
                 className="rounded-full w-14 border-2 border-white"
                 onError={(e) => {
-                  e.target.onerror = null; // Prevents an infinite loop if the fallback also fails
-                  e.target.src =
-                    "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465";
+                  e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
+                  e.target.src = process.env.REACT_APP_DEFAULT_IMG;
                 }}
               />
             </div>

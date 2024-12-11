@@ -86,7 +86,6 @@ function App() {
         );
         if (response.data.success) {
           setObjectInLocalStorage("user", response.data.user);
-          console.log(response.data.user);
         } else {
           navigate("/login");
         }
@@ -109,7 +108,6 @@ function App() {
 
         if (response.data.success) {
           setObjectInLocalStorage("adminJym", response.data.jymData);
-          console.log(response.data.jymData, "here wokring");
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
@@ -119,7 +117,6 @@ function App() {
 
     if (!UNPROTECTED_ROUTES.includes(location.pathname)) {
       if (!location.pathname.includes("admin")) {
-        console.log("its working fetch user details");
         fetchUserDetails();
       } else if (location.pathname.includes("admin")) {
         fetchJymDetails();

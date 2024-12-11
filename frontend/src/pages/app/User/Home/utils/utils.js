@@ -98,7 +98,6 @@ export const getWeekDates = () => {
 };
 
 export const calculateDiffOfEndDateAndToday = (membershipEndDate) => {
-  console.log(membershipEndDate);
   const membershipEndDateTime = new Date(membershipEndDate).getTime();
   const now = new Date().getTime();
   const diff = membershipEndDateTime - now;

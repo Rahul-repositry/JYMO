@@ -50,7 +50,7 @@ let Options = [
 const Profile = () => {
   const [user, setUser] = useState({
     username: "USERNAME",
-    img: "https://jymo.s3.ap-south-1.amazonaws.com/userProfileImg/05b8aecb079968b9386383d30cfea4446f76b1781722583225465",
+    img: process.env.REACT_APP_DEFAULT_IMG,
     phone: "9999999999",
     email: "user@example.com",
     gender: "male",
@@ -162,7 +162,6 @@ const Profile = () => {
     }
   };
 
-  console.log(currentJym);
   return (
     <div>
       <div className="profile bg-yellowBox text-lightBlack">
@@ -354,7 +353,8 @@ const Profile = () => {
       >
         <h2 className="text-xl font-medium py-2">Get Help ?</h2>
         <p className="text-lightBlack text-center">
-          For any query, message us at{" "}
+          For any query, message us at 9877434656 <br />
+          OR <br />
           <a
             href="mailto:jyymmoo@gmail.com"
             className="text-xl font-bold cursor-pointer text-customButton"

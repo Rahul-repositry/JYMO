@@ -21,6 +21,7 @@ const Navbar = () => {
       const jym = getObjectFromLocalStorage("adminJym") || "";
       setJymDetails(jym);
     } else {
+      setShowAdminNavbar(false);
       setJymDetails(false);
     }
   }, [location.pathname]);

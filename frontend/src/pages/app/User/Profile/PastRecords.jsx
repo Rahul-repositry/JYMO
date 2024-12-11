@@ -1,45 +1,54 @@
 import axios from "axios";
 import React, { useEffect, useState, useCallback, useRef } from "react";
-import { format } from "date-fns";
 import Loader from "../../../../components/Loader/Loader";
 import MembershipCon from "../../../../components/MembershipCon/MembershipCon";
 import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
+import _ from "lodash";
+
+const LIMIT = 20; // Items per request
 
 const PastRecords = () => {
-  const [skip, setSkip] = useState(0);
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const currentJym = getObjectFromLocalStorage("currentJym");
-
-  const dataCache = useRef(new Map()); // Cache to store membership data
+  const scrollContainerRef = useRef(null);
+  const nextPage = useRef(0); // Tracks the next page to fetch
+  const processedIds = useRef(new Set()); // Tracks unique IDs to avoid duplicates
 
   const fetchDetails = useCallback(async () => {
-    if (loading || !hasMore) return;
+    if (loading || !hasMore) return; // Prevent overlapping calls
 
     setLoading(true);
     try {
+      const skip = nextPage.current * LIMIT; // Calculate skip based on nextPage
+
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URI}/api/membership/getallmembership?skip=${skip}`,
-        { jymId: currentJym.jymId },
+        `${process.env.REACT_APP_BACKEND_URI}/api/membership/getallmembership`,
+        { jymId: currentJym.jymId, skip, limit: LIMIT },
         { withCredentials: true }
       );
-      const responseData = response.data;
 
+      const responseData = response.data;
       if (responseData.success) {
-        const newMemberships = responseData.memberships.filter(
-          (membership) => !dataCache.current.has(membership._id)
+        const newMemberships = responseData.memberships;
+
+        // Filter out already processed IDs
+        const uniqueMemberships = newMemberships.filter(
+          (item) => !processedIds.current.has(item._id)
         );
 
-        // Update cache with new memberships
-        newMemberships.forEach((membership) => {
-          dataCache.current.set(membership._id, membership);
-        });
+        // Update processed IDs and data
+        uniqueMemberships.forEach((item) => processedIds.current.add(item._id));
+        setData((prevData) => [...prevData, ...uniqueMemberships]);
 
-        setData((prevData) => [...prevData, ...newMemberships]);
-        setSkip((prevSkip) => prevSkip + 20);
+        // Increment page only if new data is added
+        if (uniqueMemberships.length > 0) {
+          nextPage.current += 1;
+        }
 
-        if (newMemberships.length < 20) {
+        // If fewer items than LIMIT are fetched, it means no more data
+        if (newMemberships.length <= LIMIT) {
           setHasMore(false);
         }
       } else {
@@ -50,29 +59,41 @@ const PastRecords = () => {
     } finally {
       setLoading(false);
     }
-  }, [skip, loading, hasMore]);
+  }, [hasMore, loading]);
 
   useEffect(() => {
     fetchDetails(); // Initial fetch
-  }, []);
-
-  const handleScroll = useCallback(() => {
-    const bottom =
-      window.innerHeight + document.documentElement.scrollTop >=
-      document.documentElement.offsetHeight - 10;
-
-    if (bottom && hasMore) {
-      fetchDetails();
-    }
-  }, [fetchDetails, hasMore]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } =
+        scrollContainerRef.current;
+
+      if (
+        scrollHeight - scrollTop <= clientHeight + 10 && // Trigger near bottom
+        !loading &&
+        hasMore
+      ) {
+        fetchDetails();
+      }
+    };
+
+    // Debounce scroll events to avoid redundant calls
+    const debouncedHandleScroll = _.debounce(handleScroll, 100);
+    const scrollContainer = scrollContainerRef.current;
+
+    scrollContainer.addEventListener("scroll", debouncedHandleScroll);
+    return () =>
+      scrollContainer.removeEventListener("scroll", debouncedHandleScroll);
+  }, [fetchDetails, hasMore, loading]);
 
   return (
-    <>
+    <div
+      ref={scrollContainerRef}
+      className="overflow-y-auto"
+      style={{ height: "calc(100vh - 140px)" }}
+    >
       {data.length ? (
         data.map((membership) => (
           <MembershipCon key={membership._id} membership={membership} />
@@ -88,7 +109,7 @@ const PastRecords = () => {
           -------- Memberships Ends here --------
         </p>
       )}
-    </>
+    </div>
   );
 };
 

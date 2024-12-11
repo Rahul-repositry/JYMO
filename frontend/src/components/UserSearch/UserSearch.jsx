@@ -12,7 +12,6 @@ const UserSearch = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log(search);
 
     if (!search) {
       toast.error("Enter User number or UID to search.");
@@ -49,11 +48,10 @@ const UserSearch = () => {
         );
 
         if (res.data.success) {
-          console.log(res.data);
           navigate("/admin/users", {
-            state: { initialUserData: res.data.data },
+            state: { initialUserData: [res.data.data] },
           });
-          console.log("navigating with data");
+
           return;
         }
       }
@@ -71,7 +69,7 @@ const UserSearch = () => {
             type="text"
             id="search"
             className="input-field bg-gray-50 !m-0 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500  w-full p-2.5"
-            placeholder="Search Member"
+            placeholder="UId or Phone Number"
             style={{ paddingRight: "50px" }}
             value={search}
             onChange={handleChange}

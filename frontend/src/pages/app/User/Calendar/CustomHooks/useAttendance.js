@@ -8,6 +8,7 @@ import {
   eachDayOfInterval,
 } from "date-fns";
 import { useLocation } from "react-router-dom";
+import { getObjectFromLocalStorage } from "../../../../../utils/helperFunc";
 
 const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
   const [daysWithStatus, setDaysWithStatus] = useState([]);
@@ -15,13 +16,20 @@ const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
   const attendanceMonthCache = useRef({});
   const daysWithStatusCache = useRef({});
   const location = useLocation();
+  const jym = getObjectFromLocalStorage("currentJym");
+  const adminJym = getObjectFromLocalStorage("adminJym");
+
   useEffect(() => {
     const initializeDaysWithStatus = () => {
       const days = eachDayOfInterval({
         start: firstDayCurrentMonth,
         end: endOfMonth(firstDayCurrentMonth),
       });
-      return days.map((date) => ({ date, status: "pending" }));
+      return days.map((date) => ({
+        date,
+        status: "pending",
+        isMarkedByAdmin: false,
+      }));
     };
 
     const fetchAttendanceMonthData = async (
@@ -70,14 +78,36 @@ const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
               .toString();
             return chqDate === dayDate;
           });
+
           if (attendanceRecord) {
-            return { ...dayObj, status: "present" };
+            if (attendanceRecord.mode === "inactive") {
+              return {
+                ...dayObj,
+                status: "inactive",
+                isMarkedByAdmin: attendanceRecord?.isMarkedByAdmin,
+              };
+            } else {
+              return {
+                ...dayObj,
+                status: "registered",
+                isMarkedByAdmin: attendanceRecord?.isMarkedByAdmin,
+              };
+            }
           } else if (getDay(dayObj.date) === 0) {
-            return { ...dayObj, status: "holiday" };
+            return {
+              ...dayObj,
+              status: "holiday",
+              isMarkedByAdmin: attendanceRecord?.isMarkedByAdmin,
+            };
           } else {
-            return { ...dayObj, status: "pending" };
+            return {
+              ...dayObj,
+              status: "pending",
+              isMarkedByAdmin: attendanceRecord?.isMarkedByAdmin,
+            };
           }
         });
+
         daysWithStatusCache.current[currentMonth] = updatedDays;
         setDaysWithStatus(updatedDays);
       } else {
@@ -87,10 +117,16 @@ const useAttendance = (currentMonth, firstDayCurrentMonth, user) => {
 
     const loadCalendarData = async () => {
       if (hasFetchedData) return; // Prevent further requests if data has already been fetched for the current month
+
       const startDate = firstDayCurrentMonth.toISOString();
       const endDate = endOfMonth(firstDayCurrentMonth).toISOString();
+
+      const currentJymId = location.pathname.includes("admin")
+        ? adminJym?._id
+        : jym?.jymId;
+
       const attendanceData = await fetchAttendanceMonthData(
-        "66b494c994292de725fe1a0e", // replace with actual jymId
+        currentJymId,
         startDate,
         endDate
       );

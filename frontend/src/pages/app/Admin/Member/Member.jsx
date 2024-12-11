@@ -69,7 +69,6 @@ const Member = () => {
         );
 
         if (res.data.success) {
-          console.log(res.data, "status");
           setStatus(res.data.status);
           const activeStatus = Object.entries(res.data.status)
             .filter(([_, value]) => value === true)
@@ -201,7 +200,7 @@ const Member = () => {
           user={user}
           setSelectedDate={setSelectedDate}
           selectedDate={selectedDate}
-          membershipPreviousEndDate={membership?.endDate}
+          membershipPreviousStartDate={membership?.startDate}
         />
       )}
       <div className="wrapper mx-4">

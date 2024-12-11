@@ -50,6 +50,11 @@ const Profile = () => {
         </div>
       </div>
       <div className="link flex flex-col gap-5">
+        <Link to="/home">
+          <div className="link flex place-content-center bg-customButton py-2 px-3 border border-gray-500 text-white rounded-xl">
+            <p className="pl-4 text-lg ">Get to User Home</p>
+          </div>
+        </Link>
         <Link to="/admin/profile/admins">
           <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl">
             <div className="admin border  border-gray-500 flex place-content-center p-2 rounded-full">
@@ -139,7 +144,7 @@ const Profile = () => {
               <img src={LogOut} alt="logout" />
             </div>
           </div>
-          <p className="pl-4 text-lg">Exit Jym</p>
+          <p className="pl-4 text-lg">Sign out Jym</p>
         </div>
       </div>
 

@@ -51,7 +51,7 @@ const ForgotPass = () => {
     { name: "Well Fare Gym", jymUniqueId: 1 },
     { name: "Speed Fitness Gym", jymUniqueId: 2 },
   ]);
-  console.log(selectedOption);
+
   // [
   //   { name: "RPS Fitness Gym", jymUniqueId: 0 },
   //   { name: "Well Fare Gym", jymUniqueId: 1 },
@@ -130,7 +130,6 @@ const ForgotPass = () => {
 
     switch (currentStatus) {
       case "Send OTP":
-        console.log(selectedOption);
         await sendOTP();
         break;
       case "Verify OTP":
@@ -243,7 +242,6 @@ const ForgotPass = () => {
       !otpObj.otp ||
       !otpObj.phoneNumber
     ) {
-      console.log(formData, otpObj);
       toast.error("Please fill all the fields");
       return;
     }

@@ -32,8 +32,9 @@ const Calendar = () => {
   const [currentMonth, setCurrentMonth] = useState(format(today, "MMM-yyyy"));
   const firstDayCurrentMonth = parse(currentMonth, "MMM-yyyy", new Date());
   const daysWithStatus = useAttendance(currentMonth, firstDayCurrentMonth);
+
   const workout = useWorkoutPlans();
-  console.log(daysWithStatus);
+
   const getWeekDates = () => {
     const weekDays = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
     const today = new Date();
@@ -130,12 +131,17 @@ const Calendar = () => {
                   <button
                     type="button"
                     className={classNames(
-                      isSameMonth(dayObj.date, firstDayCurrentMonth) &&
-                        dayObj.status === "present" &&
+                      dayObj?.isMarkedByAdmin && "bg-black text-white", // Priority condition for black background
+                      !dayObj?.isMarkedByAdmin &&
+                        isSameMonth(dayObj.date, firstDayCurrentMonth) &&
+                        dayObj.status === "registered" &&
                         "bg-green-500 text-white",
-                      isToday(dayObj.date) && "bg-yellowBox text-white",
-                      isToday(dayObj.date) &&
-                        dayObj.status === "present" &&
+                      !dayObj?.isMarkedByAdmin &&
+                        isToday(dayObj.date) &&
+                        "bg-yellowBox text-white",
+                      !dayObj?.isMarkedByAdmin &&
+                        isToday(dayObj.date) &&
+                        dayObj.status === "registered" &&
                         "!bg-green-500 text-white",
                       getDay(dayObj.date) === 0 && "text-redBox",
                       "font-semibold",

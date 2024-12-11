@@ -76,7 +76,7 @@ const SignupForm = () => {
 
       if (result.status === "success") {
         let resultedOtp = result.otp;
-        console.log({ resultedOtp, result, otpObj });
+
         setOtpObj((prev) => ({ ...prev, ...resultedOtp }));
         toast.success("OTP Resent");
         startTimer();
@@ -119,7 +119,6 @@ const SignupForm = () => {
 
         if (result.status === "success") {
           let resultedOtp = result.otp;
-          console.log({ resultedOtp, result, otpObj });
 
           setOtpObj((prev) => ({ ...prev, ...resultedOtp }));
           setCurrentStep("verify");
@@ -156,7 +155,6 @@ const SignupForm = () => {
           toast.error("Failed to verify OTP, please try again.");
         }
       } catch (error) {
-        console.error("Error:", error);
         let message = error?.response?.data?.message;
         if (message) {
           toast.error(message);
@@ -176,7 +174,6 @@ const SignupForm = () => {
       }
 
       try {
-        console.log({ formData, otpObj });
         setFormData((prev) => ({ ...prev, otpObj }));
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/auth/jym/signup`,

@@ -11,6 +11,7 @@ function AdScanner({ setLoading }) {
   const navigate = useNavigate();
   const readerRef = useRef(null);
   const uuidRef = useRef("");
+  uuidRef.current = "";
 
   const chqMembershipStatus = useCallback(
     async (userData) => {
@@ -114,7 +115,6 @@ function AdScanner({ setLoading }) {
   }, []);
   const handleUUIDinput = (e) => {
     uuidRef.current = e.target.value;
-    console.log(uuidRef.current);
   };
   const navigateUUID = useCallback(async () => {
     if (!uuidRef?.current.trim()) {
@@ -127,10 +127,12 @@ function AdScanner({ setLoading }) {
   }, []);
 
   const deactiveMember = async () => {
-    if (!uuidRef?.current?.trim()) {
-      toast.error("Please enter a valid UUID.");
-    }
     try {
+      if (!uuidRef?.current || !uuidRef?.current?.trim()) {
+        toast.error("Please enter a valid UUID.");
+        return;
+      }
+
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/attendance/inactive`,
         { userUniqueId: uuidRef.current },

@@ -58,7 +58,6 @@ const LogIn = () => {
       if (err?.response?.data?.message) {
         let msg = err?.response?.data?.message;
         toast.error(`${msg}`);
-        console.log("err", msg);
       } else {
         toast.error("Login failed. Try with Google.");
         console.log("Err", err);
@@ -77,7 +76,6 @@ const LogIn = () => {
     const password = queryParams.get("password");
 
     if (jymUniqueId && password) {
-      console.log("is running");
       setFormData((prev) => ({
         ...prev,
         jymUniqueId: jymUniqueId,

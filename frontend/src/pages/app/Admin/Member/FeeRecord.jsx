@@ -12,7 +12,7 @@ const FeeRecord = () => {
   const [hasMore, setHasMore] = useState(true);
   const location = useLocation();
   const queryParams = getQueryParams(location.search);
-  console.log(location.search);
+
   const userId = queryParams.get("userId");
   const dataCache = useRef(new Map()); // Cache to store membership data
 

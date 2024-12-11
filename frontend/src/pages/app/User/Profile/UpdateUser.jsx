@@ -118,7 +118,7 @@ const UpdateUser = () => {
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     if (!formData.birthday) return toast.error("Please select Birthdate.");
-    console.log(formData);
+
     try {
       const { data } = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/user/updateusernameandbday`,

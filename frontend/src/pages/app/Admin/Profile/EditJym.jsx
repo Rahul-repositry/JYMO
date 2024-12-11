@@ -29,7 +29,6 @@ const EditJym = ({ jymId }) => {
           { withCredentials: true }
         );
         if (response.data.success) {
-          console.log(response.data.jymData);
           setFormData(response.data.jymData);
         }
       } catch (error) {

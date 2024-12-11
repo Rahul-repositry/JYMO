@@ -22,19 +22,19 @@ const Calendar = ({
   user,
   selectedDate,
   setSelectedDate,
-  membershipPreviousEndDate,
+  membershipPreviousStartDate,
 }) => {
   const { firstDayCurrentMonth, daysWithStatus, previousMonth, nextMonth } =
     useCalendar(user);
 
   const handleDateClick = (date) => {
-    let realmembershipPreviousEndDate = new Date(membershipPreviousEndDate);
+    let realmembershipPreviousStartDate = new Date(membershipPreviousStartDate);
 
     if (
       date.getTime() <
-      realmembershipPreviousEndDate.getTime() - 1000 * 60 * 60 * 24
+      realmembershipPreviousStartDate.getTime() - 1000 * 60 * 60 * 24
     ) {
-      toast.error("Choose A Date  After  Membership Period Ends.");
+      toast.error("Choose A Date  After  Membership Period starts.");
       return;
     }
     setSelectedDate(date);
@@ -103,17 +103,27 @@ const Calendar = ({
               >
                 <button
                   type="button"
-                  onClick={() => handleDateClick(dayObj.date)}
                   className={classNames(
-                    isSameMonth(dayObj.date, firstDayCurrentMonth) &&
-                      dayObj.status === "present" &&
+                    // Priority condition for inactive status
+                    dayObj.status === "inactive" && "!bg-red-500 text-white",
+                    // Check for isMarkedByAdmin only if status is not inactive
+                    dayObj?.status === "registered" &&
+                      dayObj?.isMarkedByAdmin &&
+                      " !bg-blue-600 text-white",
+                    !dayObj?.isMarkedByAdmin &&
+                      isSameMonth(dayObj.date, firstDayCurrentMonth) &&
+                      dayObj.status === "registered" &&
                       "bg-green-500 text-white",
-                    isToday(dayObj.date) && "bg-yellowBox text-white",
-                    selectedDate &&
-                      selectedDate.getTime() === dayObj.date.getTime() &&
-                      "bg-customButton text-black",
+                    !dayObj?.isMarkedByAdmin &&
+                      isToday(dayObj.date) &&
+                      "bg-yellowBox text-white",
+                    !dayObj?.isMarkedByAdmin &&
+                      isToday(dayObj.date) &&
+                      dayObj.status === "registered" &&
+                      "!bg-green-500 text-white",
                     getDay(dayObj.date) === 0 && "text-redBox",
-                    "font-semibold mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
+                    "font-semibold",
+                    "mx-auto flex h-8 w-8 items-center justify-center rounded-lg"
                   )}
                 >
                   <time dateTime={format(dayObj.date, "yyyy-MM-dd")}>
@@ -122,6 +132,24 @@ const Calendar = ({
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+
+        <div className="colorIdentfications flex justify-evenly my-2">
+          <div className="blue flex place-items-center">
+            <div className="w-4 h-4 rounded-sm bg-blue-600  m-1"></div>
+            <p className="text-sm">Admin</p>
+            {/* <div className="w-2 h-2 bg-green-500 ">Marked by User</div> */}
+          </div>
+          <div className="blue flex place-items-center">
+            <div className="w-4 h-4 rounded-sm bg-green-500  m-1"></div>
+            <p className="text-sm">User</p>
+            {/* <div className="w-2 h-2 bg-green-500 ">Marked by User</div> */}
+          </div>
+          <div className="blue flex place-items-center">
+            <div className="w-4 h-4 rounded-sm bg-red-500  m-1"></div>
+            <p className="text-sm">Inactive</p>
+            {/* <div className="w-2 h-2 bg-green-500 ">Marked by User</div> */}
           </div>
         </div>
       </div>
