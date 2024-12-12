@@ -136,12 +136,17 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
     .cookie("access_jymToken", token, {
       httpOnly: true, // helps  prevent access to cookie through client-side scripting
       expires: expiryDate,
-      // secure: true, // helps  with encrypting the cookie and prevents it being sent on http
+      // secure: true, // helps  with encrypting the cookie and prevents it being sent on httpThe secure: true attribute in the cookie configuration ensures that the cookie is only sent over secure HTTPS connections. However, if your HTTPS setup is not fully trusted (e.g., using a self-signed or invalid certificate), modern browsers will reject the cookie, and it will not be stored.
+      secure: process.env.NODE_ENV === "production",
     })
     .status(200)
-    .json({ success: true, message: "SignIn successfully", jymobj });
+    .json({
+      success: true,
+      message: "SignIn successfully",
+      jymAdmin: filterJymDetails(validJym),
+    });
 });
-
+// chq by asking gpt that why even after res.cookie why cookie is not getting set to frontend
 // const jymId = AsyncErrorHandler(async (req, res, next) => {
 //   const userId = req.user._id;
 //   const newjymId = new JymId({

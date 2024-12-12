@@ -223,7 +223,8 @@ const signin = AsyncErrorHandler(async (req, res, next) => {
     .cookie("access_token", token, {
       httpOnly: true,
       expires: expiryDate,
-      // secure: true, // Uncomment this line in production to use secure cookies
+      // secure: true, // Uncomment this line in production to use secure cookies . The secure: true attribute in the cookie configuration ensures that the cookie is only sent over secure HTTPS connections. However, if your HTTPS setup is not fully trusted (e.g., using a self-signed or invalid certificate), modern browsers will reject the cookie, and it will not be stored.
+      secure: process.env.NODE_ENV === "production",
     })
     .status(200)
     .json({ success: true, message: "SignIn successfully", user: rest });
@@ -253,7 +254,8 @@ const google = AsyncErrorHandler(async (req, res, next) => {
         .cookie("access_token", token, {
           httpOnly: true, // helps prevent access to cookie through client-side scripting
           expires: expiryDate,
-          // secure: true, // helps with encrypting the cookie and prevents it being sent on http
+          // secure: true, // helps with encrypting the cookie and prevents it being sent on http . The secure: true attribute in the cookie configuration ensures that the cookie is only sent over secure HTTPS connections. However, if your HTTPS setup is not fully trusted (e.g., using a self-signed or invalid certificate), modern browsers will reject the cookie, and it will not be stored.
+          secure: process.env.NODE_ENV === "production",
         })
         .status(200)
         .json({ success: true, message: "Signin successfully", user: rest });

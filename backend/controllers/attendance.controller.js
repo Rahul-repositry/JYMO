@@ -215,8 +215,8 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   let { jymId, userId } = req.body;
   let isOwner = false;
   isOwner = userId ? true : false;
-  userId = userId || req.user._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
-  jymId = jymId || req.jym._id;
+  userId = userId || req.user?._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
+  jymId = jymId || req.jym?._id;
 
   const today = new Date();
   let latestAttendance = await Attendance.findOne({
@@ -356,12 +356,11 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const getAttendanceByDate = AsyncErrorHandler(async (req, res, next) => {
-  const userId = req.body.userId || req.user._id; // `userId` from body for admin, otherwise from `req.user`
-  const jymId = req.body.jymId || req.jym._id; // `jymId` from body for regular user, otherwise from `req.jym`
+  const userId = req.body?.userId || req.user?._id; // `userId` from body for admin, otherwise from `req.user`
+  const jymId = req.body?.jymId || req.jym?._id; // `jymId` from body for regular user, otherwise from `req.jym`
 
   const startDate = req.body.startDate;
   const endDate = req.body.endDate;
-
   const attendance = await Attendance.find({
     userId: new ObjectId(userId),
     jymId: new ObjectId(jymId),
