@@ -354,7 +354,8 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
 
 const updateInactiveMemberships = async () => {
   try {
-    const MAX_ABSENT_DAYS_MS = process.env.MAXABSENTDAYS * 24 * 60 * 60 * 1000;
+    const MAX_ABSENT_DAYS_MS =
+      process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
     const cutoffDate = new Date(Date.now() - MAX_ABSENT_DAYS_MS);
 
     // Perform aggregation and update in one operation
@@ -400,6 +401,59 @@ const updateInactiveMemberships = async () => {
     console.error("Error in cron job updating memberships:", error);
   }
 };
+
+/** user for testing after so many changes some of membership were true and some were false due to corn operation  half operation now all make on the same pace by making lastchecin 14 dec and active to true  */
+// const updateLatestMemberships = async (jymId, skip = 0, limit = 10) => {
+//   try {
+//     // Step 1: Aggregation Query
+//     const latestMemberships = await Membership.aggregate([
+//       {
+//         $match: {
+//           jymId: new ObjectId(jymId), // Filter by jymId
+//         },
+//       },
+//       {
+//         $sort: { endDate: -1 }, // Sort by latest endDate
+//       },
+//       {
+//         $group: {
+//           _id: "$userId", // Group by userId
+//           latestMembership: { $first: "$$ROOT" }, // Select the latest membership for each user
+//         },
+//       },
+//       {
+//         $replaceRoot: { newRoot: "$latestMembership" }, // Replace the grouped result with the membership document
+//       },
+//     ]);
+
+//     // Step 2: Extract IDs for Bulk Update
+//     const membershipIds = latestMemberships.map((membership) => membership._id);
+//     const currentDate = new Date();
+
+//     if (membershipIds.length === 0) {
+//       console.log("No memberships found to update.");
+//       return;
+//     }
+
+//     // Step 3: Perform Bulk Update
+//     const updateResult = await Membership.updateMany(
+//       { _id: { $in: membershipIds } }, // Filter by the membership IDs
+//       {
+//         $set: {
+//           "status.active.value": true, // Set value to true
+//           "status.active.lastCheckIn": currentDate, // Update lastCheckIn to now
+//         },
+//       }
+//     );
+
+//     console.log(`Updated ${updateResult.modifiedCount} memberships.`);
+//   } catch (error) {
+//     console.error("Error updating memberships:", error);
+//   }
+// };
+
+// // Example Usage
+// updateLatestMemberships("66b494c994292de725fe1a0e");
 
 module.exports = {
   createMembership,

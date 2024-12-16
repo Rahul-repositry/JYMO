@@ -11,7 +11,7 @@ const membershipSchema = new Schema(
     endDate: { type: Date },
     status: {
       active: {
-        value: { type: Boolean, default: true }, // If true, membership is active (there will be automatic func that will run at midnight and turns every bson's this value false if user lastCheckIn value is not updated from last)
+        value: { type: Boolean, default: true }, // this will determine active or inactive user and this will be updated by corn function according to max_inactive_days
         lastCheckIn: { type: Date, default: Date.now() }, // Date of the last check-in or attendance
       },
       // if person has not mark attendance from last  15days(process.env.days) then he inactive

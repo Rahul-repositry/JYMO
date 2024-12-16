@@ -16,6 +16,7 @@ const cron = require("node-cron");
 const {
   updateInactiveMemberships,
 } = require("./controllers/membership.controller.js");
+const Membership = require("./models/membership.model.js");
 
 const app = express();
 const port = process.env.PORT || 3003;
