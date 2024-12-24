@@ -69,6 +69,7 @@ const BottomNavigation = () => {
               </Link>
             );
           }
+          return null;
         })}
       </div>
     </div>

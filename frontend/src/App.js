@@ -79,9 +79,6 @@ function App() {
           `${process.env.REACT_APP_BACKEND_URI}/api/user`,
           {
             withCredentials: true,
-            headers: {
-              "Cache-Control": "no-cache",
-            },
           }
         );
         if (response.data.success) {
@@ -100,9 +97,6 @@ function App() {
           `${process.env.REACT_APP_BACKEND_URI}/api/jym/gymDetails`,
           {
             withCredentials: true,
-            headers: {
-              "Cache-Control": "no-cache",
-            },
           }
         );
 
@@ -111,7 +105,13 @@ function App() {
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
-        navigate("/login");
+        if (location.pathname.includes("/admin/forgotpassword")) {
+          navigate("/admin/forgotpassword");
+        } else if (location.pathname.includes("/admin/signup")) {
+          navigate("/admin/signup");
+        } else {
+          navigate("/admin/login");
+        }
       }
     };
 

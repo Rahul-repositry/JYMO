@@ -44,6 +44,7 @@ const LogIn = () => {
       );
 
       const { data } = response;
+
       if (data.success === false) {
         toast.error(`${data.message}`);
       } else {
@@ -59,7 +60,7 @@ const LogIn = () => {
         let msg = err?.response?.data?.message;
         toast.error(`${msg}`);
       } else {
-        toast.error("Login failed. Try with Google.");
+        toast.error("Login failed. Try again later.");
         console.log("Err", err);
       }
     }

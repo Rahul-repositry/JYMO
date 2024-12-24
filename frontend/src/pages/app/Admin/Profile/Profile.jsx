@@ -5,10 +5,12 @@ import Modal from "react-modal";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
 
 const Profile = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const navigate = useNavigate();
+  const Jym = getObjectFromLocalStorage("adminJym");
   const handleLogout = async () => {
     try {
       let res = await axios.delete(
@@ -21,7 +23,7 @@ const Profile = () => {
       if (res.data.success) {
         toast.success("You are successfully logut.");
         localStorage.removeItem("adminJym");
-        navigate("/login");
+        navigate("/admin/login");
       }
     } catch (err) {
       console.error("Error logging out: ", err);
@@ -33,6 +35,7 @@ const Profile = () => {
       setIsLogoutModalOpen(false);
     }
   };
+
   return (
     <div className="px-5">
       <div className="jymdetail flex place-items-center py-4">
@@ -40,12 +43,12 @@ const Profile = () => {
           <img src={Logo} alt="jymo" className="w-16" />
         </div>
         <div className="details flex flex-col gap-1">
-          <h2 className="text-lg">Pro fitness Unisex Jym</h2>
+          <h2 className="text-lg">{Jym?.name}</h2>
           <p className="text-sm text-gray-600">
-            Punjab - Ludhiana - Giaspura- 33_futa_road.
+            {`${Jym?.addressLocation?.state} - ${Jym?.addressLocation?.city} - ${Jym?.addressLocation?.address}`}{" "}
           </p>
           <p className="text-sm text-gray-600">
-            9417896284 | 9914568792 | 8875629671
+            {Jym?.phoneNumbers.join(" | ")}
           </p>
         </div>
       </div>

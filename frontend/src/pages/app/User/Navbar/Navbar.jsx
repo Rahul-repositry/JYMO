@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import Logo from "../../../../images/Logo.svg";
 
@@ -81,7 +81,14 @@ const Navbar = () => {
           )}
         </div>
         <div className="jymLogo fle place-content-center pr-4">
-          <img src={Logo} alt="jymo" className="w-[40px]" />
+          {showAdminNavbar ? (
+            <Link to="/home">
+              {" "}
+              <img src={Logo} alt="jymo" className="w-[40px]" />{" "}
+            </Link>
+          ) : (
+            <img src={Logo} alt="jymo" className="w-[40px]" />
+          )}
         </div>
       </div>
     </div>

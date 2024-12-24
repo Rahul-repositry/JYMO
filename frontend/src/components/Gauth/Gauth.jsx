@@ -35,6 +35,7 @@ export default function Gauth({ setUpdateData, confirmChange }) {
         );
 
         const { data } = response;
+
         if (data.success === false) {
           toast.error(`${data.message}`);
           return;

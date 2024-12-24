@@ -46,11 +46,7 @@ const ForgotPass = () => {
   const [selectedOption, setSelectedOption] = useState(null); // Initialize with null
 
   // const [optionsData, setoptionsData] = useState(null);
-  const [optionsData, setoptionsData] = useState([
-    { name: "RPS Fitness Gym", jymUniqueId: 0 },
-    { name: "Well Fare Gym", jymUniqueId: 1 },
-    { name: "Speed Fitness Gym", jymUniqueId: 2 },
-  ]);
+  const [optionsData, setoptionsData] = useState([]);
 
   // [
   //   { name: "RPS Fitness Gym", jymUniqueId: 0 },
@@ -268,7 +264,7 @@ const ForgotPass = () => {
 
   return (
     <>
-      {optionsData && (
+      {Object.entries(optionsData).length > 0 && (
         <div>
           <SelectJym
             options={optionsData}

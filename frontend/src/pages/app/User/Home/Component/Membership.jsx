@@ -39,8 +39,18 @@ const Membership = ({ user, membership }) => {
 
           {/* UID */}
           <div className="Uid flex items-center">
-            <p className="text-xs font-medium text-gray-500">UID - </p>
-            <span className="text font-semibold ml-1">
+            <p
+              className={`text-xs font-medium ${
+                remainingDays <= 0 ? "text-white" : "text-stone-600"
+              } `}
+            >
+              UID -{" "}
+            </p>
+            <span
+              className={`${
+                remainingDays <= 0 ? "text-white" : "text-stone-600"
+              } text font-semibold ml-1`}
+            >
               {user?.userUniqueId}
             </span>
           </div>

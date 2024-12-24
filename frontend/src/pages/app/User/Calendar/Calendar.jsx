@@ -131,7 +131,12 @@ const Calendar = () => {
                   <button
                     type="button"
                     className={classNames(
-                      dayObj?.isMarkedByAdmin && "bg-black text-white", // Priority condition for black background
+                      // Priority condition for inactive status
+                      dayObj.status === "inactive" && "!bg-red-500 text-white",
+                      // Check for isMarkedByAdmin only if status is not inactive
+                      dayObj?.status === "registered" &&
+                        dayObj?.isMarkedByAdmin &&
+                        " !bg-blue-600 text-white",
                       !dayObj?.isMarkedByAdmin &&
                         isSameMonth(dayObj.date, firstDayCurrentMonth) &&
                         dayObj.status === "registered" &&
@@ -154,6 +159,23 @@ const Calendar = () => {
                   </button>
                 </div>
               ))}
+            </div>
+          </div>
+          <div className="colorIdentfications flex justify-evenly my-2">
+            <div className="blue flex place-items-center">
+              <div className="w-4 h-4 rounded-sm bg-blue-600  m-1"></div>
+              <p className="text-sm">Admin</p>
+              {/* <div className="w-2 h-2 bg-green-500 ">Marked by User</div> */}
+            </div>
+            <div className="blue flex place-items-center">
+              <div className="w-4 h-4 rounded-sm bg-green-500  m-1"></div>
+              <p className="text-sm">User</p>
+              {/* <div className="w-2 h-2 bg-green-500 ">Marked by User</div> */}
+            </div>
+            <div className="blue flex place-items-center">
+              <div className="w-4 h-4 rounded-sm bg-red-500  m-1"></div>
+              <p className="text-sm">Inactive</p>
+              {/* <div className="w-2 h-2 bg-green-500 ">Marked by User</div> */}
             </div>
           </div>
         </div>
