@@ -41,10 +41,10 @@ const MySelf = () => {
             membership handling, Jymo makes running your gym easy and efficient.
           </p>
           <p className="button">
-            <Link href="#">Try It Now</Link>
+            <Link to="/home">Try It Now</Link>
           </p>
           <p className="button">
-            <Link href="mailto:jyymmoo@gmail.com">Let&apos;s Connect</Link>
+            <a href="mailto:jyymmoo@gmail.com">Let&apos;s Connect</a>
           </p>
         </div>
         <img
@@ -87,10 +87,10 @@ const MySelf = () => {
           </p>
           <div className="buttonContainer flex gap-8">
             <p className="button ">
-              <Link href="#">Try It Now</Link>
+              <Link href="/home">Try It Now</Link>
             </p>
             <p className="button">
-              <Link href="mailto:jyymmoo@gmail.com">Let&apos;s Connect</Link>
+              <a href="mailto:jyymmoo@gmail.com">Let&apos;s Connect</a>
             </p>
           </div>
         </div>

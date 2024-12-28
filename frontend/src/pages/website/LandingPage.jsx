@@ -5,7 +5,7 @@ import HeroSection from "../../components/LandingPage/HeroSection/HeroSection.js
 import HowWorks from "../../components/LandingPage/howWorks/HowWorks.jsx";
 import MySelf from "../../components/LandingPage/MyAimBox/MySelf.jsx";
 import Testimonials from "../../components/LandingPage/Testimonails/Testimonials.jsx";
-import Landing from "../Css/Landing.css";
+
 
 const LandingPage = () => {
   return (

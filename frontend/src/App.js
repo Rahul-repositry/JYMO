@@ -7,7 +7,7 @@ import LandingPage from "./pages/website/LandingPage";
 import PrivacyPolicy from "./pages/website/PrivacyPolicy";
 import TermsCondition from "./pages/website/TermsCondition";
 import About from "./pages/website/About";
-import Navbar from "./pages/app/User/Navbar/Navbar";
+import AppNavbar from "./pages/app/User/Navbar/Navbar";
 import Main from "./pages/app/User/SignIn/Main";
 import LogIn from "./pages/app/User/SignIn/LogIn";
 import ForgotPass from "./pages/app/User/SignIn/ForgotPass";
@@ -62,10 +62,13 @@ const EXCLUDE_PATHS_NAVBAR = [
 const EXCLUDE_PATHS_BOTTOM_NAV = [
   "/",
   "/privacypolicy",
+  "/privacypolicy",
   "/termscondition",
   "/about",
   "/login",
   "/signup",
+  "/forgotpassword",
+  "/resetpassword",
 ];
 
 function App() {
@@ -143,10 +146,10 @@ function App() {
             applyBottomNavStyles ? "pb-20" : ""
           }`}
         >
-          {applyNavbarStyles && <Navbar />}
+          {applyNavbarStyles && <AppNavbar />}
           <Routes>
-            <Route path="/" element={<LandingPage />} />
             <Route path="/home" element={<Home />} />
+            <Route path="/" element={<LandingPage />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/editworkout" element={<EditWorkout />} />
             <Route

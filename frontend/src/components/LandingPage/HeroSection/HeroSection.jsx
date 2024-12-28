@@ -34,7 +34,7 @@ const HeroSection = () => {
         </div>
         <div className="button text-xl font-bold text-white text-bor tracking-wide">
           <p className="">
-            <Link to="/">Get Started Free</Link>
+            <Link to="/home">Get Started Free</Link>
           </p>
         </div>
         <div className="groupicons sm:pt-10 lg:pt-0 relative ">

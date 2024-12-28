@@ -50,7 +50,7 @@
   -webkit-text-fill-color: transparent;
 }
 
-.animated-grid-container .button p {
+#landingPageGetAppBtn {
   background: linear-gradient(94.07deg, #ffc96f 0%, #ff9571 100%);
   display: inline-block;
   padding: 10px 1rem;

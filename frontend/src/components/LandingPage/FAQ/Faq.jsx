@@ -79,8 +79,8 @@ const Accordion = () => {
               index={4}
               activeIndex={activeIndex}
               handleToggle={handleToggle}
-              header="Jymo App mai jymo diet kya hai ?"
-              text="Yeh jymo members k liye ek initiative hai jo ki unko apni diet maintain krne mai help krta hai  aur essential nutrients provide krta hai for their effective muscle growth . 🤤 Sath hi mai yeh kafi Tasty 🤤 bhi hai!!"
+              header="Jymo se connect kaise karein?"
+              text="Aap humein call kar sakte hain 📞 9877434656 par ya email bhej sakte hain jyymmoo@gmail.com par. Hum aapke sabhi sawalon ka jawab dene ke liye hamesha tayar hain! 🫡🫡"
             />
             {/* Add more AccordionItems as needed */}
           </div>
