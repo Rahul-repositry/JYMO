@@ -23,7 +23,6 @@ import ScannerProtected from "./pages/app/User/Scanner/ScannerProtected.jsx";
 import Profile from "./pages/app/User/Profile/Profile.jsx";
 import UpdateWrapper from "./pages/app/User/Profile/UpdateWrapper.jsx";
 import PastRecords from "./pages/app/User/Profile/PastRecords.jsx";
-
 import { setObjectInLocalStorage } from "./utils/helperFunc.js";
 
 // Admin routes
@@ -40,7 +39,6 @@ import AdProfile from "./pages/app/Admin/Profile/Profile.jsx";
 import Admins from "./pages/app/Admin/Profile/Admins.jsx";
 import EditJym from "./pages/app/Admin/Profile/EditJym.jsx";
 
-// Constants
 const UNPROTECTED_ROUTES = [
   "/",
   "/privacypolicy",
@@ -61,7 +59,6 @@ const EXCLUDE_PATHS_NAVBAR = [
 
 const EXCLUDE_PATHS_BOTTOM_NAV = [
   "/",
-  "/privacypolicy",
   "/privacypolicy",
   "/termscondition",
   "/about",
@@ -94,6 +91,7 @@ function App() {
         navigate("/login");
       }
     };
+
     const fetchJymDetails = async () => {
       try {
         const response = await axios.get(
@@ -107,7 +105,7 @@ function App() {
           setObjectInLocalStorage("adminJym", response.data.jymData);
         }
       } catch (err) {
-        console.error("Error fetching user details:", err);
+        console.error("Error fetching gym details:", err);
         if (location.pathname.includes("/admin/forgotpassword")) {
           navigate("/admin/forgotpassword");
         } else if (location.pathname.includes("/admin/signup")) {
@@ -121,7 +119,7 @@ function App() {
     if (!UNPROTECTED_ROUTES.includes(location.pathname)) {
       if (!location.pathname.includes("admin")) {
         fetchUserDetails();
-      } else if (location.pathname.includes("admin")) {
+      } else {
         fetchJymDetails();
       }
     }
@@ -148,25 +146,21 @@ function App() {
         >
           {applyNavbarStyles && <AppNavbar />}
           <Routes>
-            <Route path="/home" element={<Home />} />
+            {/* User Flow */}
             <Route path="/" element={<LandingPage />} />
+            <Route path="/home" element={<Home />} />
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/editworkout" element={<EditWorkout />} />
-            <Route
-              path="/scanner"
-              element={
-                <ScannerProtected>
-                  <Scanner />
-                </ScannerProtected>
-              }
-            />
-            <Route path="/scanner/success" element={<Success />} />
-            <Route path="/scanner/myqr" element={<Myqr />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/updateuser" element={<UpdateWrapper />} />
-            <Route path="/profile/updategmail" element={<UpdateWrapper />} />
-            <Route path="/profile/updatephone" element={<UpdateWrapper />} />
-            <Route path="/profile/pastrecords" element={<PastRecords />} />
+            <Route path="/scanner/*" element={<ScannerProtected />}>
+              <Route path="success" element={<Success />} />
+              <Route path="myqr" element={<Myqr />} />
+            </Route>
+            <Route path="/profile/*" element={<Profile />}>
+              <Route path="updateuser" element={<UpdateWrapper />} />
+              <Route path="updategmail" element={<UpdateWrapper />} />
+              <Route path="updatephone" element={<UpdateWrapper />} />
+              <Route path="pastrecords" element={<PastRecords />} />
+            </Route>
             <Route path="/privacypolicy" element={<PrivacyPolicy />} />
             <Route path="/termscondition" element={<TermsCondition />} />
             <Route path="/about" element={<About />} />
@@ -175,20 +169,22 @@ function App() {
             <Route path="/forgotpassword" element={<ForgotPass />} />
             <Route path="/resetpassword" element={<ResetPass />} />
 
-            {/* Admin flow routes */}
-            <Route path="/admin/signup" element={<AdSignup />} />
-            <Route path="/admin/login" element={<AdLogin />} />
-            <Route path="/admin/forgotpassword" element={<AdForgot />} />
-
-            <Route path="/admin/jymqr" element={<AdJymQr />} />
-            <Route path="/admin/home" element={<AdHome />} />
-            <Route path="/admin/scanner" element={<AdScanner />} />
-            <Route path="/admin/users" element={<Users />} />
-            <Route path="/admin/member" element={<Member />} />
-            <Route path="/admin/profile" element={<AdProfile />} />
-            <Route path="/admin/profile/admins" element={<Admins />} />
-            <Route path="/admin/profile/editjymdetails" element={<EditJym />} />
-            <Route path="/admin/member/feerecord" element={<FeeRecord />} />
+            {/* Admin Flow */}
+            <Route path="/admin/*">
+              <Route path="signup" element={<AdSignup />} />
+              <Route path="login" element={<AdLogin />} />
+              <Route path="forgotpassword" element={<AdForgot />} />
+              <Route path="home" element={<AdHome />} />
+              <Route path="jymqr" element={<AdJymQr />} />
+              <Route path="scanner" element={<AdScanner />} />
+              <Route path="users" element={<Users />} />
+              <Route path="member" element={<Member />} />
+              <Route path="member/feerecord" element={<FeeRecord />} />
+              <Route path="profile" element={<AdProfile />}>
+                <Route path="admins" element={<Admins />} />
+                <Route path="editjymdetails" element={<EditJym />} />
+              </Route>
+            </Route>
           </Routes>
           {applyBottomNavStyles && <BottomNavigation />}
         </div>
