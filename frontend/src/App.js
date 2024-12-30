@@ -152,6 +152,8 @@ function App() {
             <Route path="/calendar" element={<Calendar />} />
             <Route path="/editworkout" element={<EditWorkout />} />
             <Route path="/scanner/*" element={<ScannerProtected />}>
+              <Route index element={<Scanner />} />
+
               <Route path="success" element={<Success />} />
               <Route path="myqr" element={<Myqr />} />
             </Route>

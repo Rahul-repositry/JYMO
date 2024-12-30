@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from "react";
+import { Outlet } from "react-router-dom";
 import CameraAccess from "./CameraAccess";
 import { toast } from "react-toastify";
 import Loader from "../../../../components/Loader/Loader";
 
-const ScannerProtected = ({ children }) => {
+const ScannerProtected = () => {
   const [cameraAllowed, setCameraAllowed] = useState(false);
   const [loading, setLoading] = useState(true); // Track loading state
 
@@ -73,7 +74,10 @@ const ScannerProtected = ({ children }) => {
       {loading ? (
         <Loader /> // Show loader while checking camera permission
       ) : cameraAllowed ? (
-        <div className="">{React.cloneElement(children, { setLoading })}</div>
+        <div className="">
+          {/* Render nested routes */}
+          <Outlet />
+        </div>
       ) : (
         <div className="p-4 bg-white shadow-lg rounded-lg">
           <CameraAccess requestCameraPermission={requestCameraPermission} />
