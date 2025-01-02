@@ -49,7 +49,7 @@ cron.schedule("0 0 * * *", updateInactiveMemberships, {
   timezone: "Asia/Kolkata", // Adjust timezone if needed
 });
 
-app.get("/", (req, res) => {
+app.get("/api/test", (req, res) => {
   res.send("hello world");
 });
 app.use("/api/user", userRoutes);
