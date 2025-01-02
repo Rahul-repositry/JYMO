@@ -440,7 +440,7 @@ const verifyOtp = AsyncErrorHandler(async (req, res, next) => {
 const putObject = AsyncErrorHandler(async (req, res, next) => {
   const key = `${crypto.randomBytes(20).toString("hex")}${Date.now()}`;
   const command = new PutObjectCommand({
-    Bucket: "jymo",
+    Bucket: bucketName,
     Key: `userProfileImg/${key}`,
   });
   const url = await getSignedUrl(s3Client, command, { expiresIn: 300 });
@@ -481,7 +481,7 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
   const key = urlParts[urlParts.length - 1];
   const s3ImageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/userProfileImg/${key}`;
 
-  if (!imgUrl.includes("jymo.s3") || imgUrl === defaultImgUrl) {
+  if (!imgUrl.includes(`${bucketName}.s3`) || imgUrl === defaultImgUrl) {
     return next(new CustomError("Not a valid image to delete", 400));
   }
 
@@ -494,7 +494,7 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
 
   // 5. Delete the image from S3 if all conditions are met
   const command = new DeleteObjectCommand({
-    Bucket: "jymo",
+    Bucket: bucketName,
     Key: `userProfileImg/${key}`,
   });
 
