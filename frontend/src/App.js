@@ -38,6 +38,7 @@ import Users from "./pages/app/Admin/Users/Users.jsx";
 import AdProfile from "./pages/app/Admin/Profile/Profile.jsx";
 import Admins from "./pages/app/Admin/Profile/Admins.jsx";
 import EditJym from "./pages/app/Admin/Profile/EditJym.jsx";
+import ErrorFace from "./pages/app/Error.jsx";
 
 const UNPROTECTED_ROUTES = [
   "/",
@@ -187,6 +188,7 @@ function App() {
                 <Route path="editjymdetails" element={<EditJym />} />
               </Route>
             </Route>
+            <Route path="*" element={<ErrorFace />} />
           </Routes>
           {applyBottomNavStyles && <BottomNavigation />}
         </div>

@@ -33,7 +33,7 @@ const UpdateUser = () => {
     return Boolean(
       url &&
         !url.includes("lh3.googleusercontent.com") &&
-        url.includes("jymo.s3") &&
+        url.includes("jyymmoo.s3") &&
         url !== defaultImg
     );
   };

@@ -1,9 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  capitalizeFLetter,
-  getQueryParams,
-} from "../../../../utils/helperFunc";
+import { getQueryParams } from "../../../../utils/helperFunc";
 import useFetchUser from "./useHooks/useFetchUser";
 import useMembership from "./useHooks/useMembership";
 import Membership from "../../User/Home/Component/Membership";

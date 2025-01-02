@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Html5Qrcode } from "html5-qrcode";
 import { toast } from "react-toastify";
 import axios from "axios";

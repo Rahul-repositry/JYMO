@@ -7,12 +7,12 @@ import "./MySelf.css";
 import { Link } from "react-router-dom";
 const MySelf = () => {
   return (
-    <div className="myselfContainer mt-16 relative w-screen relative overflow-x-clip">
+    <div className="myselfContainer mt-16  w-screen relative overflow-x-clip">
       <div className="myAimContainer relative overflow-hidden    custom-md800:hidden md:grid-cols-3 w-screen  pb-[200px] ">
         <img
           src={Rahul}
           alt="Rahul"
-          className="absolute  z-10 bottom-0 w-[300px] bottom-[-30px] right-[-50px]"
+          className="absolute  z-10  w-[300px] bottom-[-30px] right-[-50px]"
         />
         <div className="logoContainer  flex justify-center border md:col-span-1  border-white mx-8 py-5 rounded-[40px] my-9 ">
           <div
@@ -31,7 +31,7 @@ const MySelf = () => {
         div.back
         <img src={Logo} alt="Jymo" />
       </div> */}
-        <div className="details col-span-2 px-9 relative z-10 italic flex flex-col text-start px-5  gap-8">
+        <div className="details col-span-2  relative z-10 italic flex flex-col text-start px-5  gap-8">
           <h2 className="text-orange-500 text-2xl  font-bold  py-4">
             FOUNDER OF JYMO
           </h2>
@@ -97,7 +97,7 @@ const MySelf = () => {
         <img
           src={Rahul}
           alt="Rahul"
-          className="absolute  hidden md:flex z-10 bottom-0 w-[300px] bottom-[-10px] right-[-10px] "
+          className="absolute  hidden md:flex z-10 w-[300px] bottom-[-10px] right-[-10px] "
         />
         <img
           src={Noise}
