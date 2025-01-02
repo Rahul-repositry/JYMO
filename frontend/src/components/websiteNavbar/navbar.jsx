@@ -79,9 +79,10 @@ const Navbar = () => {
             <p
               className="hover:bg-orange-200 hover:text-gray-700"
               id="landingPageGetAppBtn"
+              style={{ cursor: "pointer" }}
+              onClick={handleShowPopup}
             >
               <button
-                onClick={handleShowPopup}
                 className="font-bold text-white"
                 style={{ padding: "0px" }}
               >
