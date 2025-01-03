@@ -6,14 +6,15 @@ import {
   getObjectFromLocalStorage,
   setObjectInLocalStorage,
 } from "../../../../utils/helperFunc";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext } from "react-router-dom";
 import Reader from "./Reader";
 
-function Scanner({ setLoading }) {
+function Scanner() {
   const html5QrCodeRef = useRef(null);
   const navigate = useNavigate();
   const readerRef = useRef(null);
   const juidRef = useRef("");
+  const { setLoading } = useOutletContext(); // Access setLoading from context
 
   const markAttendance = useCallback(
     async (jymData) => {

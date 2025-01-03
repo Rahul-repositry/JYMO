@@ -76,7 +76,7 @@ const ScannerProtected = () => {
       ) : cameraAllowed ? (
         <div className="">
           {/* Render nested routes */}
-          <Outlet />
+          <Outlet context={{ setLoading }} />
         </div>
       ) : (
         <div className="p-4 bg-white shadow-lg rounded-lg">

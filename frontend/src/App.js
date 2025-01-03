@@ -39,6 +39,7 @@ import AdProfile from "./pages/app/Admin/Profile/Profile.jsx";
 import Admins from "./pages/app/Admin/Profile/Admins.jsx";
 import EditJym from "./pages/app/Admin/Profile/EditJym.jsx";
 import ErrorFace from "./pages/app/Error.jsx";
+import ProfileOutlet from "./pages/app/User/Profile/ProfileOutlet.jsx";
 
 const UNPROTECTED_ROUTES = [
   "/",
@@ -158,7 +159,8 @@ function App() {
               <Route path="success" element={<Success />} />
               <Route path="myqr" element={<Myqr />} />
             </Route>
-            <Route path="/profile/*" element={<Profile />}>
+            <Route path="/profile/*" element={<ProfileOutlet />}>
+              <Route index element={<Profile />} />
               <Route path="updateuser" element={<UpdateWrapper />} />
               <Route path="updategmail" element={<UpdateWrapper />} />
               <Route path="updatephone" element={<UpdateWrapper />} />
