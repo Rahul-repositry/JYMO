@@ -15,13 +15,18 @@ const EditJym = ({ jymId }) => {
   const [formData, setFormData] = useState({
     name: "",
     recoveryNumber: "",
-    addressLocation: { country: "", state: "", city: "" },
+    addressLocation: {
+      country: "",
+      state: "",
+      city: "",
+      address: "",
+      zipCode: "",
+    },
     phoneNumbers: [""],
   });
   const [phoneError, setPhoneError] = useState("");
 
   useEffect(() => {
-    // Fetch existing gym details to populate the form
     const fetchJymDetails = async () => {
       try {
         const response = await axios.get(
@@ -29,7 +34,16 @@ const EditJym = ({ jymId }) => {
           { withCredentials: true }
         );
         if (response.data.success) {
-          setFormData(response.data.jymData);
+          // Use a spread operator to ensure all fields are populated
+          setFormData({
+            name: response.data.jymData.name || "",
+            recoveryNumber: response.data.jymData.recoveryNumber || "",
+            addressLocation: {
+              ...formData.addressLocation,
+              ...response.data.jymData.addressLocation,
+            },
+            phoneNumbers: response.data.jymData.phoneNumbers || [""],
+          });
         }
       } catch (error) {
         console.error("Error fetching gym details:", error);
@@ -61,7 +75,6 @@ const EditJym = ({ jymId }) => {
       if (response.data.success) {
         toast.success("Gym details updated successfully!");
         setObjectInLocalStorage("adminJym", response.data.data);
-
         navigate("/admin/dashboard");
       } else {
         toast.error("Failed to update gym details.");
@@ -71,13 +84,12 @@ const EditJym = ({ jymId }) => {
       toast.error("Failed to update gym details.");
     }
   };
-
   return (
     <div className="flex flex-col px-6">
       <div className="text-customButton text-3xl my-5 font-medium text-center">
         Edit Gym Details
       </div>
-      <form onSubmit={handleSubmit} className="">
+      <form onSubmit={handleSubmit}>
         <div>
           <label
             htmlFor="name"

@@ -185,7 +185,8 @@ function App() {
               <Route path="users" element={<Users />} />
               <Route path="member" element={<Member />} />
               <Route path="member/feerecord" element={<FeeRecord />} />
-              <Route path="profile" element={<AdProfile />}>
+              <Route path="profile">
+                <Route index element={<AdProfile />} />
                 <Route path="admins" element={<Admins />} />
                 <Route path="editjymdetails" element={<EditJym />} />
               </Route>

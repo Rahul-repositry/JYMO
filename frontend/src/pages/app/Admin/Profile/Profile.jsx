@@ -19,8 +19,8 @@ const Profile = () => {
           withCredentials: true,
         }
       );
-
-      if (res.data.success) {
+      console.log(res);
+      if (res.data.status) {
         toast.success("You are successfully logut.");
         localStorage.removeItem("adminJym");
         navigate("/admin/login");
@@ -139,7 +139,7 @@ const Profile = () => {
           </div>
         </Link>
         <div
-          className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl"
+          className="link flex place-items-center cursor-pointer bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl"
           onClick={() => setIsLogoutModalOpen(true)}
         >
           <div className="exit border  border-gray-500 flex place-content-center p-2 rounded-full">
