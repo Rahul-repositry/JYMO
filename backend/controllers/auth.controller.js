@@ -359,24 +359,24 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
   const otpPass = generateOTP();
 
-  // const options = {
-  //   method: "GET",
-  //   url: "https://www.fast2sms.com/dev/bulkV2",
-  //   params: {
-  //     authorization: process.env.FAST2SMS_API_KEY,
-  //     variables_values: otpPass,
-  //     route: "otp",
-  //     flash: "0",
-  //     numbers: phoneNumber,
-  //   },
-  //   headers: {
-  //     "cache-control": "no-cache",
-  //   },
-  // };
+  const options = {
+    method: "GET",
+    url: "https://www.fast2sms.com/dev/bulkV2",
+    params: {
+      authorization: process.env.FAST2SMS_API_KEY,
+      variables_values: otpPass,
+      route: "otp",
+      flash: "0",
+      numbers: phoneNumber,
+    },
+    headers: {
+      "cache-control": "no-cache",
+    },
+  };
 
   try {
     // Send the OTP via Fast2SMS API
-    // await axios.request(options);
+    await axios.request(options);
 
     // Log response status for debugging
 
