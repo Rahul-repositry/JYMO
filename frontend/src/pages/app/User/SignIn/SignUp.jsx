@@ -170,7 +170,7 @@ const SignUpForm = ({ onShowPersonal }) => {
 
       updateSignupData({
         phoneNumber: formData.phoneNumber,
-        otpObj,
+        otpObj: { otp, phoneNumber: formData.recoveryNumber, _id: otpObj._id },
         password: formData.password,
       });
 

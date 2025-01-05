@@ -177,7 +177,14 @@ const SignupForm = () => {
         setFormData((prev) => ({ ...prev, otpObj }));
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/auth/jym/signup`,
-          { ...formData, otpObj },
+          {
+            ...formData,
+            otpObj: {
+              otp,
+              phoneNumber: formData.recoveryNumber,
+              _id: otpObj._id,
+            },
+          },
           {
             withCredentials: true,
           }
