@@ -999,9 +999,31 @@ const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
       });
 
     if (!userMembershipData) {
-      return next(
-        new CustomError("Membership data not found for the user", 404)
-      );
+      // return next(
+      //   new CustomError("Membership data not found for the user", 404)
+      // );
+
+      const searchedUser = await User.findById({ _id: new ObjectId(userId) });
+
+      if (!searchedUser) {
+        return next(new CustomError("User not found", 404));
+      }
+      const formattedDataUser = {
+        img: searchedUser.img,
+        username: searchedUser.username,
+        startDate: undefined,
+        endDate: undefined,
+        lastCheckIn: undefined,
+        status: undefined,
+        phone: searchedUser.phone,
+        userId: searchedUser._id,
+      };
+
+      return res.status(200).json({
+        success: true,
+        data: formattedDataUser,
+        message: "User found but not registered",
+      });
     }
 
     // Format the response to match `getUsersByStatus`
