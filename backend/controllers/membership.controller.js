@@ -94,7 +94,7 @@ const createMembership = AsyncErrorHandler(async (req, res, next) => {
 
   // Find user data
   const userData = userId
-    ? await User.findById({ userId: new ObjectId(userId) })
+    ? await User.findById({ _id: new ObjectId(userId) })
     : await User.findOne({ userUniqueId });
 
   if (!userData) {
