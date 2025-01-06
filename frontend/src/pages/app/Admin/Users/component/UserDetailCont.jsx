@@ -9,13 +9,22 @@ const UserDetailCont = ({ user }) => {
   const navigate = useNavigate();
 
   const todayStart = startOfDay(new Date());
-  const lastCheckInStart = startOfDay(new Date(user.lastCheckIn));
+  const lastCheckInStart = user.lastCheckIn
+    ? startOfDay(new Date(user.lastCheckIn))
+    : false;
 
   const [isAttendanceMarked, setIsAttendanceMarked] = useState(
-    isSameDay(todayStart, lastCheckInStart) || todayStart <= lastCheckInStart
+    user.lastCheckIn
+      ? isSameDay(todayStart, lastCheckInStart) ||
+          todayStart <= lastCheckInStart
+      : false
   );
 
   const handleMarkAttendance = useCallback(async () => {
+    if (!user.lastCheckIn) {
+      toast.error("Click edit icon to register user.");
+      return;
+    }
     if (!isAttendanceMarked) {
       try {
         let res = await axios.post(
@@ -56,6 +65,11 @@ const UserDetailCont = ({ user }) => {
       <div
         className={`wrapperCont border border-slate-800 flex flex-col gap-5 px-3 py-5 my-2 rounded-3xl `}
       >
+        {!user.lastCheckIn && (
+          <p className="text-center font-semibold">
+            Click on the edit icon to register
+          </p>
+        )}
         <div className="showDetails m-1 flex justify-between">
           <div className="imgAnddate flex place-items-center gap-3">
             <div className="rounded-full border bg-orange-500 border-black">
@@ -71,16 +85,25 @@ const UserDetailCont = ({ user }) => {
               />
             </div>
             <div className="nameAndDate flex flex-col">
-              <p className="text-xl py-1">{capitalizeFLetter(user.username)}</p>
+              <p className="text-xl py-1">
+                {capitalizeFLetter(user.username || "-Name-")}
+              </p>
               <p className="text-xs">
-                {format(new Date(user.startDate), "dd-MMM")} to{" "}
-                {format(new Date(user.endDate), "dd-MMM")}
+                {user.startDate
+                  ? format(new Date(user.startDate), "dd-MMM")
+                  : "--"}{" "}
+                to{" "}
+                {user.endDate ? format(new Date(user.endDate), "dd-MMM") : "--"}
               </p>
             </div>
           </div>
           <div className="remaining border flex gap-1 place-content-center place-items-center flex-col border-red-400 text-red-500 rounded-xl text-xs p-2">
             <p>Chq-in At:</p>
-            <p>{format(new Date(user.lastCheckIn), "dd-MMM")}</p>
+            <p>
+              {user.lastCheckIn
+                ? format(new Date(user.lastCheckIn), "dd-MMM")
+                : "--"}
+            </p>
           </div>
         </div>
         <div className="ClickDetails flex justify-around text-slate-700">
