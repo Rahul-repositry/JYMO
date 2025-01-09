@@ -71,19 +71,43 @@ const LogIn = () => {
     });
   };
 
-  useEffect(() => {
-    const queryParams = getQueryParams(location.search);
-    const jymUniqueId = queryParams.get("jymUniqueId");
-    const password = queryParams.get("password");
+  const checkWaitlist = async () => {
+    try {
+      const response = await axios.get(
+        `${process.env.REACT_APP_BACKEND_URI}/api/jym/count `,
+        { withCredentials: true }
+      );
 
-    if (jymUniqueId && password) {
-      setFormData((prev) => ({
-        ...prev,
-        jymUniqueId: jymUniqueId,
-        password: password,
-      }));
-      setShowPassword(true);
+      if (response.data.success) {
+        if (response.data.count >= 3) {
+          navigate("/waitlist", { state: { count: response.data.count } });
+          return;
+        }
+      }
+    } catch (err) {
+      console.log(err);
     }
+  };
+
+  useEffect(() => {
+    checkWaitlist()
+      .then(() => {
+        const queryParams = getQueryParams(location.search);
+        const jymUniqueId = queryParams.get("jymUniqueId");
+        const password = queryParams.get("password");
+
+        if (jymUniqueId && password) {
+          setFormData((prev) => ({
+            ...prev,
+            jymUniqueId: jymUniqueId,
+            password: password,
+          }));
+          setShowPassword(true);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   return (

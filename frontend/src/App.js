@@ -40,6 +40,7 @@ import Admins from "./pages/app/Admin/Profile/Admins.jsx";
 import EditJym from "./pages/app/Admin/Profile/EditJym.jsx";
 import ErrorFace from "./pages/app/Error.jsx";
 import ProfileOutlet from "./pages/app/User/Profile/ProfileOutlet.jsx";
+import WaitList from "./pages/app/WaitList.jsx";
 
 const UNPROTECTED_ROUTES = [
   "/",
@@ -175,6 +176,7 @@ function App() {
             <Route path="/login" element={<LogIn />} />
             <Route path="/forgotpassword" element={<ForgotPass />} />
             <Route path="/resetpassword" element={<ResetPass />} />
+            <Route path="/waitlist" element={<WaitList />} />
 
             {/* Admin Flow */}
             <Route path="/admin/*">
