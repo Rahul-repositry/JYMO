@@ -112,7 +112,7 @@ const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
 
   // Update fields
   user.username = name || user.username;
-  user.isOwner = isOwner || user.isOwner;
+  user.isOwner = isOwner;
 
   // Convert birthday to ISO string if it's not already in ISO format
   if (birthday) {
@@ -125,6 +125,7 @@ const updateUserNameAndBdate = AsyncErrorHandler(async (req, res, next) => {
   }
 
   // Save the updated user data
+
   await user.save();
 
   return res.status(200).json({

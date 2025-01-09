@@ -102,7 +102,6 @@ const getWalletDetails = async () => {
 const storeOTP = async (phoneNumber, otp) => {
   const otpDocument = new OTP({ phoneNumber, otp });
   let doc = await otpDocument.save();
-  console.log(doc);
   return doc;
 };
 

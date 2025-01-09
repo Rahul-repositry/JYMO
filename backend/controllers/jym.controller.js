@@ -999,31 +999,31 @@ const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
       });
 
     if (!userMembershipData) {
-      // return next(
-      //   new CustomError("Membership data not found for the user", 404)
-      // );
+      return next(
+        new CustomError("Membership data not found for the user", 404)
+      );
+      // instead use scanner bcz there is no bounding of user must be your jym
 
-      const searchedUser = await User.findById({ _id: new ObjectId(userId) });
+      // const searchedUser = await User.findById({ _id: new ObjectId(userId) });
+      // if (!searchedUser) {
+      //   return next(new CustomError("User not found", 404));
+      // }
+      // const formattedDataUser = {
+      //   img: searchedUser.img,
+      //   username: searchedUser.username,
+      //   startDate: undefined,
+      //   endDate: undefined,
+      //   lastCheckIn: undefined,
+      //   status: undefined,
+      //   phone: searchedUser.phone,
+      //   userId: searchedUser._id,
+      // };
 
-      if (!searchedUser) {
-        return next(new CustomError("User not found", 404));
-      }
-      const formattedDataUser = {
-        img: searchedUser.img,
-        username: searchedUser.username,
-        startDate: undefined,
-        endDate: undefined,
-        lastCheckIn: undefined,
-        status: undefined,
-        phone: searchedUser.phone,
-        userId: searchedUser._id,
-      };
-
-      return res.status(200).json({
-        success: true,
-        data: formattedDataUser,
-        message: "User found but not registered",
-      });
+      // return res.status(200).json({
+      //   success: true,
+      //   data: formattedDataUser,
+      //   message: "User found but not registered",
+      // });
     }
 
     // Format the response to match `getUsersByStatus`
@@ -1050,8 +1050,8 @@ const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const editJymDetails = AsyncErrorHandler(async (req, res, next) => {
-  const { name, recoveryNumber, addressLocation, phoneNumbers, _id } = req.body;
-
+  const { name, recoveryNumber, addressLocation, phoneNumbers } = req.body;
+  console.log(req.body, req.jym, req.user);
   // Validate input: ensure all fields are of expected type
   if (name && typeof name !== "string") {
     return next(new CustomError("Invalid name format", 400));
@@ -1079,7 +1079,7 @@ const editJymDetails = AsyncErrorHandler(async (req, res, next) => {
   try {
     // Find the gym by ID and update only allowed fields
     const updatedJym = await Jym.findByIdAndUpdate(
-      { _id: new ObjectId(_id) },
+      { _id: new ObjectId(req.jym._id) },
       { $set: updateData },
       { new: true, runValidators: true }
     );
