@@ -3,6 +3,7 @@ const Jym = require("../models/jym.model.js");
 const Membership = require("../models/membership.model.js");
 const User = require("../models/user.model.js");
 const { UserDurationInJym } = require("../models/userDuration.model.js");
+const { waitList } = require("../models/waitList.model.js");
 const { AsyncErrorHandler } = require("../utils/AsyncErrorHandler.utils.js");
 const CustomError = require("../utils/CustomError.utils.js");
 const { filterJymDetails } = require("../utils/ImpFunc.js");
@@ -1099,12 +1100,50 @@ const editJymDetails = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("Failed to update gym details", 500));
   }
 });
+const checkJymsCount = AsyncErrorHandler(async (req, res, next) => {
+  // Assuming you have a Mongoose model for jyms
+  const jymsCount = await Jym.countDocuments();
+
+  res.status(200).json({
+    success: true,
+    count: jymsCount,
+  });
+});
+
+const joinWaitlist = AsyncErrorHandler(async (req, res, next) => {
+  const userId = req.user._id;
+
+  // Check if the user is already on the waitlist
+  const isWaitListExists = await waitList.findOne({ userId });
+
+  if (isWaitListExists) {
+    return res.status(400).json({
+      message: "You are already on the waitlist.",
+      success: false,
+    });
+  }
+
+  // Add the user to the waitlist
+  const newWaitList = new waitList({
+    userId: new ObjectId(userId),
+    category: "waitList",
+  });
+
+  await newWaitList.save();
+
+  res.status(200).json({
+    message: "Successfully registered to the waitlist.",
+    success: true,
+  });
+});
 
 module.exports = {
   getJym,
   getJymById,
   jymDetails,
+  joinWaitlist,
   getDashboardStats,
+  checkJymsCount,
   getUsersByStatus,
   getUserBySearch,
   editJymDetails,

@@ -5,6 +5,8 @@ const {
   getJym,
   getJymById,
   getDashboardStats,
+  checkJymsCount,
+  joinWaitlist,
   jymDetails,
   getUsersByStatus,
   getUserBySearch,
@@ -23,6 +25,12 @@ const {
  * - Returns gym details if found, or an error message if the JUID is incorrect.
  */
 router.get("/getjym/:JUID", verifyUser, getJym);
+
+/// @des chq for waitlist
+router.get("/count", verifyUser, checkJymsCount);
+
+/// @des register for waitlist
+router.get("/register/waitlist", verifyUser, joinWaitlist);
 
 // @des this will fetch details for jym owner and send jymdetails to use in localstorage
 router.get("/gymdetails", verifyUser, verifyJym, jymDetails);
