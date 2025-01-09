@@ -385,7 +385,7 @@ const Profile = () => {
         </p>
         <div className="buttons pt-4 flex justify-around">
           <button
-            className="bg-green-500 px-7 rounded-lg text-white"
+            className="bg-green-500 px-8  py-3 rounded-lg text-white"
             onClick={handleLogout}
           >
             Yes

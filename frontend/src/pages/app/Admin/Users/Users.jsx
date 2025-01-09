@@ -98,7 +98,7 @@ const Users = () => {
       new Map(userData.map((item) => [item.userId, item])).values()
     );
     setFilteredData(uniqueArray);
-  }, [userData]);
+  }, [userData, setFilteredData]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -131,7 +131,8 @@ const Users = () => {
     if (matchedButton !== activeButton) {
       setActiveButton(matchedButton || null);
       setPage(1);
-      setUserData([]); // Clear existing data
+
+      // setUserData([]); // Clear existing data
     }
   }, [location.search, activeButton, setUserData]);
 

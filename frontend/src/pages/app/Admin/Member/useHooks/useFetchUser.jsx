@@ -20,7 +20,6 @@ const useFetchUser = (userId, userUniqueId) => {
           setLoading(false);
           return;
         }
-
         const response = await axios.get(endpoint, {
           withCredentials: true,
         });

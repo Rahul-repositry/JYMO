@@ -38,7 +38,12 @@ const FeeRecord = () => {
           dataCache.current.set(membership._id, membership);
         });
 
-        setData((prevData) => [...prevData, ...newMemberships]);
+        // Combine old and new data, then sort by `endDate` in descending order
+        const sortedData = [...data, ...newMemberships].sort(
+          (a, b) => new Date(b.endDate) - new Date(a.endDate)
+        );
+
+        setData(sortedData); // Update state with sorted data
         setSkip((prevSkip) => prevSkip + 20);
 
         if (newMemberships.length < 20) {
@@ -52,7 +57,7 @@ const FeeRecord = () => {
     } finally {
       setLoading(false);
     }
-  }, [skip, loading, hasMore]);
+  }, [skip, loading, hasMore, data]);
 
   useEffect(() => {
     fetchDetails(); // Initial fetch

@@ -40,7 +40,13 @@ const PastRecords = () => {
 
         // Update processed IDs and data
         uniqueMemberships.forEach((item) => processedIds.current.add(item._id));
-        setData((prevData) => [...prevData, ...uniqueMemberships]);
+        // Combine old and new data, then sort by `endDate` in descending order
+        const sortedData = [...data, ...uniqueMemberships].sort(
+          (a, b) => new Date(b.endDate) - new Date(a.endDate)
+        );
+
+        setData(sortedData); // Update state with sorted data
+        // setData((prevData) => [...prevData, ...uniqueMemberships]);
 
         // Increment page only if new data is added
         if (uniqueMemberships.length > 0) {

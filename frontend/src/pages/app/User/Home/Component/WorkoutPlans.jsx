@@ -3,6 +3,7 @@ import WorkoutPlan from "../../../../../components/workoutPlan/WorkoutPlan.jsx";
 import CustomButton from "../../../../../components/Button/Button.jsx";
 import workoutPlanImg from "../../../../../images/workoutPlan.webp";
 import { getWeekDates } from "../utils/utils.js";
+import { Link } from "react-router";
 
 const WorkoutPlans = ({ workout }) => {
   const weekDates = getWeekDates();
@@ -33,7 +34,10 @@ const WorkoutPlans = ({ workout }) => {
                 className="pt-7 pb-2"
                 style={{ maxWidth: "250px" }}
               />
-              <CustomButton fullWidth={true}>Let's Create Plan</CustomButton>
+              <CustomButton fullWidth={true}>
+                {" "}
+                <Link to="/calendar"> Let's Create Plan</Link>
+              </CustomButton>
             </div>
           )}
         </div>

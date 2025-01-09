@@ -44,9 +44,7 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
           options={countryOptions}
           value={
             addressLocation.country
-              ? countryOptions.find(
-                  (option) => option.label === addressLocation.country
-                )
+              ? countryOptions.find((option) => option.value === "India")
               : null
           }
           onChange={(option) => handleLocationChange("country", option.value)}
@@ -63,7 +61,7 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
           value={
             addressLocation.state
               ? stateOptions.find(
-                  (option) => option.label === addressLocation.state
+                  (option) => option.value === addressLocation.state
                 )
               : null
           }
@@ -82,7 +80,7 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
           value={
             addressLocation.city
               ? cityOptions.find(
-                  (option) => option.label === addressLocation.city
+                  (option) => option.value === addressLocation.city
                 )
               : null
           }
@@ -92,38 +90,21 @@ const LocationSelect = ({ addressLocation, setFormData }) => {
         />
       </div>
 
-      <div className="mb-6">
+      <div>
         <label
           htmlFor="address"
           className="block mb-2 text-sm font-medium text-gray-900"
         >
-          Address:
+          Address :
         </label>
         <input
           type="text"
           id="address"
           className="input-field"
-          placeholder="Full Address"
+          placeholder="full address"
           required
           value={addressLocation.address}
           onChange={(e) => handleLocationChange("address", e.target.value)}
-        />
-      </div>
-      <div className="mb-6">
-        <label
-          htmlFor="zipCode"
-          className="block mb-2 text-sm font-medium text-gray-900"
-        >
-          Zip Code:
-        </label>
-        <input
-          type="text"
-          id="zipCode"
-          className="input-field"
-          placeholder="Zip Code"
-          required
-          value={addressLocation.zipCode}
-          onChange={(e) => handleLocationChange("zipCode", e.target.value)}
         />
       </div>
     </>

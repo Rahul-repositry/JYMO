@@ -65,6 +65,8 @@ const EXCLUDE_PATHS_BOTTOM_NAV = [
   "/termscondition",
   "/about",
   "/login",
+  "/admin/login",
+  "/admin/signup",
   "/signup",
   "/forgotpassword",
   "/resetpassword",

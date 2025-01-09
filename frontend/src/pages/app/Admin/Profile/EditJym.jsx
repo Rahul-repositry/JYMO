@@ -75,7 +75,7 @@ const EditJym = ({ jymId }) => {
       if (response.data.success) {
         toast.success("Gym details updated successfully!");
         setObjectInLocalStorage("adminJym", response.data.data);
-        navigate("/admin/dashboard");
+        navigate("/admin/home");
       } else {
         toast.error("Failed to update gym details.");
       }
