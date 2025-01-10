@@ -53,15 +53,45 @@ export function register(config) {
       }
 
       // Befor install prompt start
-      window.addEventListener("beforeinstallprompt", (event) => {
-        event.preventDefault();
-        var installDiv = document.getElementById("divInstallApp");
+      let deferredPrompt;
 
+      // Listen for the `beforeinstallprompt` event
+      window.addEventListener("beforeinstallprompt", (event) => {
+        // Prevent the default behavior
+        event.preventDefault();
+        // Store the event for later use
+        deferredPrompt = event;
+
+        // Display the install button
+        const installDiv = document.getElementById("divInstallApp");
+        installDiv.style.display = "block";
+
+        // Add click event listener to the install button
         installDiv.addEventListener("click", () => {
-          event.prompt();
-          installDiv.innerHTML = "";
+          if (deferredPrompt) {
+            // Show the install prompt
+            deferredPrompt.prompt();
+
+            // Handle the user's response to the prompt
+            deferredPrompt.userChoice.then((choiceResult) => {
+              if (choiceResult.outcome === "accepted") {
+                console.log("User accepted the A2HS prompt");
+              } else {
+                console.log("User dismissed the A2HS prompt");
+              }
+              // Reset the deferredPrompt to allow re-triggering
+              deferredPrompt = null;
+            });
+          } else {
+            // If the prompt cannot be shown, reload the page to re-trigger the event
+            console.log(
+              "Reloading the page to re-trigger the install prompt..."
+            );
+            window.location.reload();
+          }
         });
       });
+
       // Befor install prompt end
     });
   }

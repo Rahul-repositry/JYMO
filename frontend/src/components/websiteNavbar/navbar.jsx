@@ -86,7 +86,7 @@ const Navbar = () => {
                 className="font-bold text-white"
                 style={{ padding: "0px" }}
               >
-                Get App
+                Install App
               </button>
             </p>
           </div>
