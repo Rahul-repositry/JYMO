@@ -11,7 +11,7 @@
 jymo
 jymo.pub
 
-
+jymoInstanceKeyPair.pem
 # production
 /build
 .server.js

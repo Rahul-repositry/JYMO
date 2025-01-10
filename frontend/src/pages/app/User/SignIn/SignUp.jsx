@@ -96,6 +96,10 @@ const SignUpForm = ({ onShowPersonal }) => {
     }
   };
 
+  useEffect(() => {
+    console.log({ signupData, formData });
+  }, [signupData, formData]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -149,6 +153,14 @@ const SignUpForm = ({ onShowPersonal }) => {
 
         if (result.status === "success") {
           setCurrentStep("final");
+          updateSignupData({
+            otpObj: {
+              otp,
+              phoneNumber: formData.phoneNumber,
+              _id: otpObj._id,
+            },
+            phoneNumber: formData.phoneNumber,
+          });
           toast.success("OTP Verified");
         } else {
           toast.error("Failed to verify OTP, please try again.");
@@ -169,8 +181,6 @@ const SignUpForm = ({ onShowPersonal }) => {
       }
 
       updateSignupData({
-        phoneNumber: formData.phoneNumber,
-        otpObj: { otp, phoneNumber: formData.recoveryNumber, _id: otpObj._id },
         password: formData.password,
       });
 

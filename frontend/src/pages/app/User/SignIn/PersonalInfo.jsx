@@ -41,6 +41,7 @@ const PersonalInfo = () => {
       return;
     }
     try {
+      console.log({ signupData });
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URI}/api/auth/signup`,
         {
