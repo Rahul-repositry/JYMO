@@ -35,9 +35,11 @@ const s3Client = new S3Client({
 });
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
-
+console.log(process.env.GMAIL_PASS);
 const transporter = nodemailer.createTransport({
-  service: "gmail",
+  secure: true,
+  host: "smtp.gmail.com",
+  port: 465,
   auth: {
     user: "jyymmoo@gmail.com",
     pass: process.env.GMAIL_PASS,
