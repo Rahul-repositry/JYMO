@@ -1,7 +1,6 @@
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import axios from "axios";
-
 import "./index.css";
 import LandingPage from "./pages/website/LandingPage.jsx";
 import PrivacyPolicy from "./pages/website/PrivacyPolicy.jsx";
@@ -10,7 +9,7 @@ import About from "./pages/website/About.jsx";
 import AppNavbar from "./pages/app/User/Navbar/Navbar.jsx";
 import Main from "./pages/app/User/SignIn/Main.jsx";
 import LogIn from "./pages/app/User/SignIn/LogIn.jsx";
-import ForgotPass from "./pages/app/User/SignIn/ForgotPass.jsx";
+// import ForgotPass from "./pages/app/User/SignIn/ForgotPass.jsx";
 import ForgotPassword from "./pages/app/User/SignIn/ForgotPassword.jsx";
 import ResetPass from "./pages/app/User/SignIn/ResetPass.jsx";
 import Home from "./pages/app/User/Home/Home.jsx";
@@ -94,7 +93,7 @@ function App() {
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
-        // navigate("/login");
+        navigate("/login");
       }
     };
 
