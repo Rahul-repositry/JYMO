@@ -15,6 +15,7 @@ const CustomError = require("../utils/CustomError.utils.js");
 const OTP = require("../models/OTP.model.js");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const axios = require("axios");
+const { filterUserDetails } = require("../utils/ImpFunc.js");
 const { ObjectId } = require("mongoose").Types;
 
 // Other code using these imports
@@ -35,7 +36,7 @@ const s3Client = new S3Client({
 });
 
 const generateToken = () => crypto.randomBytes(32).toString("hex");
-console.log(process.env.GMAIL_PASS);
+
 const transporter = nodemailer.createTransport({
   secure: true,
   host: "smtp.gmail.com",
@@ -118,7 +119,7 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
   const {
     username,
     age,
-    firebaseEmailIdToken,
+    // firebaseEmailIdToken,
     password,
     phoneNumber,
     birthday,
@@ -132,11 +133,11 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("OTP details are incomplete", 404));
   }
 
-  const firebaseUser = await admin.auth().verifyIdToken(firebaseEmailIdToken);
+  // const firebaseUser = await admin.auth().verifyIdToken(firebaseEmailIdToken);
 
-  if (!firebaseUser.email) {
-    return next(new CustomError("Authentication failed", 401));
-  }
+  // if (!firebaseUser.email) {
+  //   return next(new CustomError("Authentication failed", 401));
+  // }
 
   const otpDocument = await OTP.findById({ _id: new ObjectId(otpObj._id) });
 
@@ -156,7 +157,7 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
   const newUser = new User({
     username,
     age,
-    email: firebaseUser.email,
+    // email: firebaseUser.email,
     password: hashedPassword,
     phone: phoneNumber,
     birthday,
@@ -190,15 +191,15 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
 });
 
 const signin = AsyncErrorHandler(async (req, res, next) => {
-  const { password, numberOrGmail } = req.body;
+  const { password, number } = req.body;
 
   // Identify if the input is an email or phone number
   let userIdentifier;
-  if (numberOrGmail.includes("@") || numberOrGmail.includes(".")) {
-    userIdentifier = { email: numberOrGmail };
-  } else {
-    userIdentifier = { phone: numberOrGmail };
-  }
+  // if (numberOrGmail.includes("@") || numberOrGmail.includes(".")) {
+  //   userIdentifier = { email: numberOrGmail };
+  // } else {
+  userIdentifier = { phone: number };
+  // }
 
   // Find user by email or phone
   const validUser = await User.findOne(userIdentifier);
@@ -269,7 +270,8 @@ const google = AsyncErrorHandler(async (req, res, next) => {
   }
 });
 
-const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
+//not in use bcz shifted to phone to email
+const forgotPasswordByEmail = AsyncErrorHandler(async (req, res, next) => {
   const { email } = req.body;
   const user = await User.findOne({
     email: email,
@@ -290,26 +292,106 @@ const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
   res.status(200).json({ success: true, message: "Reset instructions sent" });
 });
 
-const resetPassword = AsyncErrorHandler(async (req, res, next) => {
-  const { token, newPassword } = req.body;
+// const resetPasswordByEmail = AsyncErrorHandler(async (req, res, next) => {
+//   const { token, newPassword } = req.body;
 
-  const user = await User.findOne({
-    resetPasswordToken: token,
-    resetPasswordExpires: { $gt: Date.now() },
-  });
+//   const user = await User.findOne({
+//     resetPasswordToken: token,
+//     resetPasswordExpires: { $gt: Date.now() },
+//   });
 
-  if (!user) {
-    return next(
-      new CustomError("Authentication failed. User is not registered.", 404)
-    );
+//   if (!user) {
+//     return next(
+//       new CustomError("Authentication failed. User is not registered.", 404)
+//     );
+//   }
+
+//   user.password = bcryptjs.hashSync(newPassword, 10); // hash new password
+//   user.resetPasswordToken = undefined;
+//   user.resetPasswordExpires = undefined;
+//   await user.save();
+
+//   res.status(200).send({ success: true, message: "Password has been reset" });
+// });
+
+const createForgotSession = AsyncErrorHandler(async (req, res, next) => {
+  const { phone } = req.body;
+  const phonePattern = /^[6789]\d{9}$/;
+
+  if (!phonePattern.test(phone)) {
+    return next(new CustomError("Invalid phone number format", 400));
   }
 
-  user.password = bcryptjs.hashSync(newPassword, 10); // hash new password
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpires = undefined;
-  await user.save();
+  const userObj = await User.findOne({ phone: phone });
 
-  res.status(200).send({ success: true, message: "Password has been reset" });
+  if (!userObj) {
+    return next(new CustomError("User not found with this number", 404));
+  }
+
+  try {
+    const token = generateToken();
+    userObj.resetPasswordToken = token;
+    userObj.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // 15 minutes
+    await userObj.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Instructions sent successfully",
+      token: token,
+      userId: userObj._id,
+    });
+  } catch (err) {
+    console.error(err);
+    next(
+      new CustomError("An error occurred while processing your request", 500)
+    );
+  }
+});
+
+const resetPassword = AsyncErrorHandler(async (req, res, next) => {
+  const { userId, token, password: newPassword, otpObj } = req.body;
+
+  if (!otpObj._id || !otpObj.phoneNumber || !otpObj.otp) {
+    return next(new CustomError("OTP details are incomplete", 404));
+  }
+
+  const otpDocument = await OTP.findById({ _id: new ObjectId(otpObj._id) });
+
+  if (!otpDocument) {
+    return next(new CustomError("Invalid OTP", 400));
+  }
+
+  if (
+    otpDocument.otp !== otpObj.otp ||
+    otpDocument.phoneNumber !== otpObj.phoneNumber ||
+    !String(otpDocument._id).includes(otpObj._id)
+  ) {
+    return next(new CustomError("Invalid  OTP", 400));
+  }
+
+  let userObj;
+
+  if (token) {
+    userObj = await User.findById({
+      _id: new ObjectId(userId),
+    });
+  }
+
+  if (
+    !userObj ||
+    userObj.resetPasswordToken !== token ||
+    userObj.resetPasswordExpires < Date.now()
+  ) {
+    return next(new CustomError("Authentication failed try again !!", 404));
+  }
+
+  userObj.password = bcryptjs.hashSync(newPassword, 10); // hash new password
+  userObj.resetPasswordToken = "";
+  userObj.resetPasswordExpires = 0;
+  await userObj.save();
+  await OTP.findByIdAndDelete({ _id: new ObjectId(otpDocument._id) });
+
+  res.status(201).send({ success: true, message: "Password has been reset" });
 });
 
 const logout = AsyncErrorHandler(async (req, res, next) => {
@@ -360,30 +442,30 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
   const otpPass = generateOTP();
 
-  const options = {
-    method: "GET",
-    url: "https://www.fast2sms.com/dev/bulkV2",
-    params: {
-      authorization: process.env.FAST2SMS_API_KEY,
-      variables_values: otpPass,
-      route: "otp",
-      flash: "0",
-      numbers: phoneNumber,
-    },
-    headers: {
-      "cache-control": "no-cache",
-    },
-  };
+  // const options = {
+  //   method: "GET",
+  //   url: "https://www.fast2sms.com/dev/bulkV2",
+  //   params: {
+  //     authorization: process.env.FAST2SMS_API_KEY,
+  //     variables_values: otpPass,
+  //     route: "otp",
+  //     flash: "0",
+  //     numbers: phoneNumber,
+  //   },
+  //   headers: {
+  //     "cache-control": "no-cache",
+  //   },
+  // };
 
   try {
     // Send the OTP via Fast2SMS API
-    await axios.request(options);
+    // await axios.request(options);
 
     // Log response status for debugging
 
     // Store the OTP in the database
     const otp = await storeOTP(phoneNumber, otpPass);
-
+    console.log(otp);
     // Respond with success
     return res.status(200).json({
       status: "success",
@@ -531,7 +613,7 @@ module.exports = {
   google,
   sendOtp,
   verifyOtp,
-  forgotPassword,
+  createForgotSession,
   resetPassword,
   deleteObject,
   putObject,

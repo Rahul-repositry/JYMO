@@ -1052,7 +1052,7 @@ const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
 
 const editJymDetails = AsyncErrorHandler(async (req, res, next) => {
   const { name, recoveryNumber, addressLocation, phoneNumbers } = req.body;
-  console.log(req.body, req.jym, req.user);
+
   // Validate input: ensure all fields are of expected type
   if (name && typeof name !== "string") {
     return next(new CustomError("Invalid name format", 400));

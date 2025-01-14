@@ -5,7 +5,8 @@ const {
   google,
   resetPassword,
   sendOtp,
-  forgotPassword,
+  // forgotPassword,
+  createForgotSession,
   logout,
   verifyOtp,
   deleteObject,
@@ -94,6 +95,8 @@ router.post("/send-otp", sendOtp);
  */
 router.post("/verify-otp", verifyOtp);
 
+router.post("/createsession", createForgotSession);
+
 /**
  * @route POST /resetpassword
  * @frontend
@@ -106,6 +109,8 @@ router.post("/verify-otp", verifyOtp);
 router.post("/resetpassword", resetPassword);
 
 /**
+ * Currently email is not primarly using
+ *
  * @route POST /forgotpassword
  * @frontend
  * - Sends a POST request with the user's email.
@@ -114,7 +119,7 @@ router.post("/resetpassword", resetPassword);
  * - Generates a reset token and sends a password reset email to the user.
  * - Sends a response indicating that reset instructions have been sent.
  */
-router.post("/forgotpassword", forgotPassword);
+// router.post("/forgotpassword", forgotPassword);
 
 /**
  * @route GET /logout

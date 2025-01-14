@@ -160,6 +160,7 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
 // });
 
 const forgotPassword = AsyncErrorHandler(async (req, res, next) => {
+  //this will show all of the jyms that have this recovery number
   const { recoveryNumber } = req.body;
   const phonePattern = /^[6789]\d{9}$/;
 
