@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Gauth from "../../../../components/Gauth/Gauth";
+// import Gauth from "../../../../components/Gauth/Gauth";
 import { SignupUserDataProvider } from "../../../../context/context";
 import CustomButton from "../../../../components/Button/Button";
 import { Link } from "react-router-dom";
@@ -16,30 +16,30 @@ const LogIn = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    numberOrGmail: "",
+    number: "",
     password: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
 
   const validateInput = (e) => {
-    const input = formData.numberOrGmail;
+    const input = formData.number;
     const phonePattern = /^[6789]\d{9}$/;
-    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    // const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (
-      input.includes("@") ||
-      input.includes("gmail") ||
-      input.includes("." || input.includes("com"))
-    ) {
-      if (emailPattern.test(input)) {
-        setError({ status: false, msg: "" });
-        return true;
-      } else {
-        setError({ status: true, msg: "Please type a valid gmail" });
-        return false;
-      }
-    }
+    // if (
+    //   input.includes("@") ||
+    //   input.includes("gmail") ||
+    //   input.includes("." || input.includes("com"))
+    // ) {
+    //   if (emailPattern.test(input)) {
+    //     setError({ status: false, msg: "" });
+    //     return true;
+    //   } else {
+    //     setError({ status: true, msg: "Please type a valid gmail" });
+    //     return false;
+    //   }
+    // }
 
     if (phonePattern.test(input)) {
       setError({ status: false, msg: "" });
@@ -70,7 +70,7 @@ const LogIn = () => {
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/auth/login`,
           {
-            numberOrGmail: formData.numberOrGmail,
+            number: formData.number,
             password: formData.password,
           },
           {
@@ -86,7 +86,7 @@ const LogIn = () => {
           toast.success("Login successful!");
           // Add navigation to the dashboard or home page if needed
           setObjectInLocalStorage("user", data.user);
-
+          console.log("is navigation happen");
           navigate("/home");
           return;
         }
@@ -102,7 +102,7 @@ const LogIn = () => {
       }
     }
     setFormData({
-      numberOrGmail: "",
+      number: "",
       password: "",
     });
   };
@@ -123,19 +123,19 @@ const LogIn = () => {
           </div>
           <div className="phone">
             <label
-              htmlFor="numberOrGmail"
+              htmlFor="number"
               className="block mb-2 text-sm font-medium text-gray-900"
             >
-              Phone OR Gmail:
+              Phone:
             </label>
             <div className="relative">
               <input
                 type="text"
-                id="numberOrGmail"
+                id="number"
                 aria-describedby="helper-text-explanation"
                 className="input-field "
-                placeholder="Number or Gmail"
-                value={formData.numberOrGmail}
+                placeholder="Number"
+                value={formData.number}
                 onChange={handleChange}
                 required
               />
@@ -171,7 +171,7 @@ const LogIn = () => {
               </button>
             </div>
           </div>
-          <Gauth />
+          {/* <Gauth /> */}
           <div className="flex justify-between flex-wrap gap-4">
             <Link
               to="/signup"

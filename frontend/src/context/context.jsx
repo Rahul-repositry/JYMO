@@ -21,7 +21,7 @@ export function SignupUserDataProvider({ children }) {
   const [signupData, setSignupData] = useState({
     username: "",
     img: "",
-    email: "",
+    // email: "",
     password: "",
     phoneNumber: "",
     firebaseEmailIdToken: "",

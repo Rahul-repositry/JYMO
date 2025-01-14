@@ -24,7 +24,7 @@ const WaitList = () => {
           withCredentials: true,
         }
       );
-      console.log(response);
+
       if (response.data.success) {
         toast.success("You have been added to the waitlist");
         navigate("/home");

@@ -71,7 +71,7 @@ function AdScanner() {
         setLoading(true);
         await stopScanner(); // Stop the scanner to avoid multiple scans
         const qrData = JSON.parse(decodedText);
-        console.log(qrData);
+
         // && qrData?.jymId && qrData?.jymName
         if (qrData?.app === "jymo") {
           await chqMembershipStatus(qrData);

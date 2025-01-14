@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useSignupUserContext } from "../../../../context/context";
 import { toast } from "react-toastify";
-import Gauth from "../../../../components/Gauth/Gauth";
+// import Gauth from "../../../../components/Gauth/Gauth";
 import CustomButton from "../../../../components/Button/Button";
 import PhoneInput from "./components/PhoneInput.jsx";
 import PasswordInput from "./components/PasswordInput.jsx";
@@ -13,16 +13,17 @@ import "./signup.css";
 const SignUpForm = ({ onShowPersonal }) => {
   const [signupData, updateSignupData] = useSignupUserContext();
   const [otp, setOtp] = useState("");
-  const [mailError, setMailError] = useState("");
+  // const [mailError, setMailError] = useState("");
   const [phoneError, setPhoneError] = useState("");
   const [otpObj, setOtpObj] = useState("");
   const [formData, setFormData] = useState({
     password: "",
     confirm_password: "",
     phoneNumber: "",
+    username: "",
     remember: false,
   });
-  const [currentStep, setCurrentStep] = useState("submit");
+  const [currentStep, setCurrentStep] = useState("otp");
   const [timer, setTimer] = useState(60);
   const [resendEnabled, setResendEnabled] = useState(false);
 
@@ -31,6 +32,13 @@ const SignUpForm = ({ onShowPersonal }) => {
       startTimer();
     }
   }, [currentStep]);
+
+  useEffect(() => {
+    // Reset currentStep to "otp" if phone number changes
+    if (currentStep !== "otp") {
+      setCurrentStep("otp");
+    }
+  }, [formData.phoneNumber]);
 
   const validatePhoneNumber = (e) => {
     const phoneNumber = e.target.value;
@@ -96,21 +104,23 @@ const SignUpForm = ({ onShowPersonal }) => {
     }
   };
 
-  useEffect(() => {
-    console.log({ signupData, formData });
-  }, [signupData, formData]);
+  useEffect(() => {}, [signupData, formData]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (currentStep === "submit") {
-      if (!signupData.email) {
-        setMailError("Register your Gmail with Google");
-        toast.error("Register your Gmail with Google");
-        return;
+    // if (currentStep === "submit") {
+    //   // if (!signupData.email) {
+    //   //   setMailError("Register your Gmail with Google");
+    //   //   toast.error("Register your Gmail with Google");
+    //   //   return;
+    //   // }
+    //   setCurrentStep("otp");
+    // } else
+    if (currentStep === "otp") {
+      if (!formData.username) {
+        toast.error("Please enter a valid username");
       }
-      setCurrentStep("otp");
-    } else if (currentStep === "otp") {
       if (!formData.phoneNumber || phoneError) {
         toast.error("Please enter a valid phone number");
         return;
@@ -126,6 +136,7 @@ const SignUpForm = ({ onShowPersonal }) => {
         const result = response.data;
 
         if (result.status === "success") {
+          toast.success("OTP sent");
           setOtpObj(result.otp);
           setCurrentStep("verify");
         } else {
@@ -154,6 +165,7 @@ const SignUpForm = ({ onShowPersonal }) => {
         if (result.status === "success") {
           setCurrentStep("final");
           updateSignupData({
+            username: formData.username,
             otpObj: {
               otp,
               phoneNumber: formData.phoneNumber,
@@ -193,17 +205,34 @@ const SignUpForm = ({ onShowPersonal }) => {
       className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
       onSubmit={handleSubmit}
     >
-      {signupData.email === "" ? (
+      {/* {signupData.email === "" ? (
         <>
           {mailError && <p className="text-red-500">{mailError}</p>}
           <Gauth />
         </>
       ) : (
         <p className="text-green-600 -translate-y-5">Gmail is Registered</p>
-      )}
+      )} */}
 
       {(currentStep === "otp" || currentStep === "verify") && (
         <>
+          <div>
+            <label
+              htmlFor="password"
+              className="block mb-2 text-sm font-medium text-gray-900"
+            >
+              Name :
+            </label>
+            <input
+              type="text"
+              id="username"
+              className="input-field bg-gray-50 border border-orange-300 text-gray-900 text-sm rounded-lg focus:ring-orange-500 focus:border-orange-500 block w-full p-2.5"
+              placeholder="Name"
+              required
+              value={formData.username}
+              onChange={handleChange}
+            />
+          </div>
           <PhoneInput
             phoneNumber={formData.phoneNumber}
             validatePhoneNumber={validatePhoneNumber}

@@ -22,7 +22,7 @@ let Options = [
   { logo: checklist, text: "Past Records", link: "/profile/pastrecords" },
   {
     logo: email,
-    text: "Change  Gmail",
+    text: "Update  Gmail",
     link: "/profile/updategmail",
   },
   {
@@ -178,6 +178,10 @@ const Profile = () => {
                   referrerPolicy="no-referrer"
                   className="rounded-full w-14"
                   alt="jymo"
+                  onError={(e) => {
+                    e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
+                    e.target.src = process.env.REACT_APP_DEFAULT_IMG;
+                  }}
                 />
               </div>
               <div className="detail min-w-0">
@@ -192,7 +196,15 @@ const Profile = () => {
                 </div>
                 <p className="text-stone-500">{user?.phone}</p>
                 <p className="text-stone-500 pt-2 whitespace-nowrap overflow-hidden text-ellipsis">
-                  {user?.email || "john.doe@gmail.com"}
+                  {user?.email ? (
+                    user?.email
+                  ) : (
+                    <>
+                      <Link to="/profile/updategmail">
+                        <p className=" underline text-black">Update Gmail </p>
+                      </Link>
+                    </>
+                  )}
                 </p>
               </div>
             </div>

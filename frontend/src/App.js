@@ -3,15 +3,16 @@ import { useEffect } from "react";
 import axios from "axios";
 
 import "./index.css";
-import LandingPage from "./pages/website/LandingPage";
-import PrivacyPolicy from "./pages/website/PrivacyPolicy";
-import TermsCondition from "./pages/website/TermsCondition";
-import About from "./pages/website/About";
-import AppNavbar from "./pages/app/User/Navbar/Navbar";
-import Main from "./pages/app/User/SignIn/Main";
-import LogIn from "./pages/app/User/SignIn/LogIn";
-import ForgotPass from "./pages/app/User/SignIn/ForgotPass";
-import ResetPass from "./pages/app/User/SignIn/ResetPass";
+import LandingPage from "./pages/website/LandingPage.jsx";
+import PrivacyPolicy from "./pages/website/PrivacyPolicy.jsx";
+import TermsCondition from "./pages/website/TermsCondition.jsx";
+import About from "./pages/website/About.jsx";
+import AppNavbar from "./pages/app/User/Navbar/Navbar.jsx";
+import Main from "./pages/app/User/SignIn/Main.jsx";
+import LogIn from "./pages/app/User/SignIn/LogIn.jsx";
+import ForgotPass from "./pages/app/User/SignIn/ForgotPass.jsx";
+import ForgotPassword from "./pages/app/User/SignIn/ForgotPassword.jsx";
+import ResetPass from "./pages/app/User/SignIn/ResetPass.jsx";
 import Home from "./pages/app/User/Home/Home.jsx";
 import BottomNavigation from "./components/BottomNavigation/BottomNavigation.jsx";
 import Calendar from "./pages/app/User/Calendar/Calendar.jsx";
@@ -93,7 +94,7 @@ function App() {
         }
       } catch (err) {
         console.error("Error fetching user details:", err);
-        navigate("/login");
+        // navigate("/login");
       }
     };
 
@@ -174,7 +175,8 @@ function App() {
             <Route path="/about" element={<About />} />
             <Route path="/signup" element={<Main />} />
             <Route path="/login" element={<LogIn />} />
-            <Route path="/forgotpassword" element={<ForgotPass />} />
+            {/* <Route path="/forgotpassword" element={<ForgotPass />} /> */}
+            <Route path="/forgotpassword" element={<ForgotPassword />} />
             <Route path="/resetpassword" element={<ResetPass />} />
             <Route path="/waitlist" element={<WaitList />} />
 

@@ -1,4 +1,4 @@
-import FeatureImg from "../../../images/screens.webp";
+import FeatureImg from "../../../images/screens.png";
 import WorkoutSvg from "../../../images/Workout.svg";
 import MembershipSvg from "../../../images/Membership.svg";
 import qrAttendanceSvg from "../../../images/QrAttendance.svg";

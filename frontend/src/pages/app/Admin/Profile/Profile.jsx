@@ -19,7 +19,7 @@ const Profile = () => {
           withCredentials: true,
         }
       );
-      console.log(res);
+
       if (res.data.status) {
         toast.success("You are successfully logut.");
         localStorage.removeItem("adminJym");
