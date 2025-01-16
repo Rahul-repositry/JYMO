@@ -87,7 +87,7 @@ function Scanner() {
         await stopScanner(); // Stop the scanner to avoid multiple scans
         const qrData = JSON.parse(decodedText);
         // && qrData?.jymId && qrData?.jymName
-        if (qrData?.app === "jymo" && qrData?.role === "user") {
+        if (qrData?.app === "jymo" && qrData?.role === "owner") {
           await markAttendance(qrData);
         } else {
           toast.error("Invalid QR code scanned.");
