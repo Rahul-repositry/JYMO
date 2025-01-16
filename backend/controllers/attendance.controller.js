@@ -150,6 +150,12 @@ const markTrialAttendance = async (jymId, userId) => {
   // Get the current date
   const currentDate = new Date();
 
+  // get userduration if its present
+  const userDuration = await UserDurationInJym.findOne({
+    userId: new ObjectId(userData._id),
+    jymId: new ObjectId(jymId),
+  });
+
   // Add 2 days to the current date
   const twoDaysLater = new Date(
     currentDate.getTime() + 2 * 24 * 60 * 60 * 1000
@@ -170,14 +176,19 @@ const markTrialAttendance = async (jymId, userId) => {
     checkIn: currentDate.toISOString(),
   });
 
-  const newUserDuration = new UserDurationInJym({
-    userId: userId,
-    jymId: jymId,
-    isTrialUser: true,
-    trialJoinDate: currentDate.toISOString(),
-  });
-
-  const userDurationObj = await newUserDuration.save();
+  let userDurationObj;
+  if (userDuration) {
+    userDuration.joinDates.push(today.toISOString());
+    await userDuration.save();
+  } else {
+    const newUserDuration = new UserDurationInJym({
+      userId: userId,
+      jymId: jymId,
+      isTrialUser: true,
+      trialJoinDate: currentDate.toISOString(),
+    });
+    userDurationObj = await newUserDuration.save();
+  }
   const attendanceObj = await newAttendance.save();
 
   return {
@@ -217,7 +228,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   isOwner = userId ? true : false;
   userId = userId || req.user?._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
   jymId = jymId || req.jym?._id;
-
   const today = new Date();
   let latestAttendance = await Attendance.findOne({
     userId: new ObjectId(userId),
@@ -225,6 +235,18 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   }).sort({
     createdAt: -1,
   });
+
+  const isToday = compareDates(latestAttendance.createdAt, today.toISOString());
+
+  if (isToday) {
+    latestAttendance.checkOut = today.toISOString();
+    await latestAttendance.save();
+    return res.status(200).json({
+      success: true,
+      message: "Trial period ongoing.",
+      attendance: latestAttendance,
+    });
+  }
 
   if (!latestAttendance) {
     return next(new CustomError("Get register with Jym first", 404));
@@ -250,12 +272,6 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   } else if (latestAttendance.mode === "trial") {
     // Handle trial period attendance
 
-    // this marks lastchqin in user memberhship
-    await updateLastCheckInForMembership(jymId, userId);
-
-    // this  totals chqins to display to dashboard
-    await updateOrCreateCheckInSummary(jymId);
-
     if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
       // Trial period is over, register user
       const attendanceObj = await markAttendance(
@@ -268,7 +284,11 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       );
       await updateUserDurationForBecomingActiveUser(userId, jymId);
       await updateUserJymsdetail(userId, jymId);
+      // this marks lastchqin in user memberhship
+      await updateLastCheckInForMembership(jymId, userId);
 
+      // this  totals chqins to display to dashboard
+      await updateOrCreateCheckInSummary(jymId);
       return res.status(201).json({
         success: true,
         message: "Trial period is over. Attendance marked as registered user.",
@@ -276,34 +296,25 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
       });
     } else {
       // Trial period is ongoing
-      const isToday = compareDates(
-        latestAttendance.createdAt,
-        today.toISOString()
-      );
 
-      if (!isToday) {
-        const attendanceObj = await markAttendance(
-          userId,
-          jymId,
-          "trial",
-          latestAttendance.trialTokenExpiry,
-          true,
-          isOwner
-        );
-        return res.status(200).json({
-          success: true,
-          message: "Trial period ongoing. Today's attendance marked.",
-          attendance: attendanceObj,
-        });
-      } else {
-        latestAttendance.checkOut = today.toISOString();
-        await latestAttendance.save();
-        return res.status(200).json({
-          success: true,
-          message: "Trial period ongoing.",
-          attendance: latestAttendance,
-        });
-      }
+      const attendanceObj = await markAttendance(
+        userId,
+        jymId,
+        "trial",
+        latestAttendance.trialTokenExpiry,
+        true,
+        isOwner
+      );
+      // this marks lastchqin in user memberhship
+      await updateLastCheckInForMembership(jymId, userId);
+
+      // this  totals chqins to display to dashboard
+      await updateOrCreateCheckInSummary(jymId);
+      return res.status(200).json({
+        success: true,
+        message: "Trial period ongoing. Today's attendance marked.",
+        attendance: attendanceObj,
+      });
     }
   } else if (
     latestAttendance.mode === "registered" ||

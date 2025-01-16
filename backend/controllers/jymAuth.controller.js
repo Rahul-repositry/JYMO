@@ -119,24 +119,36 @@ const jymSignup = AsyncErrorHandler(async (req, res, next) => {
 const jymSignin = AsyncErrorHandler(async (req, res, next) => {
   const { jymUniqueId, password } = req.body;
   const ownerId = req.user._id;
+
+  // Validate gym existence
   const validJym = await Jym.findOne({ jymUniqueId: jymUniqueId });
   if (!validJym) return next(new CustomError("Create Jym first", 401));
-  const validPassword = bcryptjs.compareSync(password, validJym.password);
-  if (!validPassword) return next(new CustomError("invalid credentials", 401));
-  const token = jwt.sign({ id: validJym._id }, process.env.JWT_SECRET);
 
+  // Validate password
+  const validPassword = bcryptjs.compareSync(password, validJym.password);
+  if (!validPassword) return next(new CustomError("Invalid credentials", 401));
+
+  // Generate token
+  const token = jwt.sign({ id: validJym._id }, process.env.JWT_SECRET);
   const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
-  let jymobj;
-  if (!validJym.owners.includes(ownerId)) {
+
+  // Ensure ownerId is included in the owners array
+  if (!validJym.owners.some((owner) => owner.equals(ownerId))) {
     validJym.owners.push(ownerId);
-    jymobj = await validJym.save();
+
+    try {
+      await validJym.save(); // Save the updated document
+    } catch (error) {
+      console.error("Failed to update owners array:", error);
+      return next(new CustomError("Unable to update owners. Try again.", 500));
+    }
   }
 
-  res
+  // Respond with a success message
+  return res
     .cookie("access_jymToken", token, {
-      httpOnly: true, // helps  prevent access to cookie through client-side scripting
+      httpOnly: true,
       expires: expiryDate,
-      // secure: true, // helps  with encrypting the cookie and prevents it being sent on httpThe secure: true attribute in the cookie configuration ensures that the cookie is only sent over secure HTTPS connections. However, if your HTTPS setup is not fully trusted (e.g., using a self-signed or invalid certificate), modern browsers will reject the cookie, and it will not be stored.
       secure: process.env.NODE_ENV === "production",
     })
     .status(200)
@@ -146,6 +158,7 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
       jymAdmin: filterJymDetails(validJym),
     });
 });
+
 // chq by asking gpt that why even after res.cookie why cookie is not getting set to frontend
 // const jymId = AsyncErrorHandler(async (req, res, next) => {
 //   const userId = req.user._id;
@@ -269,20 +282,31 @@ const resetPassword = AsyncErrorHandler(async (req, res, next) => {
 
 const logout = AsyncErrorHandler(async (req, res, next) => {
   const ownerId = req.user._id;
+
+  // Find the gym by ID
   const validJym = await Jym.findById({ _id: new ObjectId(req.jym._id) });
 
-  if (!validJym) throw new Error("Jym not found");
-
-  if (!validJym.owners.includes(ownerId)) {
-    validJym.owners.pull(ownerId);
-    await validJym.save();
+  if (!validJym) {
+    return next(new CustomError("Jym not found", 404));
   }
 
-  res.clearCookie("access_jymToken");
-  return res.status(200).json({
-    status: "success",
-    msg: "You are successfully logged out",
-  });
+  // Remove the owner using `filter` if it exists
+  validJym.owners = validJym.owners.filter((owner) => !owner.equals(ownerId));
+
+  // Save the updated document
+  await validJym.save();
+
+  // Send the response while clearing the cookie
+  res
+    .status(200)
+    .clearCookie("access_jymToken", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+    })
+    .json({
+      status: "success",
+      msg: "You are successfully logged out",
+    });
 });
 
 module.exports = {
