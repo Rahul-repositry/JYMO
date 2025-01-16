@@ -73,7 +73,7 @@ function AdScanner() {
         const qrData = JSON.parse(decodedText);
 
         // && qrData?.jymId && qrData?.jymName
-        if (qrData?.app === "jymo") {
+        if (qrData?.app === "jymo" && qrData?.role === "owner") {
           await chqMembershipStatus(qrData);
         } else {
           toast.error("Invalid QR code scanned.");
@@ -162,7 +162,6 @@ function AdScanner() {
 
   return (
     <>
-      {" "}
       {loading ? (
         <Loader />
       ) : (

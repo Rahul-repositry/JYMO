@@ -21,19 +21,19 @@ function Scanner() {
       try {
         const response = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/attendance/regularattendance`,
-          { jymId: jymData.jymId },
+          { jymId: jymData._id },
           { withCredentials: true }
         );
 
         if (response.data.success) {
           const currentJym = {
-            jymId: jymData.jymId,
+            jymId: jymData._id,
             jymName: jymData.jymName,
           };
           setObjectInLocalStorage("currentJym", currentJym);
-
+          console.log(response.data);
           const myJyms = getObjectFromLocalStorage("myJyms") || [];
-          if (!myJyms.some((jym) => jym.jymId === jymData.jymId)) {
+          if (!myJyms.some((jym) => jym.jymId === jymData._id)) {
             myJyms.push(currentJym);
             setObjectInLocalStorage("myJyms", myJyms);
           }
@@ -87,7 +87,7 @@ function Scanner() {
         await stopScanner(); // Stop the scanner to avoid multiple scans
         const qrData = JSON.parse(decodedText);
         // && qrData?.jymId && qrData?.jymName
-        if (qrData?.app === "jymo") {
+        if (qrData?.app === "jymo" && qrData?.role === "user") {
           await markAttendance(qrData);
         } else {
           toast.error("Invalid QR code scanned.");

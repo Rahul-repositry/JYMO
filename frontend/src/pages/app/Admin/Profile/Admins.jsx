@@ -33,7 +33,7 @@ const Admins = () => {
       <div className="admins pt-5">
         {users.map((userObj) => (
           <div
-            className="admin flex border border-gray-500 py-4 rounded-2xl px-3"
+            className="admin flex border my-4 border-gray-500 py-4 rounded-2xl px-3"
             key={userObj._id}
           >
             <div className="img w-12 ">

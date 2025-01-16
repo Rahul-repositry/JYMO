@@ -18,6 +18,7 @@ const Myqr = () => {
         UID: user.userUniqueId,
         username: user.username,
         app: "jymo",
+        role: "user",
       });
     }
   }, []);
