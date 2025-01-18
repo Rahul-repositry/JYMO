@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getQueryParams } from "../../../../utils/helperFunc";
+import {
+  capitalizeFLetter,
+  getQueryParams,
+} from "../../../../utils/helperFunc";
 import useFetchUser from "./useHooks/useFetchUser";
 import useMembership from "./useHooks/useMembership";
 import Membership from "../../User/Home/Component/Membership";
@@ -201,6 +204,15 @@ const Member = () => {
         />
       )}
       <div className="wrapper mx-4">
+        <div className="userDetails my-3">
+          <h2 className="text-xl font-semibold ">
+            {user ? capitalizeFLetter(user?.username) : ""}
+          </h2>
+
+          <p className="text-gray-500 my-1">
+            Phone No. - {user ? user?.phone : ""}
+          </p>
+        </div>
         {user && !status.Register && (
           <Membership user={user} membership={membership} />
         )}

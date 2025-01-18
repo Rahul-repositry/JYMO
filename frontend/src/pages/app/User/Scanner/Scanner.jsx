@@ -31,7 +31,7 @@ function Scanner() {
             jymName: jymData.jymName,
           };
           setObjectInLocalStorage("currentJym", currentJym);
-          console.log(response.data);
+
           const myJyms = getObjectFromLocalStorage("myJyms") || [];
           if (!myJyms.some((jym) => jym.jymId === jymData._id)) {
             myJyms.push(currentJym);
@@ -140,7 +140,7 @@ function Scanner() {
       const jymData = response.data.data;
 
       if (jymData?._id && jymData?.name) {
-        await markAttendance({ jymId: jymData._id, jymName: jymData.name });
+        await markAttendance({ _id: jymData._id, jymName: jymData.name });
       } else {
         throw new Error("Invalid JUID provided.");
       }

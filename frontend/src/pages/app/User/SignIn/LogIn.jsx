@@ -86,7 +86,7 @@ const LogIn = () => {
           toast.success("Login successful!");
           // Add navigation to the dashboard or home page if needed
           setObjectInLocalStorage("user", data.user);
-          console.log("is navigation happen");
+
           navigate("/home");
           return;
         }

@@ -2,6 +2,7 @@ import React from "react";
 import { format as formatDate, differenceInDays } from "date-fns";
 
 const Membership = ({ user, membership }) => {
+  console.log(user);
   const remainingDays = membership.endDate
     ? differenceInDays(new Date(membership.endDate), new Date())
     : 0;
