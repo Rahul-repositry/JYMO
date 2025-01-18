@@ -152,7 +152,7 @@ const markTrialAttendance = async (jymId, userId) => {
 
   // get userduration if its present
   const userDuration = await UserDurationInJym.findOne({
-    userId: new ObjectId(userData._id),
+    userId: new ObjectId(userId),
     jymId: new ObjectId(jymId),
   });
 
@@ -178,7 +178,7 @@ const markTrialAttendance = async (jymId, userId) => {
 
   let userDurationObj;
   if (userDuration) {
-    userDuration.joinDates.push(today.toISOString());
+    userDuration.joinDates.push(currentDate.toISOString());
     await userDuration.save();
   } else {
     const newUserDuration = new UserDurationInJym({
@@ -220,6 +220,167 @@ const gapDays = (lastChqIn) => {
 };
 
 //make attendance registratiton by admins
+// const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
+//   // here jymId means jymUnique Id
+
+//   let { jymId, userId } = req.body;
+//   console.log("body", req.body);
+//   let isOwner = false;
+//   isOwner = userId ? true : false;
+//   userId = userId || req.user?._id; // if user mark attendance then no need for userid but if owner mark attendnace then send userid as userIdFromBody
+//   jymId = jymId || req.jym?._id;
+//   const today = new Date();
+//   let latestAttendance = await Attendance.findOne({
+//     userId: new ObjectId(userId),
+//     jymId: new ObjectId(jymId),
+//   }).sort({
+//     createdAt: -1,
+//   });
+//   console.log(latestAttendance, { userId, jymId });
+//   if (!latestAttendance) {
+//     return next(new CustomError("Get register with Jym first", 404));
+//   } else {
+//     if (latestAttendance.userId) {
+//       const isToday = compareDates(
+//         latestAttendance.createdAt,
+//         today.toISOString()
+//       );
+
+//       if (isToday) {
+//         latestAttendance.checkOut = today.toISOString();
+//         await latestAttendance.save();
+//         return res.status(200).json({
+//           success: true,
+//           message: " Chekout is marked.",
+//           attendance: latestAttendance,
+//         });
+//       }
+//     } else if (
+//       gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ
+//     ) {
+//       return next(
+//         new CustomError(
+//           "Owner has to register again you came after a long time",
+//           404
+//         )
+//       );
+//     } else if (latestAttendance.mode === "inactive") {
+//       return next(
+//         new CustomError("Owner has to activate your membership", 404)
+//       );
+//     } else if (latestAttendance.mode === "register") {
+//       //this marks the attendance
+//       let obj = await markTrialAttendance(jymId, userId);
+
+//       // this marks lastchqin in user memberhship
+//       await updateLastCheckInForMembership(jymId, userId);
+
+//       // this  totals chqins to display to dashboard
+//       await updateOrCreateCheckInSummary(jymId);
+//       return res.status(200).json(obj);
+//     } else if (latestAttendance.mode === "trial") {
+//       // Handle trial period attendance
+
+//       if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
+//         // Trial period is over, register user
+//         const attendanceObj = await markAttendance(
+//           userId,
+//           jymId,
+//           "registered",
+//           undefined,
+//           false,
+//           isOwner
+//         );
+//         await updateUserDurationForBecomingActiveUser(userId, jymId);
+//         await updateUserJymsdetail(userId, jymId);
+//         // this marks lastchqin in user memberhship
+//         await updateLastCheckInForMembership(jymId, userId);
+
+//         // this  totals chqins to display to dashboard
+//         await updateOrCreateCheckInSummary(jymId);
+//         return res.status(201).json({
+//           success: true,
+//           message:
+//             "Trial period is over. Attendance marked as registered user.",
+//           attendance: attendanceObj,
+//         });
+//       } else {
+//         // Trial period is ongoing
+
+//         const attendanceObj = await markAttendance(
+//           userId,
+//           jymId,
+//           "trial",
+//           latestAttendance.trialTokenExpiry,
+//           true,
+//           isOwner
+//         );
+//         // this marks lastchqin in user memberhship
+//         await updateLastCheckInForMembership(jymId, userId);
+
+//         // this  totals chqins to display to dashboard
+//         await updateOrCreateCheckInSummary(jymId);
+//         return res.status(200).json({
+//           success: true,
+//           message: "Trial period ongoing. Today's attendance marked.",
+//           attendance: attendanceObj,
+//         });
+//       }
+//     } else if (
+//       latestAttendance.mode === "registered" ||
+//       latestAttendance.mode === "registerAgain"
+//     ) {
+//       // Handle registered user attendance
+
+//       const isToday = compareDates(
+//         latestAttendance.checkIn,
+//         today.toISOString()
+//       );
+
+//       if (!isToday) {
+//         const attendanceObj = await markAttendance(
+//           userId,
+//           jymId,
+//           "registered",
+//           undefined,
+//           false,
+//           isOwner
+//         );
+
+//         // this marks lastchqin in user memberhship
+//         await updateLastCheckInForMembership(jymId, userId);
+
+//         // this  totals chqins to display to dashboard
+//         await updateOrCreateCheckInSummary(jymId);
+
+//         return res.status(201).json({
+//           success: true,
+//           message: "Attendance marked successfully.",
+//           attendance: attendanceObj,
+//         });
+//       } else if (isToday && !latestAttendance.checkOut) {
+//         latestAttendance.checkOut = today.toISOString();
+//         await latestAttendance.save();
+//         return res.status(200).json({
+//           success: true,
+//           message: "Checkout time updated.",
+//           attendance: latestAttendance,
+//         });
+//       } else {
+//         return res.status(200).json({
+//           success: true,
+//           message: "Today's attendance has been marked. .",
+//           attendance: latestAttendance,
+//         });
+//       }
+//     }
+
+//     // If user is not registered, default response
+//     return next(new CustomError("Get register again in Jym", 500));
+//   }
+// });
+
+//make attendance registratiton by admins
 const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
   // here jymId means jymUnique Id
 
@@ -236,134 +397,145 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
     createdAt: -1,
   });
 
-  const isToday = compareDates(latestAttendance.createdAt, today.toISOString());
-
-  if (isToday) {
-    latestAttendance.checkOut = today.toISOString();
-    await latestAttendance.save();
-    return res.status(200).json({
-      success: true,
-      message: "Trial period ongoing.",
-      attendance: latestAttendance,
-    });
-  }
-
   if (!latestAttendance) {
     return next(new CustomError("Get register with Jym first", 404));
-  } else if (gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ) {
-    return next(
-      new CustomError(
-        "Owner has to register again you came after a long time",
-        404
-      )
+  } else {
+    const isToday = compareDates(
+      latestAttendance.createdAt,
+      today.toISOString()
     );
-  } else if (latestAttendance.mode === "inactive") {
-    return next(new CustomError("Owner has to activate your membership", 404));
-  } else if (latestAttendance.mode === "register") {
-    //this marks the attendance
-    let obj = await markTrialAttendance(jymId, userId);
 
-    // this marks lastchqin in user memberhship
-    await updateLastCheckInForMembership(jymId, userId);
-
-    // this  totals chqins to display to dashboard
-    await updateOrCreateCheckInSummary(jymId);
-    return res.status(200).json(obj);
-  } else if (latestAttendance.mode === "trial") {
-    // Handle trial period attendance
-
-    if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
-      // Trial period is over, register user
-      const attendanceObj = await markAttendance(
-        userId,
-        jymId,
-        "registered",
-        undefined,
-        false,
-        isOwner
-      );
-      await updateUserDurationForBecomingActiveUser(userId, jymId);
-      await updateUserJymsdetail(userId, jymId);
-      // this marks lastchqin in user memberhship
-      await updateLastCheckInForMembership(jymId, userId);
-
-      // this  totals chqins to display to dashboard
-      await updateOrCreateCheckInSummary(jymId);
-      return res.status(201).json({
-        success: true,
-        message: "Trial period is over. Attendance marked as registered user.",
-        attendance: attendanceObj,
-      });
-    } else {
-      // Trial period is ongoing
-
-      const attendanceObj = await markAttendance(
-        userId,
-        jymId,
-        "trial",
-        latestAttendance.trialTokenExpiry,
-        true,
-        isOwner
-      );
-      // this marks lastchqin in user memberhship
-      await updateLastCheckInForMembership(jymId, userId);
-
-      // this  totals chqins to display to dashboard
-      await updateOrCreateCheckInSummary(jymId);
-      return res.status(200).json({
-        success: true,
-        message: "Trial period ongoing. Today's attendance marked.",
-        attendance: attendanceObj,
-      });
-    }
-  } else if (
-    latestAttendance.mode === "registered" ||
-    latestAttendance.mode === "registerAgain"
-  ) {
-    // Handle registered user attendance
-
-    const isToday = compareDates(latestAttendance.checkIn, today.toISOString());
-
-    if (!isToday) {
-      const attendanceObj = await markAttendance(
-        userId,
-        jymId,
-        "registered",
-        undefined,
-        false,
-        isOwner
-      );
-
-      // this marks lastchqin in user memberhship
-      await updateLastCheckInForMembership(jymId, userId);
-
-      // this  totals chqins to display to dashboard
-      await updateOrCreateCheckInSummary(jymId);
-
-      return res.status(201).json({
-        success: true,
-        message: "Attendance marked successfully.",
-        attendance: attendanceObj,
-      });
-    } else if (isToday && !latestAttendance.checkOut) {
+    if (isToday) {
       latestAttendance.checkOut = today.toISOString();
       await latestAttendance.save();
       return res.status(200).json({
         success: true,
-        message: "Checkout time updated.",
+        message: "Trial period ongoing.",
         attendance: latestAttendance,
       });
-    } else {
-      return res.status(200).json({
-        success: true,
-        message: "Today's attendance has been marked. .",
-        attendance: latestAttendance,
-      });
-    }
-  }
+    } else if (
+      gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ
+    ) {
+      return next(
+        new CustomError(
+          "Owner has to register again you came after a long time",
+          404
+        )
+      );
+    } else if (latestAttendance.mode === "inactive") {
+      return next(
+        new CustomError("Owner has to activate your membership", 404)
+      );
+    } else if (latestAttendance.mode === "register") {
+      //this marks the attendance
+      let obj = await markTrialAttendance(jymId, userId);
 
-  // If user is not registered, default response
-  return next(new CustomError("Get register again in Jym", 500));
+      // this marks lastchqin in user memberhship
+      await updateLastCheckInForMembership(jymId, userId);
+
+      // this  totals chqins to display to dashboard
+      await updateOrCreateCheckInSummary(jymId);
+      return res.status(200).json(obj);
+    } else if (latestAttendance.mode === "trial") {
+      // Handle trial period attendance
+
+      if (new Date() > new Date(latestAttendance.trialTokenExpiry)) {
+        // Trial period is over, register user
+        const attendanceObj = await markAttendance(
+          userId,
+          jymId,
+          "registered",
+          undefined,
+          false,
+          isOwner
+        );
+        await updateUserDurationForBecomingActiveUser(userId, jymId);
+        await updateUserJymsdetail(userId, jymId);
+        // this marks lastchqin in user memberhship
+        await updateLastCheckInForMembership(jymId, userId);
+
+        // this  totals chqins to display to dashboard
+        await updateOrCreateCheckInSummary(jymId);
+        return res.status(201).json({
+          success: true,
+          message:
+            "Trial period is over. Attendance marked as registered user.",
+          attendance: attendanceObj,
+        });
+      } else {
+        // Trial period is ongoing
+
+        const attendanceObj = await markAttendance(
+          userId,
+          jymId,
+          "trial",
+          latestAttendance.trialTokenExpiry,
+          true,
+          isOwner
+        );
+        // this marks lastchqin in user memberhship
+        await updateLastCheckInForMembership(jymId, userId);
+
+        // this  totals chqins to display to dashboard
+        await updateOrCreateCheckInSummary(jymId);
+        return res.status(200).json({
+          success: true,
+          message: "Trial period ongoing. Today's attendance marked.",
+          attendance: attendanceObj,
+        });
+      }
+    } else if (
+      latestAttendance.mode === "registered" ||
+      latestAttendance.mode === "registerAgain"
+    ) {
+      // Handle registered user attendance
+
+      const isToday = compareDates(
+        latestAttendance.checkIn,
+        today.toISOString()
+      );
+
+      if (!isToday) {
+        const attendanceObj = await markAttendance(
+          userId,
+          jymId,
+          "registered",
+          undefined,
+          false,
+          isOwner
+        );
+
+        // this marks lastchqin in user memberhship
+        await updateLastCheckInForMembership(jymId, userId);
+
+        // this  totals chqins to display to dashboard
+        await updateOrCreateCheckInSummary(jymId);
+
+        return res.status(201).json({
+          success: true,
+          message: "Attendance marked successfully.",
+          attendance: attendanceObj,
+        });
+      } else if (isToday && !latestAttendance.checkOut) {
+        latestAttendance.checkOut = today.toISOString();
+        await latestAttendance.save();
+        return res.status(200).json({
+          success: true,
+          message: "Checkout time updated.",
+          attendance: latestAttendance,
+        });
+      } else {
+        return res.status(200).json({
+          success: true,
+          message: "Today's attendance has been marked. .",
+          attendance: latestAttendance,
+        });
+      }
+    }
+
+    // If user is not registered, default response
+    return next(new CustomError("Get register again in Jym", 500));
+  }
 });
 
 const getAttendanceByDate = AsyncErrorHandler(async (req, res, next) => {
