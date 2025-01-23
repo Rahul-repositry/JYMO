@@ -5,8 +5,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+    "start": "TZ=Asia/Kolkata node index.js",
+    "dev": "TZ=Asia/Kolkata nodemon index.js"
   },
   "keywords": [],
   "author": "",

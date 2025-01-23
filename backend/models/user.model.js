@@ -18,8 +18,7 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      unique: true,
-      sparse: true, // Ensures the unique constraint ignores null or missing values
+      default: "",
     },
     password: {
       type: String,

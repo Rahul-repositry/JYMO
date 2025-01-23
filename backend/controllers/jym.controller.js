@@ -1,3 +1,4 @@
+const { startOfMonth, startOfWeek } = require("date-fns");
 const CheckInSummary = require("../models/checkInSummary.model.js");
 const Jym = require("../models/jym.model.js");
 const Membership = require("../models/membership.model.js");
@@ -65,18 +66,12 @@ const getJymById = AsyncErrorHandler(async (req, res, next) => {
 const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
   const jymId = req.jym._id;
   const currentDate = new Date();
-  const startOfMonth = new Date(
-    currentDate.getFullYear(),
-    currentDate.getMonth(),
-    1
-  );
+
+  // Calculate the start of the month
+  const startOfMonthIST = startOfMonth(currentDate);
 
   // Calculate the start of the current week (Monday)
-  const startOfWeek = new Date(currentDate);
-  const dayOfWeek = startOfWeek.getDay();
-  const diff = (dayOfWeek + 6) % 7; // Move back to Monday
-  startOfWeek.setDate(currentDate.getDate() - diff);
-  startOfWeek.setHours(0, 0, 0, 0);
+  const startOfWeekIST = startOfWeek(currentDate, { weekStartsOn: 1 }); // Week starts on Monday
 
   const FIFTEEN_DAYS = process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
   const FIVE_DAYS =
@@ -166,7 +161,7 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
           ],
           totalRevenue: [
             {
-              $match: { createdAt: { $gte: startOfMonth } },
+              $match: { createdAt: { $gte: startOfMonthIST } },
             },
             {
               $group: {
@@ -214,7 +209,7 @@ const getDashboardStats = AsyncErrorHandler(async (req, res, next) => {
     // Fetch check-ins for the current week with .lean()
     const chqInSummaryOfJym = await CheckInSummary.findOne({
       jymId: jymId,
-      startOfWeek: startOfWeek,
+      startOfWeek: startOfWeekIST,
     }).lean(); // .lean() to avoid circular references
 
     // Aggregation for gender counts

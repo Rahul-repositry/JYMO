@@ -15,7 +15,6 @@ const CustomError = require("../utils/CustomError.utils.js");
 const OTP = require("../models/OTP.model.js");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const axios = require("axios");
-const { filterUserDetails } = require("../utils/ImpFunc.js");
 const { ObjectId } = require("mongoose").Types;
 
 // Other code using these imports
@@ -157,7 +156,6 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
   const newUser = new User({
     username,
     age,
-    // email: firebaseUser.email,
     password: hashedPassword,
     phone: phoneNumber,
     birthday,
@@ -441,7 +439,7 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
   }
 
   const otpPass = generateOTP();
-
+  // console.log(otpPass);
   const options = {
     method: "GET",
     url: "https://www.fast2sms.com/dev/bulkV2",
@@ -465,7 +463,7 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
     // Store the OTP in the database
     const otp = await storeOTP(phoneNumber, otpPass);
-    // console.log(otp);
+
     // Respond with success
     return res.status(200).json({
       status: "success",
