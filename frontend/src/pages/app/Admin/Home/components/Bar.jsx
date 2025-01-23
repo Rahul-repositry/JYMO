@@ -100,7 +100,7 @@ const BarComp = ({ dataArr }) => {
       <div className="details py-2 flex flex-col gap-2 mb-5">
         <p className="text-slate-700"> Today's Check-ins</p>
         <p className="text-3xl font-bold ">{todayChqIn}</p>
-        <p className="text-slate-400 "> Past 7 days report </p>
+        <p className="text-slate-400 "> This Week report </p>
       </div>
       <div className="bar h-[350px] md:h-[500px]">
         {/* Add Bar Chart component here */}

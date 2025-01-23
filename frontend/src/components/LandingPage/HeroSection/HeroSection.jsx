@@ -32,8 +32,8 @@ const HeroSection = () => {
             boost engagement with our all-in-one gym management app.
           </p>
         </div>
-        <div className="button text-xl font-bold text-white text-bor tracking-wide">
-          <p className="">
+        <div className="button text-xl bg-customButton  rounded-lg py-2 px-3 font-bold text-white text-bor tracking-wide">
+          <p className=" ">
             <Link to="/home">Get Started Free</Link>
           </p>
         </div>

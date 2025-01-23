@@ -3,6 +3,7 @@ import axios from "axios";
 import PhoneInput from "../SignIn/components/PhoneInput";
 import OTPInput from "../SignIn/components/OTPInput";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 const UpdatePhone = () => {
   const [data, setData] = useState({
@@ -14,6 +15,7 @@ const UpdatePhone = () => {
   const [phoneError, setPhoneError] = useState("");
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   // Validating Phone Number
   const validatePhoneNumber = (e) => {
@@ -39,15 +41,14 @@ const UpdatePhone = () => {
         }
       );
       setLoading(false);
-      if (response.data.success) {
+
+      if (response.data.status === "success") {
         setOtpSent(true);
         toast.success("OTP sent successfully");
         setData((prev) => ({
           ...prev,
           idToken: response.data.idToken, // Store idToken received from the response
         }));
-      } else {
-        toast.error(response.data.message);
       }
     } catch (error) {
       setLoading(false);
@@ -65,7 +66,7 @@ const UpdatePhone = () => {
       setLoading(true);
 
       const response = await axios.post(
-        `${process.env.REACT_APP_BACKEND_URI}/api/user/updatephone`,
+        `${process.env.REACT_APP_BACKEND_URI}/api/user/updateuserphone`,
         {
           phoneNumber: data.phoneNumber,
           otp: data.otp, // OTP entered by the user
@@ -73,17 +74,27 @@ const UpdatePhone = () => {
         },
         {
           headers: { "Content-Type": "application/json" },
+          withCredentials: true,
         }
       );
       setLoading(false);
       if (response.data.success) {
         toast.success("Phone number updated successfully");
+        navigate("/profile");
+        return;
       } else {
         toast.error(response.data.message);
       }
     } catch (error) {
       setLoading(false);
-      toast.error("Failed to update phone number. Please try again.");
+      if (error?.response?.data?.message === "Invalid OTP") {
+        window.location.reload();
+        toast.error("Invalid OTP");
+        return;
+      }
+      toast.error(
+        error?.response?.data?.message || "Failed to update phone number.."
+      );
     }
   };
 

@@ -124,17 +124,21 @@ const Profile = () => {
   }, [fetchJymDetails, navigate]);
 
   const handleJymChange = async (e) => {
-    const selectedJymId = e.target.value; // Get selected jym's ID
-    const newJymData = await fetchJymDetails(selectedJymId); // Fetch gym details based on the ID
-    if (newJymData) {
-      setObjectInLocalStorage("currentJym", {
-        jymId: newJymData._id,
-        jymName: newJymData.name,
-      });
-      setCurrentJym(newJymData); // Update current gym
+    const selectedJymName = e.target.value; // Get selected jym's ID
+    myJyms.forEach(async (element) => {
+      if (element.jymName === selectedJymName) {
+        const newJymData = await fetchJymDetails(element.jymId); // Fetch gym details based on the ID
+        if (newJymData) {
+          setObjectInLocalStorage("currentJym", {
+            jymId: newJymData._id,
+            jymName: newJymData.name,
+          });
+          setCurrentJym(newJymData); // Update current gym
 
-      window.location.reload();
-    }
+          window.location.reload();
+        }
+      }
+    });
   };
 
   const handleLogout = async () => {
@@ -269,6 +273,7 @@ const Profile = () => {
                   id="jyms"
                   className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-customButton focus:border-customButton block w-full p-2.5"
                   onChange={handleJymChange}
+                  value={currentJym.name}
                 >
                   <option defaultValue={currentJym.name} disabled>
                     {currentJym.name}

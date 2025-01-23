@@ -131,7 +131,6 @@ const UpdateUser = () => {
         navigate("/profile");
       }
     } catch (error) {
-      console.log(error);
       toast.error(
         error?.response?.data?.message || "An error occurred. Please try again."
       );

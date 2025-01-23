@@ -96,7 +96,7 @@ const Navbar = () => {
           )}
 
           <div
-            className="rounded-full ml-3 flex place-content-center items-center border bg-gray-100 border-slate-500 w-8 cursor-pointer"
+            className="rounded-full ml-3 flex place-content-center items-center border bg-gray-100 border-slate-500 w-8 cursor-pointer hover:bg-customButton"
             onClick={() => window.location.reload()}
           >
             <svg
@@ -108,10 +108,10 @@ const Navbar = () => {
               viewBox="0 0 489.711 489.711"
               stroke="#858585"
             >
-              <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+              <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
               <g
                 id="SVGRepo_tracerCarrier"
-                strokeLnecap="round"
+                strokeLinecap="round"
                 strokeLinejoin="round"
               ></g>
               <g id="SVGRepo_iconCarrier">

@@ -83,7 +83,6 @@ const LogIn = () => {
         if (data.success === false) {
           toast.error(`${data.message}`);
         } else {
-          toast.success("Login successful!");
           // Add navigation to the dashboard or home page if needed
           setObjectInLocalStorage("user", data.user);
 

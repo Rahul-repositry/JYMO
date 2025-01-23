@@ -3,6 +3,7 @@ import Gauth from "../../../../components/Gauth/Gauth";
 import axios from "axios";
 import { toast } from "react-toastify";
 import Modal from "react-modal";
+import { useNavigate } from "react-router";
 
 const UpdateGmail = () => {
   const [updateData, setUpdateData] = useState({
@@ -10,7 +11,7 @@ const UpdateGmail = () => {
   });
   const [showModal, setShowModal] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-
+  const navigate = useNavigate();
   useEffect(() => {
     const updateUserEmail = async () => {
       if (updateData.firebaseEmailIdToken && confirmed) {
@@ -22,9 +23,9 @@ const UpdateGmail = () => {
           );
           if (data.success) {
             toast.success("User Gmail updated successfully!");
+            navigate("/profile");
           }
         } catch (error) {
-          console.log(error);
           toast.error(
             error?.response?.data?.message ||
               "An error occurred. Please try again."

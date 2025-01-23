@@ -57,7 +57,7 @@ const UserSearch = () => {
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
-      toast.error("Enter a valid UID or Phone-number !!");
+      toast.error(" Scan User QR To Register !!");
     }
   };
 

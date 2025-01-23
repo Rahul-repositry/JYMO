@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 import InputField from "../InputFeild/InputField";
+import { useNavigate } from "react-router";
 
 // Custom Input Field Component
 
@@ -54,7 +55,7 @@ const EditWorkout = () => {
   const [selectedDay, setSelectedDay] = useState("");
   const [title, setTitle] = useState("");
   const [exercisePlans, setExercisePlans] = useState([]);
-
+  const navigate = useNavigate();
   const fetchWorkoutDataByDay = async () => {
     try {
       const response = await axios.get(
@@ -160,7 +161,9 @@ const EditWorkout = () => {
       if (response.data.success) {
         toast.success(response.data.message);
         setTitle("");
+
         setExercisePlans([{ exercise: "", sets: "", reps: "", duration: "" }]);
+        navigate("/home");
         return;
       }
 
