@@ -103,24 +103,54 @@ function Scanner() {
     [markAttendance, reinitializeScanner, setLoading, stopScanner]
   );
 
+  // const initScanner = useCallback(async () => {
+  //   if (!readerRef.current || html5QrCodeRef.current) return;
+
+  //   html5QrCodeRef.current = new Html5Qrcode(readerRef?.current.id || "reader");
+  //   try {
+  //     // Access camera stream
+  //     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  //     stream.getTracks().forEach((track) => track.stop());
+
+  //     // streamRef.current = stream; // Store the stream reference
+
+  //     await html5QrCodeRef.current.start(
+  //       { facingMode: "environment" },
+  //       { fps: 10, qrbox: { width: 250, height: 250 } },
+  //       onScanSuccess
+  //     );
+  //   } catch (error) {
+  //     console.error("Failed to start QR code scanner:", error);
+  //   }
+  // }, [onScanSuccess]);
+
   const initScanner = useCallback(async () => {
     if (!readerRef.current || html5QrCodeRef.current) return;
 
-    html5QrCodeRef.current = new Html5Qrcode(readerRef?.current.id || "reader");
     try {
-      // Access camera stream
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      stream.getTracks().forEach((track) => track.stop());
+      const cameras = await Html5Qrcode.getCameras();
+      if (cameras.length === 0) {
+        toast.error("No cameras found.");
+        return;
+      }
 
-      // streamRef.current = stream; // Store the stream reference
+      // Find the first rear-facing camera
+      const rearCamera = cameras.find((camera) =>
+        camera.label.toLowerCase().includes("back")
+      );
 
+      // Fallback to last camera in the list if no label contains "back"
+      const selectedCamera = rearCamera || cameras[cameras.length - 1];
+
+      html5QrCodeRef.current = new Html5Qrcode(readerRef.current.id);
       await html5QrCodeRef.current.start(
-        { facingMode: "environment" },
+        selectedCamera.id,
         { fps: 10, qrbox: { width: 250, height: 250 } },
         onScanSuccess
       );
     } catch (error) {
       console.error("Failed to start QR code scanner:", error);
+      toast.error("Failed to start scanner.");
     }
   }, [onScanSuccess]);
 
