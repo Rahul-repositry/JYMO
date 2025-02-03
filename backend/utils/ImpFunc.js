@@ -128,85 +128,28 @@ const updateLastCheckInForMembership = async (jymId, userId, status) => {
  * @returns {Promise} - The updated or created CheckInSummary document.
  */
 
-// const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
-//   const currentDate = new Date();
-//   currentDate.setHours(0, 0, 0, 0);
-
-//   // Calculate the start of the current week (Monday)
-//   const startOfWeek = new Date(currentDate);
-//   const dayOfWeek = startOfWeek.getDay();
-//   const diff = (dayOfWeek + 6) % 7; // Move back to Monday
-//   startOfWeek.setDate(currentDate.getDate() - diff);
-//   startOfWeek.setHours(0, 0, 0, 0);
-
-//   try {
-//     // Find the current week summary for the specific gym
-//     let summary = await CheckInSummary.findOne({
-//       jymId: jymId,
-//       startOfWeek: startOfWeek,
-//     });
-
-//     if (summary) {
-//       // Check if today's date exists in checkInArr
-//       const existingEntry = summary.checkInArr.find(
-//         (entry) => entry.date.getTime() === currentDate.getTime()
-//       );
-
-//       if (existingEntry) {
-//         // If today's entry exists, update the totalCheckIns
-//         existingEntry.totalCheckIns += checkInCount;
-//       } else {
-//         // If today's entry doesn't exist, push a new entry
-//         summary.checkInArr.push({
-//           date: currentDate,
-//           totalCheckIns: checkInCount,
-//         });
-//       }
-//     } else {
-//       // If no summary exists for the week, create a new one
-//       summary = new CheckInSummary({
-//         jymId: jymId,
-//         startOfWeek: startOfWeek,
-//         checkInArr: [
-//           {
-//             date: currentDate,
-//             totalCheckIns: checkInCount,
-//           },
-//         ],
-//       });
-//     }
-
-//     // Save or update the summary
-//     await summary.save();
-//     return summary;
-//   } catch (error) {
-//     console.error("Error updating or creating check-in summary:", error);
-//     throw error;
-//   }
-// };
-
 const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
-  // IST offset in minutes (5 hours 30 minutes)
-  const IST_OFFSET_MINUTES = 5.5 * 60;
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
 
-  // Get the current date in UTC and shift to IST
-  const nowUTC = new Date();
-  const currentDate = startOfDay(addMinutes(nowUTC, IST_OFFSET_MINUTES)); // Start of day in IST
-
-  // Calculate the start of the current week (Monday) based on IST
-  const startOfWeekIST = startOfWeek(currentDate, { weekStartsOn: 1 }); // Week starts on Monday
+  // Calculate the start of the current week (Monday)
+  const startOfWeek = new Date(currentDate);
+  const dayOfWeek = startOfWeek.getDay();
+  const diff = (dayOfWeek + 6) % 7; // Move back to Monday
+  startOfWeek.setDate(currentDate.getDate() - diff);
+  startOfWeek.setHours(0, 0, 0, 0);
 
   try {
     // Find the current week summary for the specific gym
     let summary = await CheckInSummary.findOne({
       jymId: jymId,
-      startOfWeek: startOfWeekIST,
+      startOfWeek: startOfWeek,
     });
 
     if (summary) {
       // Check if today's date exists in checkInArr
-      const existingEntry = summary.checkInArr.find((entry) =>
-        isSameDay(entry.date, currentDate)
+      const existingEntry = summary.checkInArr.find(
+        (entry) => entry.date.getTime() === currentDate.getTime()
       );
 
       if (existingEntry) {
@@ -223,7 +166,7 @@ const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
       // If no summary exists for the week, create a new one
       summary = new CheckInSummary({
         jymId: jymId,
-        startOfWeek: startOfWeekIST,
+        startOfWeek: startOfWeek,
         checkInArr: [
           {
             date: currentDate,
@@ -241,6 +184,63 @@ const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
     throw error;
   }
 };
+
+// const updateOrCreateCheckInSummary = async (jymId, checkInCount = 1) => {
+//   // IST offset in minutes (5 hours 30 minutes)
+//   const IST_OFFSET_MINUTES = 5.5 * 60;
+
+//   // Get the current date in UTC and shift to IST
+//   const nowUTC = new Date();
+//   const currentDate = startOfDay(addMinutes(nowUTC, IST_OFFSET_MINUTES)); // Start of day in IST
+
+//   // Calculate the start of the current week (Monday) based on IST
+//   const startOfWeekIST = startOfWeek(currentDate, { weekStartsOn: 1 }); // Week starts on Monday
+
+//   try {
+//     // Find the current week summary for the specific gym
+//     let summary = await CheckInSummary.findOne({
+//       jymId: jymId,
+//       startOfWeek: startOfWeekIST,
+//     });
+
+//     if (summary) {
+//       // Check if today's date exists in checkInArr
+//       const existingEntry = summary.checkInArr.find((entry) =>
+//         isSameDay(entry.date, currentDate)
+//       );
+
+//       if (existingEntry) {
+//         // If today's entry exists, update the totalCheckIns
+//         existingEntry.totalCheckIns += checkInCount;
+//       } else {
+//         // If today's entry doesn't exist, push a new entry
+//         summary.checkInArr.push({
+//           date: currentDate,
+//           totalCheckIns: checkInCount,
+//         });
+//       }
+//     } else {
+//       // If no summary exists for the week, create a new one
+//       summary = new CheckInSummary({
+//         jymId: jymId,
+//         startOfWeek: startOfWeekIST,
+//         checkInArr: [
+//           {
+//             date: currentDate,
+//             totalCheckIns: checkInCount,
+//           },
+//         ],
+//       });
+//     }
+
+//     // Save or update the summary
+//     await summary.save();
+//     return summary;
+//   } catch (error) {
+//     console.error("Error updating or creating check-in summary:", error);
+//     throw error;
+//   }
+// };
 
 module.exports = {
   checkCooldown,
