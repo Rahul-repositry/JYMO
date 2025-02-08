@@ -266,6 +266,22 @@
   <body style="background-color: black">
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root" style="background-color: white"></div>
+    <script defer>
+      document.addEventListener("DOMContentLoaded", function () {
+        const rootDiv = document.getElementById("root");
+
+        function checkAndReload() {
+          if (!rootDiv.querySelector(".app")) {
+            console.warn("App content not found! Reloading...");
+            setTimeout(() => location.reload(), 500); // Small delay to prevent aggressive reloads
+          }
+        }
+
+        // Check after 1 second (ensures React has time to render)
+        setTimeout(checkAndReload, 1000);
+      });
+    </script>
+
     <!--
       This HTML file is a template.
       If you open it directly in the browser, you will see an empty page.
