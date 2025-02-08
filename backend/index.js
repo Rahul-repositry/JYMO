@@ -67,4 +67,10 @@ app.get("*", (req, res) => {
 });
 app.use(globalErrorHandler);
 
-app.listen(port, () => console.log("server running on " + port + " port"));
+app.listen(port, () => {
+  console.log("server running on " + port + " port");
+  // Send "ready" signal to PM2
+  if (process.send) {
+    process.send("ready");
+  }
+});
