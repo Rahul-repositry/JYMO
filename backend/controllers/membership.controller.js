@@ -40,6 +40,9 @@ const renewMembership = AsyncErrorHandler(async (req, res, next) => {
     return next(new CustomError("Create Membership First to renew it .", 404));
   }
 
+  latestMembership.membershipStatus = "completed";
+  await latestMembership.save(); // Save the updated document
+
   // Calculate the new end date for the renewed membership
   let baseDays = month * 30; // Total days based on the number of months
   // let adjustedDays = baseDays + extraDays - totalAttendedDays;
@@ -358,45 +361,19 @@ const updateInactiveMemberships = async () => {
       process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
     const cutoffDate = new Date(Date.now() - MAX_ABSENT_DAYS_MS);
 
-    // Perform aggregation and update in one operation
-    const result = await Membership.aggregate([
-      // Sort memberships by userId and endDate in descending order
-      { $sort: { userId: 1, endDate: -1 } },
-      // Group by userId and jymId to get the latest membership per combination
+    // Find all ongoing memberships where the last check-in is before the cutoff date
+    const result = await Membership.updateMany(
       {
-        $group: {
-          _id: { userId: "$userId", jymId: "$jymId" },
-          mostRecentMembership: { $first: "$$ROOT" },
-        },
+        membershipStatus: "ongoing",
+        "status.active.value": true, // Only update active users
+        "status.active.lastCheckIn": { $lt: cutoffDate }, // Last check-in before cutoff date
       },
-      // Replace the root document with the most recent membership
-      { $replaceRoot: { newRoot: "$mostRecentMembership" } },
-      // Dynamically set active status based on lastCheckIn and cutoffDate
       {
-        $set: {
-          "status.active.value": {
-            $cond: {
-              if: {
-                $and: [
-                  { $eq: ["$status.active.value", true] }, // Only update if currently true
-                  { $lt: ["$status.active.lastCheckIn", cutoffDate] }, // Last check-in is before cutoff
-                ],
-              },
-              then: false,
-              else: "$status.active.value", // Keep the current value unchanged
-            },
-          },
-        },
-      },
-      // Save updates to the database
-      {
-        $merge: {
-          into: "memberships", // Replace with your actual collection name
-          whenMatched: "merge",
-          whenNotMatched: "discard", // Ignore unmatched documents
-        },
-      },
-    ]);
+        $set: { "status.active.value": false }, // Mark as inactive
+      }
+    );
+
+    console.log(`${result.modifiedCount} memberships updated to inactive.`);
   } catch (error) {
     console.error("Error in cron job updating memberships:", error);
   }

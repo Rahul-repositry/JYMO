@@ -589,128 +589,154 @@ function getStatusQueryHandler(statusType) {
 //   });
 // }
 
+// async function fetchActiveUsers(jymId, skip = 0, limit = 20) {
+//   const activeMemberships = await Membership.aggregate([
+//     {
+//       $match: {
+//         jymId: new ObjectId(jymId),
+//       },
+//     },
+//     {
+//       $sort: { startDate: -1 },
+//     },
+//     {
+//       $group: {
+//         _id: "$userId",
+//         latestMembership: { $first: "$$ROOT" },
+//       },
+//     },
+//     {
+//       $match: {
+//         $or: [{ "latestMembership.status.active.value": true }],
+//       },
+//     },
+//     {
+//       $replaceRoot: { newRoot: "$latestMembership" },
+//     },
+//     {
+//       $skip: skip,
+//     },
+//     {
+//       $limit: limit,
+//     },
+//   ]);
+
+//   // Extract userIds from the latest memberships
+//   const userIds = activeMemberships.map((membership) => membership.userId);
+
+//   // Fetch user details
+//   const users = await User.find({ _id: { $in: userIds } })
+//     .select("img username phone")
+//     .lean();
+
+//   // Format the final response
+//   return activeMemberships.map((membership) => {
+//     const userInfo = users.find((user) => user._id.equals(membership.userId));
+//     return {
+//       img: userInfo?.img || null,
+//       username: userInfo?.username || null,
+//       phone: userInfo?.phone || null,
+//       userId: membership.userId,
+//       startDate: membership.startDate,
+//       endDate: membership.endDate,
+//       lastCheckIn: membership.status.active.lastCheckIn,
+//       status: membership.status,
+//     };
+//   });
+// }
 async function fetchActiveUsers(jymId, skip = 0, limit = 20) {
-  const activeMemberships = await Membership.aggregate([
-    {
-      $match: {
-        jymId: new ObjectId(jymId),
-      },
-    },
-    {
-      $sort: { startDate: -1 },
-    },
-    {
-      $group: {
-        _id: "$userId",
-        latestMembership: { $first: "$$ROOT" },
-      },
-    },
-    {
-      $match: {
-        $or: [{ "latestMembership.status.active.value": true }],
-      },
-    },
-    {
-      $replaceRoot: { newRoot: "$latestMembership" },
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
-
-  // Extract userIds from the latest memberships
-  const userIds = activeMemberships.map((membership) => membership.userId);
-
-  // Fetch user details
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("img username phone")
+  const activeMemberships = await Membership.find({
+    jymId: new ObjectId(jymId),
+    membershipStatus: "ongoing", // Directly filter ongoing memberships
+    "status.active.value": true, // Ensure the user is active
+  })
+    .sort({ startDate: -1 }) // Sort by start date (optional)
+    .skip(skip)
+    .limit(limit)
+    .populate("userId", "img username phone") // Populate user details
     .lean();
 
   // Format the final response
-  return activeMemberships.map((membership) => {
-    const userInfo = users.find((user) => user._id.equals(membership.userId));
-    return {
-      img: userInfo?.img || null,
-      username: userInfo?.username || null,
-      phone: userInfo?.phone || null,
-      userId: membership.userId,
-      startDate: membership.startDate,
-      endDate: membership.endDate,
-      lastCheckIn: membership.status.active.lastCheckIn,
-      status: membership.status,
-    };
-  });
+  return activeMemberships.map((membership) => ({
+    img: membership.userId?.img || null,
+    username: membership.userId?.username || null,
+    phone: membership.userId?.phone || null,
+    userId: membership.userId?._id || null,
+    startDate: membership.startDate,
+    endDate: membership.endDate,
+    lastCheckIn: membership.status.active.lastCheckIn,
+    status: membership.status,
+  }));
 }
 
 async function fetchInactiveUsers(jymId, skip = 0, limit = 20) {
-  const checkInDateLimit = new Date(
-    Date.now() - process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000
-  );
-
-  const inactiveMemberships = await Membership.aggregate([
-    {
-      $match: {
-        jymId: new ObjectId(jymId),
-      },
-    },
-    {
-      $sort: { startDate: -1 },
-    },
-    {
-      $group: {
-        _id: "$userId",
-        latestMembership: { $first: "$$ROOT" },
-      },
-    },
-    {
-      $match: {
-        $or: [
-          {
-            "latestMembership.status.active.lastCheckIn": {
-              $lt: checkInDateLimit,
-            },
-          },
-          { "latestMembership.status.active.value": false },
-        ],
-      },
-    },
-    {
-      $replaceRoot: { newRoot: "$latestMembership" },
-    },
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
-  ]);
-
-  // Extract userIds from the latest memberships
-  const userIds = inactiveMemberships.map((membership) => membership.userId);
-
-  // Fetch user details
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("img username phone")
+  const InactiveMemberships = await Membership.find({
+    jymId: new ObjectId(jymId),
+    membershipStatus: "ongoing", // Directly filter ongoing memberships
+    "status.active.value": false, // Ensure the user is active
+  })
+    .sort({ startDate: -1 }) // Sort by start date (optional)
+    .skip(skip)
+    .limit(limit)
+    .populate("userId", "img username phone") // Populate user details
     .lean();
 
   // Format the final response
-  return inactiveMemberships.map((membership) => {
-    const userInfo = users.find((user) => user._id.equals(membership.userId));
-    return {
-      img: userInfo?.img || null,
-      username: userInfo?.username || null,
-      phone: userInfo?.phone || null,
-      userId: membership.userId,
-      startDate: membership.startDate,
-      endDate: membership.endDate,
-      lastCheckIn: membership.status.active.lastCheckIn,
-      status: membership.status,
-    };
-  });
+  return InactiveMemberships.map((membership) => ({
+    img: membership.userId?.img || null,
+    username: membership.userId?.username || null,
+    phone: membership.userId?.phone || null,
+    userId: membership.userId?._id || null,
+    startDate: membership.startDate,
+    endDate: membership.endDate,
+    lastCheckIn: membership.status.active.lastCheckIn,
+    status: membership.status,
+  }));
 }
+
+// async function fetchNewlyRegisteredUsers(jymId, skip = 0, limit = 20) {
+//   const newlyRegisteredDate = new Date(
+//     Date.now() -
+//       process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+//   );
+
+//   const userDurations = await UserDurationInJym.find({
+//     jymId: new ObjectId(jymId),
+//     isQuitted: false,
+//     joinDates: { $gte: newlyRegisteredDate },
+//   })
+//     .select("userId")
+//     .lean();
+
+//   const userIds = userDurations.map((duration) => duration.userId);
+
+//   const newlyRegisteredMemberships = await Membership.find({
+//     jymId: new ObjectId(jymId),
+//     userId: { $in: userIds },
+//   })
+//     .sort({ userId: 1, startDate: -1 })
+//     .skip(skip)
+//     .limit(limit)
+//     .lean();
+
+//   const users = await User.find({ _id: { $in: userIds } })
+//     .select("img username phone")
+//     .lean();
+
+//   return newlyRegisteredMemberships.map((membership) => {
+//     const userInfo = users.find((user) => user._id.equals(membership.userId));
+//     return {
+//       img: userInfo?.img || null,
+//       username: userInfo?.username || null,
+//       phone: userInfo?.phone || null,
+//       userId: membership.userId,
+//       startDate: membership.startDate,
+//       endDate: membership.endDate,
+//       lastCheckIn: membership.status.active.lastCheckIn,
+//       status: membership.status,
+//     };
+//   });
+// }
 
 async function fetchNewlyRegisteredUsers(jymId, skip = 0, limit = 20) {
   const newlyRegisteredDate = new Date(
@@ -718,43 +744,133 @@ async function fetchNewlyRegisteredUsers(jymId, skip = 0, limit = 20) {
       process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
   );
 
-  const userDurations = await UserDurationInJym.find({
-    jymId: new ObjectId(jymId),
-    isQuitted: false,
-    joinDates: { $gte: newlyRegisteredDate },
-  })
-    .select("userId")
-    .lean();
+  const newlyRegisteredUsers = await UserDurationInJym.aggregate([
+    {
+      $match: {
+        jymId: new ObjectId(jymId),
+        isQuitted: false,
+      },
+    },
+    {
+      $addFields: {
+        lastJoinDate: { $arrayElemAt: ["$joinDates", -1] }, // Get the last join date
+      },
+    },
+    {
+      $match: {
+        lastJoinDate: { $gte: newlyRegisteredDate }, // Compare only the last join date
+      },
+    },
+    {
+      $lookup: {
+        from: "memberships",
+        localField: "userId",
+        foreignField: "userId",
+        as: "memberships",
+      },
+    },
+    {
+      $unwind: "$memberships",
+    },
+    {
+      $match: {
+        "memberships.jymId": new ObjectId(jymId),
+        "memberships.membershipStatus": "ongoing",
+      },
+    },
+    {
+      $sort: { "memberships.startDate": -1 }, // Sort by startDate to get the latest membership first
+    },
+    {
+      $skip: skip, // Apply skip before grouping
+    },
+    {
+      $limit: limit, // Apply limit before grouping
+    },
+    {
+      $group: {
+        _id: "$userId",
+        latestMembership: { $first: "$memberships" },
+      },
+    },
+    {
+      $lookup: {
+        from: "users",
+        localField: "_id",
+        foreignField: "_id",
+        as: "userInfo",
+      },
+    },
+    {
+      $unwind: "$userInfo",
+    },
+    {
+      $project: {
+        _id: 0,
+        userId: "$_id",
+        img: "$userInfo.img",
+        username: "$userInfo.username",
+        phone: "$userInfo.phone",
+        startDate: "$latestMembership.startDate",
+        endDate: "$latestMembership.endDate",
+        lastCheckIn: "$latestMembership.status.active.lastCheckIn",
+        status: "$latestMembership.status",
+      },
+    },
+  ]);
 
-  const userIds = userDurations.map((duration) => duration.userId);
-
-  const newlyRegisteredMemberships = await Membership.find({
-    jymId: new ObjectId(jymId),
-    userId: { $in: userIds },
-  })
-    .sort({ userId: 1, endDate: -1 })
-    .skip(skip)
-    .limit(limit)
-    .lean();
-
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("img username phone")
-    .lean();
-
-  return newlyRegisteredMemberships.map((membership) => {
-    const userInfo = users.find((user) => user._id.equals(membership.userId));
-    return {
-      img: userInfo?.img || null,
-      username: userInfo?.username || null,
-      phone: userInfo?.phone || null,
-      userId: membership.userId,
-      startDate: membership.startDate,
-      endDate: membership.endDate,
-      lastCheckIn: membership.status.active.lastCheckIn,
-      status: membership.status,
-    };
-  });
+  return newlyRegisteredUsers;
 }
+
+// async function fetchExpiringSoonUsers(jymId, skip = 0, limit = 20) {
+//   const expiryDateLimit = new Date(
+//     Date.now() +
+//       process.env.EXPIRY_AND_NEWLYREGISTERED_IN_DAYS * 24 * 60 * 60 * 1000
+//   );
+
+//   try {
+//     // Step 1: Fetch expiring memberships
+//     const expiringMemberships = await Membership.find({
+//       jymId: new ObjectId(jymId),
+//       endDate: { $gte: new Date(), $lte: expiryDateLimit }, // Ensure endDate is within the correct range
+//       membershipStatus : "ongoing"
+//     })
+//       .sort({ userId: 1, startDate: -1 }) // Sort by userId and most recent endDate
+//       .skip(skip)
+//       .limit(limit)
+//       .lean();
+
+//     if (expiringMemberships.length === 0) {
+//       return []; // No memberships found within the range
+//     }
+
+//     // Step 2: Extract user IDs from memberships
+//     const userIds = expiringMemberships.map((membership) => membership.userId);
+
+//     // Step 3: Fetch user details
+//     const users = await User.find({ _id: { $in: userIds } })
+//       .select("img username phone")
+//       .lean();
+
+//     // Step 4: Map memberships to user details
+//     return expiringMemberships.map((membership) => {
+//       const userInfo = users.find((user) => user._id.equals(membership.userId));
+//       return {
+//         img: userInfo?.img || null,
+//         username: userInfo?.username || null,
+//         phone: userInfo?.phone || null,
+//         userId: membership.userId,
+//         startDate: membership.startDate,
+//         endDate: membership.endDate,
+//         lastCheckIn: membership.status.active.lastCheckIn,
+//         status: membership.status,
+//       };
+//     });
+//   } catch (error) {
+//     console.error("Error fetching expiring soon users:", error);
+//     throw error; // Re-throw to handle the error in the calling function
+//   }
+// }
 
 async function fetchExpiringSoonUsers(jymId, skip = 0, limit = 20) {
   const expiryDateLimit = new Date(
@@ -763,217 +879,302 @@ async function fetchExpiringSoonUsers(jymId, skip = 0, limit = 20) {
   );
 
   try {
-    // Step 1: Fetch expiring memberships
+    // Fetch expiring memberships with user details populated
     const expiringMemberships = await Membership.find({
       jymId: new ObjectId(jymId),
-      endDate: { $gte: new Date(), $lte: expiryDateLimit }, // Ensure endDate is within the correct range
+      endDate: { $gte: new Date(), $lte: expiryDateLimit }, // Ensure endDate is within range
+      membershipStatus: "ongoing",
     })
-      .sort({ userId: 1, endDate: -1 }) // Sort by userId and most recent endDate
+      .sort({ userId: 1, startDate: -1 }) // Sort by userId and most recent startDate
       .skip(skip)
       .limit(limit)
+      .populate("userId", "img username phone") // Populate user details (only img, username, phone)
       .lean();
 
-    if (expiringMemberships.length === 0) {
-      return []; // No memberships found within the range
-    }
-
-    // Step 2: Extract user IDs from memberships
-    const userIds = expiringMemberships.map((membership) => membership.userId);
-
-    // Step 3: Fetch user details
-    const users = await User.find({ _id: { $in: userIds } })
-      .select("img username phone")
-      .lean();
-
-    // Step 4: Map memberships to user details
-    return expiringMemberships.map((membership) => {
-      const userInfo = users.find((user) => user._id.equals(membership.userId));
-      return {
-        img: userInfo?.img || null,
-        username: userInfo?.username || null,
-        phone: userInfo?.phone || null,
-        userId: membership.userId,
-        startDate: membership.startDate,
-        endDate: membership.endDate,
-        lastCheckIn: membership.status.active.lastCheckIn,
-        status: membership.status,
-      };
-    });
+    return expiringMemberships.map((membership) => ({
+      img: membership.userId?.img || null,
+      username: membership.userId?.username || null,
+      phone: membership.userId?.phone || null,
+      userId: membership.userId?._id || null,
+      startDate: membership.startDate,
+      endDate: membership.endDate,
+      lastCheckIn: membership.status?.active?.lastCheckIn || null,
+      status: membership.status,
+    }));
   } catch (error) {
     console.error("Error fetching expiring soon users:", error);
     throw error; // Re-throw to handle the error in the calling function
   }
 }
 
+// async function fetchPaidUsers(jymId, skip = 0, limit = 20) {
+//   const paidMemberships = await Membership.find({
+//     jymId: new ObjectId(jymId),
+//     endDate: { $gt: new Date() },
+//   })
+//     .sort({ userId: 1, endDate: -1 })
+//     .skip(skip)
+//     .limit(limit)
+//     .lean();
+
+//   const userIds = paidMemberships.map((membership) => membership.userId);
+
+//   const users = await User.find({ _id: { $in: userIds } })
+//     .select("img username phone")
+//     .lean();
+
+//   return paidMemberships.map((membership) => {
+//     const userInfo = users.find((user) => user._id.equals(membership.userId));
+//     return {
+//       img: userInfo?.img || null,
+//       username: userInfo?.username || null,
+//       phone: userInfo?.phone || null,
+//       userId: membership.userId,
+//       startDate: membership.startDate,
+//       endDate: membership.endDate,
+//       lastCheckIn: membership.status.active.lastCheckIn,
+//       status: membership.status,
+//     };
+//   });
+// }
 async function fetchPaidUsers(jymId, skip = 0, limit = 20) {
   const paidMemberships = await Membership.find({
     jymId: new ObjectId(jymId),
     endDate: { $gt: new Date() },
+    membershipStatus: "ongoing", // Only fetch currently active memberships
   })
-    .sort({ userId: 1, endDate: -1 })
+    .sort({ startDate: -1 }) // Sort to get the latest membership per user first
+    .populate("userId", "img username phone") // Populate user details
     .skip(skip)
     .limit(limit)
     .lean();
 
-  const userIds = paidMemberships.map((membership) => membership.userId);
-
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("img username phone")
-    .lean();
-
-  return paidMemberships.map((membership) => {
-    const userInfo = users.find((user) => user._id.equals(membership.userId));
-    return {
-      img: userInfo?.img || null,
-      username: userInfo?.username || null,
-      phone: userInfo?.phone || null,
-      userId: membership.userId,
-      startDate: membership.startDate,
-      endDate: membership.endDate,
-      lastCheckIn: membership.status.active.lastCheckIn,
-      status: membership.status,
-    };
-  });
+  return paidMemberships.map((membership) => ({
+    img: membership.userId?.img || null,
+    username: membership.userId?.username || null,
+    phone: membership.userId?.phone || null,
+    userId: membership.userId?._id || null,
+    startDate: membership.startDate,
+    endDate: membership.endDate,
+    lastCheckIn: membership.status?.active?.lastCheckIn || null,
+    status: membership.status,
+  }));
 }
+
+// async function fetchUnpaidUsers(jymId, skip = 0, limit = 20) {
+//   const unpaidMemberships = await Membership.aggregate([
+//     {
+//       $match: {
+//         jymId: new ObjectId(jymId), // Filter by gym ID
+//       },
+//     },
+//     {
+//       $sort: {
+//         userId: 1, // Sort by user ID
+//         endDate: -1, // Within each user, sort by most recent end date
+//       },
+//     },
+//     {
+//       $group: {
+//         _id: "$userId", // Group by userId
+//         latestMembership: { $first: "$$ROOT" }, // Keep the first document in each group (latest membership)
+//       },
+//     },
+//     {
+//       $replaceRoot: {
+//         newRoot: "$latestMembership", // Replace the root document with the latest membership
+//       },
+//     },
+//     {
+//       $match: {
+//         $expr: { $gt: ["$status.active.lastCheckIn", "$endDate"] }, // Apply the condition to the latest membership
+//       },
+//     },
+//     {
+//       $skip: skip, // Apply pagination
+//     },
+//     {
+//       $limit: limit, // Apply pagination
+//     },
+//   ]);
+
+//   const userIds = unpaidMemberships.map((membership) => membership.userId);
+
+//   const users = await User.find({ _id: { $in: userIds } })
+//     .select("img username phone")
+//     .lean();
+
+//   return unpaidMemberships.map((membership) => {
+//     const userInfo = users.find((user) => user._id.equals(membership.userId));
+//     return {
+//       img: userInfo?.img || null,
+//       username: userInfo?.username || null,
+//       phone: userInfo?.phone || null,
+//       userId: membership.userId,
+//       startDate: membership.startDate,
+//       endDate: membership.endDate,
+//       lastCheckIn: membership.status.active.lastCheckIn,
+//       status: membership.status,
+//     };
+//   });
+// }
 
 async function fetchUnpaidUsers(jymId, skip = 0, limit = 20) {
-  const unpaidMemberships = await Membership.aggregate([
-    {
-      $match: {
-        jymId: new ObjectId(jymId), // Filter by gym ID
-      },
-    },
-    {
-      $sort: {
-        userId: 1, // Sort by user ID
-        endDate: -1, // Within each user, sort by most recent end date
-      },
-    },
-    {
-      $group: {
-        _id: "$userId", // Group by userId
-        latestMembership: { $first: "$$ROOT" }, // Keep the first document in each group (latest membership)
-      },
-    },
-    {
-      $replaceRoot: {
-        newRoot: "$latestMembership", // Replace the root document with the latest membership
-      },
-    },
-    {
-      $match: {
-        $expr: { $gt: ["$status.active.lastCheckIn", "$endDate"] }, // Apply the condition to the latest membership
-      },
-    },
-    {
-      $skip: skip, // Apply pagination
-    },
-    {
-      $limit: limit, // Apply pagination
-    },
-  ]);
-
-  const userIds = unpaidMemberships.map((membership) => membership.userId);
-
-  const users = await User.find({ _id: { $in: userIds } })
-    .select("img username phone")
+  const unpaidMemberships = await Membership.find({
+    jymId: new ObjectId(jymId),
+    membershipStatus: "ongoing", // Only fetch currently active memberships
+    $expr: { $gt: ["$status.active.lastCheckIn", "$endDate"] }, // Unpaid condition
+  })
+    .sort({ startDate: -1 }) // Sort to get the latest membership per user first
+    .populate("userId", "img username phone") // Populate user details
+    .skip(skip)
+    .limit(limit)
     .lean();
 
-  return unpaidMemberships.map((membership) => {
-    const userInfo = users.find((user) => user._id.equals(membership.userId));
-    return {
-      img: userInfo?.img || null,
-      username: userInfo?.username || null,
-      phone: userInfo?.phone || null,
-      userId: membership.userId,
-      startDate: membership.startDate,
-      endDate: membership.endDate,
-      lastCheckIn: membership.status.active.lastCheckIn,
-      status: membership.status,
-    };
-  });
+  return unpaidMemberships.map((membership) => ({
+    img: membership.userId?.img || null,
+    username: membership.userId?.username || null,
+    phone: membership.userId?.phone || null,
+    userId: membership.userId?._id || null,
+    startDate: membership.startDate,
+    endDate: membership.endDate,
+    lastCheckIn: membership.status?.active?.lastCheckIn || null,
+    status: membership.status,
+  }));
 }
 
-async function fetchUsersByGender(gender, jymId, skip = 0, limit = 20) {
-  // Step 1: Fetch users who match the given gender and are part of the given jymId
+// async function fetchUsersByGender(gender, jymId, skip = 0, limit = 20) {
+//   // Step 1: Fetch users who match the given gender and are part of the given jymId
+//   const users = await User.find({
+//     gender, // Match the gender
+//     "currentJymUUId.jymId": new ObjectId(jymId), // Match the currentJymUUId array containing the jymId
+//   })
+//     .select("img username phone gender _id") // Select only necessary fields
+//     .lean();
+
+//   const userIds = users.map((user) => user._id); // Extract user IDs for the next step
+
+//   // Step 2: Fetch the latest membership for each user
+//   // const memberships = await Membership.find({
+//   //   userId: { $in: userIds }, // Filter memberships for the selected users
+//   //   jymId: new ObjectId(jymId), // Ensure memberships belong to the given jymId
+//   //   "status.active.value": true, // Only include active memberships
+//   // })
+//   //   .sort({ userId: 1, endDate: -1 }) // Sort by userId and latest endDate
+//   //   .skip(skip)
+//   //   .limit(limit)
+//   //   .lean();
+
+//   const memberships = await Membership.aggregate([
+//     {
+//       $match: {
+//         userId: { $in: userIds }, // Filter memberships for the selected users
+//         jymId: new ObjectId(jymId), // Ensure memberships belong to the given jymId
+//         "status.active.value": true, // Only include active memberships
+//       },
+//     },
+//     {
+//       $sort: { userId: 1, endDate: -1 }, // Sort by userId and latest endDate
+//     },
+//     {
+//       $group: {
+//         _id: "$userId", // Group by userId
+//         latestMembership: { $first: "$$ROOT" }, // Select the first (latest) membership per userId
+//       },
+//     },
+//     {
+//       $replaceRoot: { newRoot: "$latestMembership" }, // Replace with the latest membership document
+//     },
+//     {
+//       $sort: { userId: 1 }, // Reapply sorting by userId
+//     },
+//     {
+//       $skip: skip, // Pagination: skip specified number of documents
+//     },
+//     {
+//       $limit: limit, // Pagination: limit to specified number of documents
+//     },
+//   ]);
+
+//   // Step 3: Map the memberships to the user data and ensure valid memberships only
+//   return memberships
+//     .map((membership) => {
+//       const userInfo = users.find((user) => user._id.equals(membership.userId)); // Find user by ID
+//       if (!userInfo) {
+//         return null; // Skip this membership if no corresponding user found
+//       }
+//       // if (!membership?.status?.active?.value) {
+//       //   return null;
+//       // }
+
+//       return {
+//         img: userInfo.img || null,
+//         username: userInfo.username || null,
+//         phone: userInfo.phone || null,
+//         userId: membership.userId,
+//         gender: userInfo.gender || null,
+//         startDate: membership.startDate,
+//         endDate: membership.endDate,
+//         lastCheckIn: membership.status.active.lastCheckIn,
+//         status: membership.status,
+//       };
+//     })
+//     .filter((membershipData) => membershipData !== null); // Filter out memberships with no matching user
+// }
+
+// Additional functions for specific queries can be added here
+
+const fetchUsersByGender = async (gender, jymId, skip = 0, limit = 20) => {
+  // Step 1: Fetch only the required users with precise pagination
   const users = await User.find({
-    gender, // Match the gender
-    "currentJymUUId.jymId": new ObjectId(jymId), // Match the currentJymUUId array containing the jymId
+    gender,
+    "currentJymUUId.jymId": new ObjectId(jymId),
   })
+    .sort({ createdAt: -1 }) // Get the latest membership by sorting endDate descending
     .select("img username phone gender _id") // Select only necessary fields
+    .skip(skip)
+    .limit(limit)
     .lean();
 
-  const userIds = users.map((user) => user._id); // Extract user IDs for the next step
+  if (users.length === 0) return []; // Return early if no users found
 
-  // Step 2: Fetch the latest membership for each user
-  // const memberships = await Membership.find({
-  //   userId: { $in: userIds }, // Filter memberships for the selected users
-  //   jymId: new ObjectId(jymId), // Ensure memberships belong to the given jymId
-  //   "status.active.value": true, // Only include active memberships
-  // })
-  //   .sort({ userId: 1, endDate: -1 }) // Sort by userId and latest endDate
-  //   .skip(skip)
-  //   .limit(limit)
-  //   .lean();
+  const userIds = users.map((user) => user._id); // Extract user IDs
 
-  const memberships = await Membership.aggregate([
-    {
-      $match: {
-        userId: { $in: userIds }, // Filter memberships for the selected users
-        jymId: new ObjectId(jymId), // Ensure memberships belong to the given jymId
-        "status.active.value": true, // Only include active memberships
-      },
-    },
-    {
-      $sort: { userId: 1, endDate: -1 }, // Sort by userId and latest endDate
-    },
-    {
-      $group: {
-        _id: "$userId", // Group by userId
-        latestMembership: { $first: "$$ROOT" }, // Select the first (latest) membership per userId
-      },
-    },
-    {
-      $replaceRoot: { newRoot: "$latestMembership" }, // Replace with the latest membership document
-    },
-    {
-      $sort: { userId: 1 }, // Reapply sorting by userId
-    },
-    {
-      $skip: skip, // Pagination: skip specified number of documents
-    },
-    {
-      $limit: limit, // Pagination: limit to specified number of documents
-    },
-  ]);
+  // Step 2: Fetch only the latest "ongoing" membership for each user
+  const memberships = await Membership.find({
+    userId: { $in: userIds },
+    jymId: new ObjectId(jymId),
+    membershipStatus: "ongoing", // Only include "ongoing" memberships
+  }).lean();
 
-  // Step 3: Map the memberships to the user data and ensure valid memberships only
-  return memberships
-    .map((membership) => {
-      const userInfo = users.find((user) => user._id.equals(membership.userId)); // Find user by ID
-      if (!userInfo) {
-        return null; // Skip this membership if no corresponding user found
-      }
-      // if (!membership?.status?.active?.value) {
-      //   return null;
-      // }
+  // Step 3: Map memberships to users (Only pick the latest membership per user)
+  const userMembershipMap = new Map();
+  memberships.forEach((membership) => {
+    if (!userMembershipMap.has(membership.userId)) {
+      userMembershipMap.set(membership.userId.toString(), membership); // Store the latest membership
+    }
+  });
+
+  // Step 4: Combine user and membership data
+  return users
+    .map((user) => {
+      const membership = userMembershipMap.get(user._id.toString());
+      if (!membership) return null; // Skip users without valid ongoing memberships
 
       return {
-        img: userInfo.img || null,
-        username: userInfo.username || null,
-        phone: userInfo.phone || null,
-        userId: membership.userId,
-        gender: userInfo.gender || null,
+        img: user.img || null,
+        username: user.username || null,
+        phone: user.phone || null,
+        userId: user._id,
+        gender: user.gender || null,
         startDate: membership.startDate,
         endDate: membership.endDate,
-        lastCheckIn: membership.status.active.lastCheckIn,
+        lastCheckIn: membership.status?.active?.lastCheckIn || null,
         status: membership.status,
       };
     })
-    .filter((membershipData) => membershipData !== null); // Filter out memberships with no matching user
-}
-
-// Additional functions for specific queries can be added here
+    .filter(Boolean); // Remove null values (users without memberships)
+};
 
 const getUserBySearch = AsyncErrorHandler(async (req, res, next) => {
   const { userId } = req.params;

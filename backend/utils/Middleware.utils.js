@@ -10,7 +10,7 @@ dotenv.config("");
 
 const verifyUser = async (req, res, next) => {
   // if in future you update user model update here in req.user to add new properties
-  const token = req.cookies.access_token;
+  const token = req.cookies?.access_token;
 
   if (token) {
     jwt.verify(token, process.env.JWT_SECRET, async (err, decoded) => {

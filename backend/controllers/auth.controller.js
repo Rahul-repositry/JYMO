@@ -15,6 +15,7 @@ const CustomError = require("../utils/CustomError.utils.js");
 const OTP = require("../models/OTP.model.js");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 const axios = require("axios");
+const { filterUserDetails } = require("../utils/ImpFunc.js");
 const { ObjectId } = require("mongoose").Types;
 
 // Other code using these imports
@@ -123,7 +124,7 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     phoneNumber,
     birthday,
     img,
-    role,
+    isOwner,
     otpObj,
     gender,
   } = req.body;
@@ -160,7 +161,7 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
     phone: phoneNumber,
     birthday,
     img,
-    role,
+    isOwner,
     gender,
   });
 
@@ -183,9 +184,37 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
 
   await OTP.findByIdAndDelete({ _id: new ObjectId(otpDocument._id) });
 
-  res
-    .status(201)
-    .json({ success: true, message: "User created successfully", newUser });
+  if (savedUser) {
+    const {
+      password: hashedPassword,
+      resetPasswordToken,
+      resetPasswordExpires,
+      ...rest
+    } = savedUser._doc;
+
+    const token = jwt.sign({ user: rest }, process.env.JWT_SECRET, {
+      expiresIn: "60d",
+    });
+    const expiryDate = new Date(Date.now() + 1000 * 60 * 60 * 24 * 60); // 60 days
+
+    res
+      .cookie("access_token", token, {
+        httpOnly: true,
+        expires: expiryDate,
+        // secure: true, // Uncomment this line in production to use secure cookies . The secure: true attribute in the cookie configuration ensures that the cookie is only sent over secure HTTPS connections. However, if your HTTPS setup is not fully trusted (e.g., using a self-signed or invalid certificate), modern browsers will reject the cookie, and it will not be stored.
+        secure: process.env.NODE_ENV === "production",
+      })
+      .status(200)
+      .json({
+        success: true,
+        message: "SignIn successfully",
+        user: filterUserDetails(savedUser),
+      });
+  }
+
+  // res
+  //   .status(201)
+  //   .json({ success: true, message: "User created successfully", newUser });
 });
 
 const signin = AsyncErrorHandler(async (req, res, next) => {
@@ -463,7 +492,7 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
     // Store the OTP in the database
     const otp = await storeOTP(phoneNumber, otpPass);
-
+    // console.log(otp);
     // Respond with success
     return res.status(200).json({
       status: "success",
