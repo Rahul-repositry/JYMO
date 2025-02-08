@@ -27,18 +27,19 @@ const WorkoutPlans = ({ workout }) => {
                 })}
             </div>
           ) : (
-            <div className="planBox2 flex flex-col  py-2  place-items-center ">
-              <img
-                src={workoutPlanImg}
-                alt="workout plan"
-                className="pt-7 pb-2"
-                style={{ maxWidth: "250px" }}
-              />
-              <CustomButton fullWidth={true}>
-                {" "}
-                <Link to="/calendar"> Let's Create Plan</Link>
-              </CustomButton>
-            </div>
+            <>
+              <div className="planBox2 flex flex-col  py-2  place-items-center ">
+                <img
+                  src={workoutPlanImg}
+                  alt="workout plan"
+                  className="pt-7 pb-2"
+                  style={{ maxWidth: "250px" }}
+                />{" "}
+              </div>
+              <Link to="/calendar" className="w-full">
+                <CustomButton fullWidth={true}>Let's Create Plan</CustomButton>
+              </Link>
+            </>
           )}
         </div>
       </div>

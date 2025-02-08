@@ -25,7 +25,7 @@ export function SignupUserDataProvider({ children }) {
     password: "",
     phoneNumber: "",
     firebaseEmailIdToken: "",
-    role: "",
+    isOwner: false, // Default to false
     otpObj: "",
     birthday: "",
     gender: "",

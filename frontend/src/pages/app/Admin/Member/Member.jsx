@@ -154,7 +154,7 @@ const Member = () => {
         );
         break;
       default:
-        toast.error("Invalid membership status.");
+        toast.error("Please try again !");
     }
   };
 

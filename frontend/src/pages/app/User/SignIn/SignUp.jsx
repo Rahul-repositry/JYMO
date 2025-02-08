@@ -258,7 +258,11 @@ const SignUpForm = ({ onShowPersonal }) => {
       )}
 
       {currentStep === "final" && (
-        <PasswordInput formData={formData} handleChange={handleChange} />
+        <PasswordInput
+          formData={formData}
+          handleChange={handleChange}
+          agree={true}
+        />
       )}
 
       <div className="flex flex-col items-center justify-between">

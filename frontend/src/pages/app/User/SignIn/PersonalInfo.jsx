@@ -7,23 +7,24 @@ import { useSignupUserContext } from "../../../../context/context";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { setObjectInLocalStorage } from "../../../../utils/helperFunc";
 
 const PersonalInfo = () => {
   const [preview, setPreview] = useState(process.env.REACT_APP_DEFAULT_IMG);
   const [signupData, updateSignupData] = useSignupUserContext();
   const [formData, setFormData] = useState({
     gender: "",
-    role: "",
+    isOwner: false, // Default to false
   });
   const navigate = useNavigate("");
   const handleChange = (e) => {
     const { value, name } = e.target;
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: name === "isOwner" ? value === "gymOwner" : value, // Convert role to isOwner
     }));
     updateSignupData({
-      [name]: value,
+      [name]: name === "isOwner" ? value === "gymOwner" : value, // Update signup context
     });
   };
 
@@ -36,7 +37,7 @@ const PersonalInfo = () => {
       role: role,
     });
 
-    if (!signupData.gender || !signupData.role || !signupData.birthday) {
+    if (!signupData.gender || !signupData.birthday) {
       toast.error("Please fill out all fields");
       return;
     }
@@ -50,12 +51,18 @@ const PersonalInfo = () => {
           headers: {
             "Content-Type": "application/json",
           },
+          withCredentials: true,
         }
       );
 
       if (response?.data?.success) {
         toast.success("User Created Successfully ");
-        navigate("/login");
+
+        // Add navigation to the dashboard or home page if needed
+        setObjectInLocalStorage("user", response?.data?.user);
+
+        navigate("/home");
+        return;
       }
     } catch (err) {
       if (err?.response?.data?.message) {
@@ -104,7 +111,7 @@ const PersonalInfo = () => {
                   id="role"
                   type="radio"
                   value="user"
-                  name="role"
+                  name="isOwner"
                   onChange={handleChange}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-customButton"
                 />
@@ -120,7 +127,7 @@ const PersonalInfo = () => {
                   id="role2"
                   type="radio"
                   value="gymOwner"
-                  name="role"
+                  name="isOwner"
                   onChange={handleChange}
                   className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 focus:ring-customButton"
                 />

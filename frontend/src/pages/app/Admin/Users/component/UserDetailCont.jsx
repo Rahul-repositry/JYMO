@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { capitalizeFLetter } from "../../../../../utils/helperFunc";
 import { format, startOfDay, isSameDay } from "date-fns";
 import axios from "axios";
@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 
 const UserDetailCont = ({ user }) => {
   const navigate = useNavigate();
-
   const todayStart = startOfDay(new Date());
   const lastCheckInStart = user.lastCheckIn
     ? startOfDay(new Date(user.lastCheckIn))
@@ -46,6 +45,15 @@ const UserDetailCont = ({ user }) => {
       }
     }
   }, [isAttendanceMarked, user.userId]);
+
+  useEffect(() => {
+    setIsAttendanceMarked(
+      user.lastCheckIn
+        ? isSameDay(todayStart, lastCheckInStart) ||
+            todayStart <= lastCheckInStart
+        : false
+    );
+  }, [user]);
 
   const handleCall = useCallback(() => {
     window.location.href = `tel:${user.phone}`;
