@@ -22,14 +22,19 @@ const port = process.env.PORT || 3003;
 
 dotenv.config();
 
+// mongoose
+//   .connect(process.env.MONGO_URI)
+//   .then(() => {
+//     console.log("connected to mongodb");
+//   })
+//   .catch((err) => {
+//     console.log(err);
+//   });
+
 mongoose
-  .connect(process.env.MONGO_STR)
-  .then(() => {
-    console.log("connected to mongodb");
-  })
-  .catch((err) => {
-    console.log(err);
-  });
+  .connect(process.env.MONGO_URI)
+  .then(() => console.log("✅ Connected to MongoDB successfully"))
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 app.use(
   cors({
@@ -69,8 +74,4 @@ app.use(globalErrorHandler);
 
 app.listen(port, () => {
   console.log("server running on " + port + " port");
-  // Send "ready" signal to PM2
-  if (process.send) {
-    process.send("ready");
-  }
 });
