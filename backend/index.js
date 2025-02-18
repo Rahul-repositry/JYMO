@@ -56,9 +56,9 @@ cron.schedule("0 0 * * *", updateInactiveMemberships, {
 // Serve React static files
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 
-app.get("/", (req, res) => {
-  res.send("hello world");
-});
+// app.get("/", (req, res) => {
+//   res.send("hello world");
+// });
 app.use("/api/user", userRoutes);
 app.use("/api/jym", jymRoutes);
 app.use("/api/auth", authRoutes);
