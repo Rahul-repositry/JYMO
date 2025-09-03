@@ -35,6 +35,9 @@ const s3Client = new S3Client({
   },
 });
 
+const generateOTP = () => {
+  return crypto.randomInt(100000, 999999).toString(); // Generates a 6-digit OTP
+};
 const generateToken = () => crypto.randomBytes(32).toString("hex");
 
 const transporter = nodemailer.createTransport({
@@ -71,9 +74,6 @@ ${process.env.FRONTEND_URI}/reset-password?token=${token}`,
 
 // All phone otp fun
 
-const generateOTP = () => {
-  return crypto.randomInt(100000, 999999).toString(); // Generates a 6-digit OTP
-};
 // in case we need to send custom message by fast2sms
 
 // const sendOTPViaFast2SMS = async (phoneNumber, otp) => {
@@ -486,12 +486,13 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
 
   try {
     // Send the OTP via Fast2SMS API
-    await axios.request(options);
+    // await axios.request(options);
 
     // Log response status for debugging
 
     // Store the OTP in the database
     const otp = await storeOTP(phoneNumber, otpPass);
+    console.log(otp);
     // console.log(otp);
     // Respond with success
     return res.status(200).json({

@@ -414,8 +414,10 @@ const attendanceHandler = AsyncErrorHandler(async (req, res, next) => {
         attendance: latestAttendance,
       });
     } else if (
-      gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ
+      gapDays(latestAttendance.checkIn) >= process.env.REGISTERAGAININ &&
+      latestAttendance.mode !== "registered"
     ) {
+      console.log(latestAttendance);
       return next(
         new CustomError(
           "Owner has to register again you came after a long time",
@@ -787,10 +789,7 @@ const makeInactiveToActiveAttendance = AsyncErrorHandler(
     const currentDate = new Date();
     const latestAttendanceDate = new Date(latestAttendance.createdAt);
 
-    if (
-      isSameDay(latestAttendanceDate, currentDate) &&
-      latestAttendance.mode === "inactive"
-    ) {
+    if (latestAttendance.mode === "inactive") {
       // Update the mode of the latest attendance to 'registered'
       latestAttendance.mode = "registered";
       latestAttendance.isMarkedByAdmin = true;

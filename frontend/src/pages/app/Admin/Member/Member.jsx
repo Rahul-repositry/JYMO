@@ -200,7 +200,7 @@ const Member = () => {
           user={user}
           setSelectedDate={setSelectedDate}
           selectedDate={selectedDate}
-          membershipPreviousStartDate={membership?.startDate}
+          membershipData={membership}
         />
       )}
       <div className="wrapper mx-4">

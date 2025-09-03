@@ -1,6 +1,6 @@
 // Calendar.js
 import React, { useState } from "react";
-import { format, getDay, isSameMonth, isToday } from "date-fns";
+import { format, getDay, isSameDay, isSameMonth, isToday } from "date-fns";
 import useCalendar from "../useHooks/useCalendar";
 import { toast } from "react-toastify";
 
@@ -18,23 +18,17 @@ const colStartClasses = [
   "col-start-7",
 ];
 
-const Calendar = ({
-  user,
-  selectedDate,
-  setSelectedDate,
-  membershipPreviousStartDate,
-}) => {
+const Calendar = ({ user, selectedDate, setSelectedDate, membershipData }) => {
   const { firstDayCurrentMonth, daysWithStatus, previousMonth, nextMonth } =
     useCalendar(user);
+  let realmembershipEndDate = new Date(membershipData?.endDate);
 
   const handleDateClick = (date) => {
-    let realmembershipPreviousStartDate = new Date(membershipPreviousStartDate);
-
     if (
       date.getTime() <
-      realmembershipPreviousStartDate.getTime() - 1000 * 60 * 60 * 24
+      realmembershipEndDate.getTime() - 1000 * 60 * 60 * 24
     ) {
-      toast.error("Choose A Date  After  Membership Period starts.");
+      toast.error("Pick a date after your membership expires!");
       return;
     }
     setSelectedDate(date);
@@ -96,6 +90,7 @@ const Calendar = ({
             {daysWithStatus.map((dayObj, dayIdx) => (
               <div
                 key={dayObj.date.toString()}
+                onClick={() => handleDateClick(dayObj.date)}
                 className={classNames(
                   dayIdx === 0 && colStartClasses[getDay(dayObj.date)],
                   "py-1.5"
@@ -105,6 +100,11 @@ const Calendar = ({
                   type="button"
                   className={classNames(
                     // Priority condition for inactive status
+                    isSameDay(realmembershipEndDate, dayObj.date) &&
+                      "bg-black text-white",
+                    selectedDate &&
+                      selectedDate.getTime() === dayObj.date.getTime() &&
+                      "bg-customButton text-black",
                     dayObj.status === "inactive" && "!bg-red-500 text-white",
                     // Check for isMarkedByAdmin only if status is not inactive
                     dayObj?.status === "registered" &&
