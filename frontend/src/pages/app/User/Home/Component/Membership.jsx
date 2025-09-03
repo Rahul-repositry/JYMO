@@ -22,7 +22,7 @@ const Membership = ({ user, membership }) => {
             : remainingDays <= 0
             ? "bg-redBox"
             : "bg-yellowBox"
-        } flex flex-col border border-slate-400 rounded-2xl justify-between px-4 py-2 max-w-screen-custom-md500 pt-4 min-h-24 place-content-center`}
+        } flex flex-col border border-slate-400 rounded-2xl justify-between px-4 py-2 max-w-screen-custom-md500  min-h-24 place-content-center`}
       >
         <div className="flex justify-between items-center">
           {/* Inactive Status */}
@@ -49,7 +49,7 @@ const Membership = ({ user, membership }) => {
             <span
               className={`${
                 remainingDays <= 0 ? "text-white" : "text-stone-600"
-              } text font-semibold ml-1`}
+              } ml-1`}
             >
               {user?.userUniqueId}
             </span>

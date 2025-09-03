@@ -41,7 +41,7 @@ const Member = () => {
   const { membership } = useMembership(user);
 
   const payload = {
-    startDate: membership?.endDate,
+    startDate: selectedDate,
     month: formData.month,
     amount: formData.amount,
     ...(userId ? { userId } : { userUniqueId }),
@@ -94,7 +94,7 @@ const Member = () => {
       [id]: Number(value),
     }));
   };
-
+  console.log({ selectedDate, endDate });
   const handleSubmission = async (endpoint, successMessage) => {
     try {
       const res = await axios.post(endpoint, payload, {
@@ -104,7 +104,6 @@ const Member = () => {
         currentStatus === "Register-Again"
           ? "/api/attendance/registeragain"
           : "/api/attendance/register";
-
       if (currentStatus === "Register" || currentStatus === "Register-Again") {
         const attendanceRes = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}${attendanceEndpoint}`,
