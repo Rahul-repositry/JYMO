@@ -357,25 +357,27 @@ const getAllMembership = AsyncErrorHandler(async (req, res, next) => {
 
 const updateInactiveMemberships = async () => {
   try {
-    const MAX_ABSENT_DAYS_MS =
-      process.env.INACTIVE_IN_DAYS * 24 * 60 * 60 * 1000;
-    const cutoffDate = new Date(Date.now() - MAX_ABSENT_DAYS_MS);
-
-    // Find all ongoing memberships where the last check-in is before the cutoff date
-    const result = await Membership.updateMany(
-      {
-        membershipStatus: "ongoing",
-        "status.active.value": true, // Only update active users
-        "status.active.lastCheckIn": { $lt: cutoffDate }, // Last check-in before cutoff date
-      },
-      {
-        $set: { "status.active.value": false }, // Mark as inactive
-      }
-    );
-
-    console.log(`${result.modifiedCount} memberships updated to inactive.`);
+    const currentDate = new Date();
+    
+    // Find memberships that are active but have passed their end date
+    const expiredMemberships = await Membership.find({
+      membershipStatus: "active",
+      endDate: { $lt: currentDate }
+    });
+    
+    // Update each expired membership
+    for (const membership of expiredMemberships) {
+      membership.membershipStatus = "inactive";
+      await membership.save();
+      
+      // Optionally, you could also update the user's status or send notifications here
+    }
+    
+    console.log(`Updated ${expiredMemberships.length} expired memberships to inactive status`);
+    return { count: expiredMemberships.length };
   } catch (error) {
-    console.error("Error in cron job updating memberships:", error);
+    console.error("Error updating inactive memberships:", error);
+    throw error;
   }
 };
 

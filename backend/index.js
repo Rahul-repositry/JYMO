@@ -11,11 +11,8 @@ const workoutRoutes = require("./routes/workout.route.js");
 const attendanceRoutes = require("./routes/attendance.route.js");
 const membershipRoutes = require("./routes/membership.route.js");
 const userRoutes = require("./routes/user.route.js");
+const cronRoutes = require("./routes/cron.route.js");
 const cors = require("cors");
-const cron = require("node-cron");
-const {
-  updateInactiveMemberships,
-} = require("./controllers/membership.controller.js");
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -48,17 +45,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-// Schedule the cron job to run at midnight every day
-cron.schedule("0 0 * * *", updateInactiveMemberships, {
-  timezone: "Asia/Kolkata", // Adjust timezone if needed
-});
-
-// Serve React static files
-// app.use(express.static(path.join(__dirname, "../frontend/build")));
-
-// app.get("/", (req, res) => {
-//   res.send("hello world");
-// });
+// Routes
 app.use("/api/user", userRoutes);
 app.use("/api/jym", jymRoutes);
 app.use("/api/auth", authRoutes);
@@ -66,6 +53,7 @@ app.use("/api/auth/jym", jymAuthRoutes);
 app.use("/api/workout", workoutRoutes);
 app.use("/api/attendance", attendanceRoutes);
 app.use("/api/membership", membershipRoutes);
+app.use("/api/cron", cronRoutes);
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));

@@ -2,13 +2,14 @@
   "name": "backend",
   "version": "1.0.0",
   "type": "commonjs",
-  "description": "",
+  "description": "Jymo - Gym Management System Backend",
   "main": "index.js",
   "scripts": {
-    "start": "TZ=Asia/Kolkata node index.js",
-    "dev": "TZ=Asia/Kolkata nodemon index.js"
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "vercel-build": "echo 'Building backend for Vercel'"
   },
-  "keywords": [],
+  "keywords": ["gym", "management", "fitness"],
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -35,5 +36,8 @@
   "devDependencies": {
     "morgan": "^1.10.0",
     "nodemon": "^3.1.0"
+  },
+  "engines": {
+    "node": ">=18.x"
   }
 }
