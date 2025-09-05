@@ -12,10 +12,10 @@
       "dest": "index.js"
     }
   ],
-  "crons": {
-    "update-memberships": {
-      "schedule": "0 0 * * *",
-      "path": "/api/cron/update-memberships"
+  "crons": [
+    {
+      "path": "/api/cron/update-memberships",
+      "schedule": "0 0 * * *"
     }
-  }
+  ]
 }
