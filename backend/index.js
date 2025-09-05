@@ -1,7 +1,6 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const dotenv = require("dotenv");
-const path = require("path");
 const cookieParser = require("cookie-parser");
 const { globalErrorHandler } = require("./controllers/error.controller.js");
 const authRoutes = require("./routes/auth.route.js");
@@ -13,6 +12,7 @@ const membershipRoutes = require("./routes/membership.route.js");
 const userRoutes = require("./routes/user.route.js");
 const cronRoutes = require("./routes/cron.route.js");
 const cors = require("cors");
+const CustomError = require("./utils/CustomError.utils.js");
 
 const app = express();
 const port = process.env.PORT || 3003;
@@ -55,8 +55,11 @@ app.use("/api/attendance", attendanceRoutes);
 app.use("/api/membership", membershipRoutes);
 app.use("/api/cron", cronRoutes);
 
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build", "index.html"));
+app.get("/", (req, res) => {
+  res.status(200).json({ message: "Hello, World!" });
+});
+app.get("*", (req, res, next) => {
+  next(new CustomError("JUID is incorrect", 404));
 });
 app.use(globalErrorHandler);
 
