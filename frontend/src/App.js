@@ -4,6 +4,7 @@ import axios from "axios";
 import "./index.css";
 import LoadingScreen from "./components/Loader/LoadingScreen.jsx";
 import { setObjectInLocalStorage } from "./utils/helperFunc.js";
+import Loader from "./components/Loader/Loader.jsx";
 
 // Lazy load components for better performance
 const LandingPage = lazy(() => import("./pages/website/LandingPage.jsx"));
@@ -163,6 +164,9 @@ function App() {
   if (isLoading) {
     return <LoadingScreen onLoadComplete={() => setIsLoading(false)} />;
   }
+  // if (isLoading) {
+  //   return <Loader/>;
+  // }
 
   return (
     <div className={`app ${applyNavbarStyles ? "bg-black" : ""}`}>
@@ -179,11 +183,11 @@ function App() {
           }`}
         >
           {applyNavbarStyles && (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={""}>
               <AppNavbar />
             </Suspense>
           )}
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense fallback={<Loader />}>
             <Routes>
               {/* User Flow */}
               <Route path="/" element={<LandingPage />} />
@@ -232,7 +236,7 @@ function App() {
             </Routes>
           </Suspense>
           {applyBottomNavStyles && (
-            <Suspense fallback={<div>Loading...</div>}>
+            <Suspense fallback={""}>
               <BottomNavigation />
             </Suspense>
           )}
