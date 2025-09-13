@@ -20,6 +20,80 @@
   padding: 0;
 }
 
+/* Common styles for input and select fields */
+.input-field,
+.select-field {
+  display: block;
+  width: 100%;
+  padding: 0.625rem; /* Equivalent to 2.5 in Tailwind */
+  margin-bottom: 1.5rem; /* Equivalent to 6 in Tailwind */
+  font-size: 0.875rem; /* Equivalent to text-sm in Tailwind */
+  color: #1f2937; /* Tailwind color gray-900 */
+  border: 1px solid #fb923c; /* Tailwind color orange-300 */
+  border-radius: 0.5rem; /* Equivalent to rounded-lg in Tailwind */
+  background-color: #f9fafb; /* Tailwind color gray-50 */
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.input-field:focus,
+.select-field:focus {
+  border-color: #ea580c; /* Tailwind color customButton */
+  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.3); /* Tailwind color customButton with opacity */
+}
+
+.input-field[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+}
+
+.label-field {
+  margin-bottom: 0.5rem; /* Equivalent to 2 in Tailwind */
+  font-size: 0.875rem; /* Equivalent to text-sm in Tailwind */
+  color: #1f2937; /* Tailwind color gray-900 */
+}
+
+.checkbox-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem; /* Equivalent to 6 in Tailwind */
+}
+
+.checkbox-container .input-field[type="checkbox"] {
+  margin-right: 0.5rem; /* Equivalent to 2 in Tailwind */
+}
+
+.checkbox-label {
+  font-size: 0.875rem; /* Equivalent to text-sm in Tailwind */
+  color: #1f2937; /* Tailwind color gray-900 */
+}
+
+.checkbox-label a {
+  color: #ea580c; /* Tailwind color customButton */
+  text-decoration: underline;
+}
+
+.checkbox-label a:hover {
+  text-decoration: none;
+}
+
+/* Add your CSS styles here */
+.input-field {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #e2e8f0;
+  background-color: #f9fafb;
+  color: #1a202c;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input-field:focus {
+  border-color: #f97316;
+}
+
 ::-webkit-scrollbar {
   display: none;
 }
