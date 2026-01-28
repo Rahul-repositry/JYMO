@@ -19,15 +19,6 @@ const port = process.env.PORT || 3003;
 
 dotenv.config();
 
-// mongoose
-//   .connect(process.env.MONGO_URI)
-//   .then(() => {
-//     console.log("connected to mongodb");
-//   })
-//   .catch((err) => {
-//     console.log(err);
-//   });
-
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("✅ Connected to MongoDB successfully"))
@@ -38,7 +29,7 @@ app.use(
     origin: process.env.FRONTEND_URI,
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
-  })
+  }),
 );
 
 app.use(express.json());

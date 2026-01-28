@@ -370,7 +370,7 @@ const createForgotSession = AsyncErrorHandler(async (req, res, next) => {
   } catch (err) {
     console.error(err);
     next(
-      new CustomError("An error occurred while processing your request", 500)
+      new CustomError("An error occurred while processing your request", 500),
     );
   }
 });
@@ -507,7 +507,7 @@ const sendOtp = AsyncErrorHandler(async (req, res, next) => {
     // Distinguish between API errors and other issues
     if (error.response) {
       console.error(
-        `Fast2SMS API error: ${error.response.status} - ${error.response.data}`
+        `Fast2SMS API error: ${error.response.status} - ${error.response.data}`,
       );
       return res.status(502).json({
         status: "error",
@@ -599,7 +599,7 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
   // 4. Verify that the user deleting the image is the owner of the image
   if (userObj.img !== s3ImageUrl) {
     return next(
-      new CustomError("You are not authorized to delete this image", 403)
+      new CustomError("You are not authorized to delete this image", 403),
     );
   }
 

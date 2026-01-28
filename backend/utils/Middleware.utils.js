@@ -38,75 +38,7 @@ const verifyUser = async (req, res, next) => {
       message: "Complete Your Login Authentication",
     });
   }
-};
-
-// const verifyUser = async (req, res, next) => {
-//   // If in the future you update the user model, update req.user here to add new properties
-//   const token = req.cookies.access_token;
-
-//   if (!token) {
-//     return res.status(401).json({
-//       success: false,
-//       message: "You are not authenticated",
-//     });
-//   }
-
-//   try {
-//     // Verify the JWT token
-//     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-//     // Find the user by ID asynchronously
-//     const user = await User.findById({ _id: decoded.user._id });
-
-//     if (!user) {
-//       return next(new CustomError("No User found", 404));
-//     }
-
-//     // Destructure user fields to attach to the request
-//     const {
-//       username,
-//       _id,
-//       email,
-//       gender,
-//       img,
-//       phone,
-//       birthday,
-//       createdAt,
-//       updatedAt,
-//       role,
-//       userUniqueId,
-//       isOwner,
-//     } = user;
-
-//     // Attach user data to the req object
-//     req.user = {
-//       username,
-//       _id,
-//       email,
-//       gender,
-//       img,
-//       phone,
-//       birthday,
-//       createdAt,
-//       updatedAt,
-//       role,
-//       userUniqueId,
-//       isOwner,
-//     };
-
-//     console.log(req.user, "jwt user");
-
-//     // Proceed to the next middleware
-//     next();
-//   } catch (err) {
-//     // Handle any errors (token verification or user lookup)
-//     return res.status(401).json({
-//       success: false,
-//       message: "Token is not valid or user not found",
-//       error: err.message,
-//     });
-//   }
-// };
+}
 
 const verifyJym = (req, res, next) => {
   const token = req.cookies.access_jymToken;
@@ -187,58 +119,6 @@ const verifyActiveUser = async (req, res, next) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 };
-
-// verify is user registered to this jym whose attendance is gonna marked by owner  ( for attendance purpose only)
-
-// const verifyOwnershipAndActiveUser = async (req, res, next) => {
-//   const { userId } = req.body;
-//   const ownerId = req.user._id;
-//   const jymId = req.jym._id;
-
-//   try {
-//     const jym = await Jym.findById(jymId);
-
-//     if (!jym) {
-//       return res.status(404).json({ success: false, message: "Gym not found" });
-//     }
-
-//     // Check if the authenticated user is an owner of the gym
-//     if (!jym.owners.includes(ownerId)) {
-//       return res.status(403).json({
-//         success: false,
-//         message: "Not authorized to mark attendance for this gym",
-//       });
-//     }
-
-//     let latestAttendance = await Attendance.findOne({ userId, jymId }).sort({
-//       createdAt: -1,
-//     });
-//     const isInTrialPeriod =
-//       latestAttendance &&
-//       new Date(latestAttendance.trialTokenExpiry) >= new Date();
-
-//     // Check if the user whose attendance is being marked is an active user of the gym
-//     const isActiveUser = jym.activeUsers.some(
-//       (user) => user.userId.toString() === userId
-//     );
-
-//     // Logic to allow attendance marking for users in trial period or active users
-//     if (isInTrialPeriod) {
-//       return next();
-//     }
-
-//     if (isActiveUser) {
-//       return next();
-//     }
-//     return res.status(400).json({
-//       success: false,
-//       message:
-//         "User is not an active member or in trial period. Ask the user to register themselves.",
-//     });
-//   } catch (error) {
-//     return res.status(500).json({ success: false, message: "Server error" });
-//   }
-// };
 
 module.exports = {
   verifyUser,

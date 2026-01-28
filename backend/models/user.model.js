@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
   {
     userUniqueId: {
       type: Number,
-      unique: true,
+      unique: true, // This already creates an index
     },
     username: {
       type: String,
@@ -50,15 +50,17 @@ const userSchema = new mongoose.Schema(
     resetPasswordToken: { type: String, default: "" },
     resetPasswordExpires: { type: Date, default: Date.now() },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 // Add the auto-increment plugin to the schema
 userSchema.plugin(AutoIncrement, { inc_field: "userUniqueId" });
 
-// Add the index for currentJymUUId.jymId field
+// Remove this line - it's creating duplicate index
+// userSchema.index({ userUniqueId: 1 });
+
+// Keep this index for currentJymUUId.jymId
 userSchema.index({ "currentJymUUId.jymId": 1 });
-userSchema.index({ userUniqueId: 1 });
 
 const User = mongoose.model("user", userSchema);
 
