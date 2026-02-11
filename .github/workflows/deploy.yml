@@ -1,0 +1,86 @@
+name: Backend Deploy to Oracle Cloud
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+
+      - name: Deploy to Oracle Cloud via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USER }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          script: |
+            mkdir -p ~/.ssh
+            chmod 700 ~/.ssh
+            echo "${{ secrets.ORACLE_SSH_KEY }}" > ~/.ssh/id_rsa
+            chmod 600 ~/.ssh/id_rsa
+
+            # Create deployment script
+            cat > /tmp/deploy_remote.sh << 'INNER_EOF'
+            #!/bin/bash
+            set -e
+
+            echo "🚀 Starting deployment on Oracle VM..."
+            echo "📂 Working directory: /home/ubuntu/JYMO"
+
+            # Navigate to backend directory
+            cd /home/ubuntu/JYMO || { echo "Directory not found!"; exit 1; }
+
+            echo "📦 Pulling latest code from GitHub..."
+            git fetch origin main
+            git reset --hard origin/main
+            echo "✅ Code updated successfully"
+
+            echo "📥 Installing production dependencies..."
+            npm ci --production 2>&1 | tail -5
+
+            echo "🔄 Restarting application with PM2..."
+            # Find and restart the jymo process
+            pm2 list | grep -i jymo && pm2 restart jymo || pm2 start index.js --name jymo
+
+            echo "⏳ Waiting for application to restart..."
+            sleep 8
+
+            echo "✅ Deployment complete!"
+            echo ""
+            echo "📊 PM2 Status:"
+            pm2 status
+            echo ""
+            echo "🔍 Testing application health..."
+            if curl -s http://localhost:3003 | grep -q "Hello, World!"; then
+                echo "✅ Application is healthy!"
+            else
+                echo "⚠️  Application may still be starting. Check logs with: pm2 logs jymo"
+            fi
+            INNER_EOF
+
+            chmod +x /tmp/deploy_remote.sh
+            /tmp/deploy_remote.sh
+
+      - name: Verify deployment
+        run: |
+          echo "✅ Deployment workflow completed!"
+          echo ""
+          echo "📋 Next steps:"
+          echo "   1. Check your application"
+          echo "   2. View logs: pm2 logs jymo"
+          echo "   3. Monitor status: pm2 status"
+          echo ""
+          echo "⚠️  If deployment failed, check the SSH output above for errors."
