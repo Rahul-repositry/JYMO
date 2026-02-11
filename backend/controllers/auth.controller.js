@@ -140,6 +140,7 @@ const signin = AsyncErrorHandler(async (req, res, next) => {
       expires: expiryDate,
       // secure: true, // Uncomment this line in production to use secure cookies . The secure: true attribute in the cookie configuration ensures that the cookie is only sent over secure HTTPS connections. However, if your HTTPS setup is not fully trusted (e.g., using a self-signed or invalid certificate), modern browsers will reject the cookie, and it will not be stored.
       secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
     })
     .status(200)
     .json({ success: true, message: "SignIn successfully", user: rest });
@@ -698,6 +699,7 @@ const signup = AsyncErrorHandler(async (req, res, next) => {
         httpOnly: true,
         expires: expiryDate,
         secure: process.env.NODE_ENV === "production",
+        sameSite: "none",
       })
       .status(201)
       .json({
