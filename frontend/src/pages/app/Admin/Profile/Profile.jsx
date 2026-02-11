@@ -7,37 +7,77 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
 
+// Set the app element for accessibility (add this at the top)
+Modal.setAppElement("#root");
+
 const Profile = () => {
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const navigate = useNavigate();
   const Jym = getObjectFromLocalStorage("adminJym");
+
   const handleLogout = async () => {
+    console.log("Logging out...");
+    setIsLoggingOut(true);
+
     try {
-      let res = await axios.delete(
+      const res = await axios.delete(
         `${process.env.REACT_APP_BACKEND_URI}/api/auth/jym/logout`,
         {
           withCredentials: true,
-        }
+        },
       );
 
+      console.log("Logout response:", res.data);
+
       if (res.data.status) {
-        toast.success("You are successfully logut.");
+        toast.success("You are successfully logged out.");
         localStorage.removeItem("adminJym");
         navigate("/admin/login");
+      } else {
+        toast.error("Logout failed. Please try again.");
       }
     } catch (err) {
-      console.error("Error logging out: ", err);
+      console.error("Full error logging out: ", err);
+      console.error("Error response:", err?.response);
+
       let msg = err?.response?.data?.message;
       if (msg) {
         toast.error(msg);
+      } else if (err.code === "ERR_NETWORK") {
+        toast.error("Network error. Please check your connection.");
+      } else {
+        toast.error("An error occurred during logout.");
       }
     } finally {
+      setIsLoggingOut(false);
       setIsLogoutModalOpen(false);
+    }
+  };
+
+  const openLogoutModal = (e) => {
+    e?.preventDefault();
+    e?.stopPropagation();
+    setIsLogoutModalOpen(true);
+  };
+
+  const closeLogoutModal = () => {
+    if (!isLoggingOut) {
+      setIsLogoutModalOpen(false);
+    }
+  };
+
+  // Function to check if the route is active (for navigation)
+  const handleNavigation = (e) => {
+    // Prevent navigation if logging out
+    if (isLoggingOut) {
+      e.preventDefault();
     }
   };
 
   return (
     <div className="px-5">
+      {/* Gym Details Section */}
       <div className="jymdetail flex place-items-center py-4">
         <div className="img pr-2">
           <img src={Logo} alt="jymo" className="w-16" />
@@ -48,23 +88,27 @@ const Profile = () => {
             {`${Jym?.addressLocation?.state} - ${Jym?.addressLocation?.city} - ${Jym?.addressLocation?.address}`}{" "}
           </p>
           <p className="text-sm text-gray-600">
-            {Jym?.phoneNumbers.join(" | ")}
+            {Jym?.phoneNumbers?.join(" | ")}
           </p>
         </div>
       </div>
-      <div className="link flex flex-col gap-5">
-        <Link to="/home">
-          <div className="link flex place-content-center bg-customButton py-2 px-3 border border-gray-500 text-white rounded-xl">
-            <p className="pl-4 text-lg ">Get to User Home</p>
+
+      {/* Navigation Links */}
+      <div className="link flex flex-col gap-5" onClick={handleNavigation}>
+        {/* User Home Link */}
+        <Link to="/home" onClick={handleNavigation}>
+          <div className="link flex place-content-center bg-customButton py-2 px-3 border border-gray-500 text-white rounded-xl hover:bg-blue-600 transition-colors">
+            <p className="pl-4 text-lg">Get to User Home</p>
           </div>
         </Link>
-        <Link to="/admin/profile/admins">
-          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl">
-            <div className="admin border  border-gray-500 flex place-content-center p-2 rounded-full">
+
+        {/* Admin Management Link */}
+        <Link to="/admin/profile/admins" onClick={handleNavigation}>
+          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl hover:bg-gray-200 transition-colors">
+            <div className="admin border border-gray-500 flex place-content-center p-2 rounded-full">
               <div className="img">
                 <svg
-                  className="w-7 h-7  text-darkBlack 
-    group-hover:text-darkBlack"
+                  className="w-7 h-7 text-darkBlack group-hover:text-darkBlack"
                   fill="currentColor"
                   viewBox="0 0 17 17"
                   xmlns="http://www.w3.org/2000/svg"
@@ -77,9 +121,11 @@ const Profile = () => {
             <p className="pl-4 text-lg">Admin</p>
           </div>
         </Link>
-        <Link to="/admin/jymqr">
-          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl">
-            <div className="qr border  border-gray-500 flex place-content-center p-2 rounded-full">
+
+        {/* Gym QR Link */}
+        <Link to="/admin/jymqr" onClick={handleNavigation}>
+          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl hover:bg-gray-200 transition-colors">
+            <div className="qr border border-gray-500 flex place-content-center p-2 rounded-full">
               <div className="img">
                 <svg
                   width="25px"
@@ -92,12 +138,14 @@ const Profile = () => {
                 </svg>
               </div>
             </div>
-            <p className="pl-4 text-lg">Jym Qr</p>
+            <p className="pl-4 text-lg">Gym QR</p>
           </div>
         </Link>
-        <Link to="/admin/profile/editjymdetails">
-          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl">
-            <div className="qr border  border-gray-500 flex place-content-center p-2 rounded-full">
+
+        {/* Edit Gym Details Link */}
+        <Link to="/admin/profile/editjymdetails" onClick={handleNavigation}>
+          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl hover:bg-gray-200 transition-colors">
+            <div className="qr border border-gray-500 flex place-content-center p-2 rounded-full">
               <div className="img">
                 <svg
                   width="23px"
@@ -116,12 +164,14 @@ const Profile = () => {
                 </svg>
               </div>
             </div>
-            <p className="pl-4 text-lg">Edit Jym Details</p>
+            <p className="pl-4 text-lg">Edit Gym Details</p>
           </div>
         </Link>
-        <Link to="/admin/forgotpassword">
-          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl">
-            <div className="qr border  border-gray-500 flex place-content-center p-2 rounded-full">
+
+        {/* Change Password Link */}
+        <Link to="/admin/forgotpassword" onClick={handleNavigation}>
+          <div className="link flex place-items-center bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl hover:bg-gray-200 transition-colors">
+            <div className="qr border border-gray-500 flex place-content-center p-2 rounded-full">
               <div className="img">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -138,42 +188,74 @@ const Profile = () => {
             <p className="pl-4 text-lg">Change Password</p>
           </div>
         </Link>
+
+        {/* Logout Button */}
         <div
-          className="link flex place-items-center cursor-pointer bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl"
-          onClick={() => setIsLogoutModalOpen(true)}
+          className="link flex place-items-center cursor-pointer bg-gray-100 py-2 px-3 border border-gray-500 rounded-xl hover:bg-gray-200 transition-colors"
+          onClick={openLogoutModal}
         >
-          <div className="exit border  border-gray-500 flex place-content-center p-2 rounded-full">
+          <div className="exit border border-gray-500 flex place-content-center p-2 rounded-full">
             <div className="img">
-              <img src={LogOut} alt="logout" />
+              <img src={LogOut} alt="logout" className="w-5 h-5" />
             </div>
           </div>
-          <p className="pl-4 text-lg">Sign out Jym</p>
+          <p className="pl-4 text-lg">Sign out Gym</p>
         </div>
       </div>
 
       {/* Logout Modal */}
       <Modal
         isOpen={isLogoutModalOpen}
-        onRequestClose={() => setIsLogoutModalOpen(false)}
-        contentLabel="Log Out"
-        className="modal-content  mx-5 !max-w-[370px]  rounded-lg
-        flex flex-col  gap-2  "
-        overlayClassName="modal-overlay"
+        onRequestClose={closeLogoutModal}
+        contentLabel="Log Out Confirmation"
+        className="modal-content mx-auto mt-20 !max-w-[370px] rounded-lg bg-white p-6 shadow-xl"
+        overlayClassName="modal-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
+        shouldCloseOnOverlayClick={!isLoggingOut}
+        shouldCloseOnEsc={!isLoggingOut}
       >
-        <h2 className="text-xl font-medium py-2 text-center">Exit Jym</h2>
-        <p className="text-lightBlack text-center">
-          Are you sure you want to Exit from Jym?
+        <h2 className="text-xl font-medium py-2 text-center">Exit Gym</h2>
+        <p className="text-gray-600 text-center mb-4">
+          Are you sure you want to log out from the Gym dashboard?
         </p>
+
         <div className="buttons pt-4 flex justify-around">
           <button
-            className="bg-green-500 px-7 py-2 rounded-lg text-white"
+            className={`px-7 py-2 rounded-lg text-white ${isLoggingOut ? "bg-green-400 cursor-not-allowed" : "bg-green-500 hover:bg-green-600"}`}
             onClick={handleLogout}
+            disabled={isLoggingOut}
           >
-            Yes
+            {isLoggingOut ? (
+              <span className="flex items-center">
+                <svg
+                  className="animate-spin h-4 w-4 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
+                </svg>
+                Logging out...
+              </span>
+            ) : (
+              "Yes"
+            )}
           </button>
           <button
-            className="bg-red-500 px-7  py-2 rounded-lg text-white"
-            onClick={() => setIsLogoutModalOpen(false)}
+            className="px-7 py-2 rounded-lg text-white bg-red-500 hover:bg-red-600"
+            onClick={closeLogoutModal}
+            disabled={isLoggingOut}
           >
             No
           </button>

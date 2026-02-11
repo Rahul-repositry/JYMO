@@ -4,6 +4,7 @@ import { format, startOfDay, isSameDay } from "date-fns";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { User } from "lucide-react";
 
 const UserDetailCont = ({ user }) => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const UserDetailCont = ({ user }) => {
     user.lastCheckIn
       ? isSameDay(todayStart, lastCheckInStart) ||
           todayStart <= lastCheckInStart
-      : false
+      : false,
   );
 
   const handleMarkAttendance = useCallback(async () => {
@@ -29,7 +30,7 @@ const UserDetailCont = ({ user }) => {
         let res = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/attendance/attendancebyadmin`,
           { userId: user.userId },
-          { withCredentials: true }
+          { withCredentials: true },
         );
         if (res.data.success) {
           toast.success("Attendance is marked");
@@ -39,7 +40,7 @@ const UserDetailCont = ({ user }) => {
         // Optionally, you can update the UI or notify the user of success
       } catch (error) {
         toast.error(
-          error?.response?.data?.message || "Error marking attendance"
+          error?.response?.data?.message || "Error marking attendance",
         );
         console.error("Error marking attendance:", error);
       }
@@ -51,7 +52,7 @@ const UserDetailCont = ({ user }) => {
       user.lastCheckIn
         ? isSameDay(todayStart, lastCheckInStart) ||
             todayStart <= lastCheckInStart
-        : false
+        : false,
     );
   }, [user]);
 
@@ -80,17 +81,18 @@ const UserDetailCont = ({ user }) => {
         )}
         <div className="showDetails m-1 flex justify-between">
           <div className="imgAnddate flex place-items-center gap-3">
-            <div className="rounded-full border bg-orange-500 border-black">
-              <img
-                src={user.img || process.env.REACT_APP_DEFAULT_IMG}
-                alt="user"
-                referrerPolicy="no-referrer"
-                className="rounded-full w-14 border-2 border-white"
-                onError={(e) => {
-                  e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
-                  e.target.src = process.env.REACT_APP_DEFAULT_IMG;
-                }}
-              />
+            <div className="rounded-full border">
+              <div className="img w-12 h-12 flex items-center justify-center border border-gray-400 rounded-full overflow-hidden">
+                {user?.img ? (
+                  <img
+                    src={user?.img}
+                    alt="gym user"
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <User className="text-gray-400 w-6 h-6" />
+                )}
+              </div>
             </div>
             <div className="nameAndDate flex flex-col">
               <p className="text-xl py-1">

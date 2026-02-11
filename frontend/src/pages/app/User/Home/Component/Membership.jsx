@@ -1,5 +1,6 @@
 import React from "react";
 import { format as formatDate, differenceInDays } from "date-fns";
+import { User } from "lucide-react";
 
 const Membership = ({ user, membership }) => {
   const remainingDays = membership.endDate
@@ -10,8 +11,8 @@ const Membership = ({ user, membership }) => {
   const daysLabel = isInactiveBeforeExpiry
     ? "Remaining Days"
     : remainingDays <= 0
-    ? "Expired"
-    : "Expires In";
+      ? "Expired"
+      : "Expires In";
 
   return (
     <>
@@ -20,8 +21,8 @@ const Membership = ({ user, membership }) => {
           isInactiveBeforeExpiry
             ? "bg-yellowBox"
             : remainingDays <= 0
-            ? "bg-redBox"
-            : "bg-yellowBox"
+              ? "bg-redBox"
+              : "bg-yellowBox"
         } flex flex-col border border-slate-400 rounded-2xl justify-between px-4 py-2 max-w-screen-custom-md500  min-h-24 place-content-center`}
       >
         <div className="flex justify-between items-center">
@@ -58,16 +59,21 @@ const Membership = ({ user, membership }) => {
 
         <div className="imgAndExpiryDetails flex items-center">
           <div className="img p-2">
-            <img
-              src={user?.img || process.env.REACT_APP_DEFAULT_IMG}
-              alt="user"
-              referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
-                e.target.src = process.env.REACT_APP_DEFAULT_IMG;
-              }}
-              className="rounded-md w-10 border-2 border-white"
-            />
+            <div className="img w-12 h-12 flex items-center justify-center border bg-white border-gray-400 rounded-full overflow-hidden">
+              {user?.img ? (
+                <img
+                  src={user?.img}
+                  alt="gym user"
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = process.env.REACT_APP_DEFAULT_IMG;
+                  }}
+                />
+              ) : (
+                <User className="text-gray-400 w-6 h-6 " />
+              )}
+            </div>
           </div>
           <div
             className={`text font-medium text-lg ${

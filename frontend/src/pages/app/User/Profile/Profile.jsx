@@ -17,6 +17,7 @@ import email from "../../../../images/email.svg";
 import phone from "../../../../images/phone.svg";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { User } from "lucide-react";
 
 let Options = [
   { logo: checklist, text: "Past Records", link: "/profile/pastrecords" },
@@ -84,7 +85,7 @@ const Profile = () => {
         `${process.env.REACT_APP_BACKEND_URI}/api/jym/getjymbyid/${id}`,
         {
           withCredentials: true,
-        }
+        },
       );
 
       const jymData = response.data.jymData;
@@ -147,7 +148,7 @@ const Profile = () => {
         `${process.env.REACT_APP_BACKEND_URI}/api/auth/logout`,
         {
           withCredentials: true,
-        }
+        },
       );
 
       if (res.data.success) {
@@ -177,16 +178,21 @@ const Profile = () => {
                   user.isExpired ? "border-redBox" : "border-green-600"
                 } border-4  p-[4px] rounded-full`}
               >
-                <img
-                  src={`${user?.img}`}
-                  referrerPolicy="no-referrer"
-                  className="rounded-full w-14"
-                  alt="jymo"
-                  onError={(e) => {
-                    e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
-                    e.target.src = process.env.REACT_APP_DEFAULT_IMG;
-                  }}
-                />
+                <div className="img w-12 h-12 flex items-center justify-center border bg-white border-gray-400 rounded-full overflow-hidden">
+                  {user.img ? (
+                    <img
+                      src={user.img}
+                      alt="gym user"
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = process.env.REACT_APP_DEFAULT_IMG;
+                      }}
+                    />
+                  ) : (
+                    <User className="text-gray-400 w-6 h-6" />
+                  )}
+                </div>
               </div>
               <div className="detail min-w-0">
                 {/* Add min-w-0 here */}

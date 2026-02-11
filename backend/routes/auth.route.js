@@ -4,11 +4,7 @@ const {
   signin,
   google,
   resetPassword,
-  sendOtp,
-  // forgotPassword,
-  createForgotSession,
   logout,
-  verifyOtp,
   deleteObject,
   putObject,
 } = require("../controllers/auth.controller.js");
@@ -82,7 +78,7 @@ router.delete("/deleteimg", verifyUser, deleteObject);
  * - Generates an OTP and sends it to the user's phone number.
  * - Stores the OTP in the database.
  */
-router.post("/send-otp", sendOtp);
+// router.post("/send-otp", sendOtp);
 
 /**
  * @route POST /verify-otp
@@ -93,9 +89,9 @@ router.post("/send-otp", sendOtp);
  * - Verifies the OTP against the stored value in the database.
  * - Sends a response indicating the success or failure of the verification.
  */
-router.post("/verify-otp", verifyOtp);
+// router.post("/verify-otp", verifyOtp);
 
-router.post("/createsession", createForgotSession);
+// router.post("/createsession", createForgotSession);
 
 /**
  * @route POST /resetpassword

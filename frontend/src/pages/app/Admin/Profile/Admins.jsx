@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { getObjectFromLocalStorage } from "../../../../utils/helperFunc";
+import { User } from "lucide-react";
 
 const Admins = () => {
   const jymDetails = getObjectFromLocalStorage("adminJym");
@@ -11,7 +12,7 @@ const Admins = () => {
         const res = await axios.post(
           `${process.env.REACT_APP_BACKEND_URI}/api/user/getusersthroughid`,
           { userIdArr: jymDetails.owners },
-          { withCredentials: true }
+          { withCredentials: true },
         );
 
         if (res.data.success) {
@@ -37,15 +38,21 @@ const Admins = () => {
             key={userObj._id}
           >
             <div className="img w-12 ">
-              <img
-                src={userObj.img || process.env.REACT_APP_DEFAULT_IMG}
-                alt="jymo user"
-                className="border border-gray-400 rounded-full "
-                onError={(e) => {
-                  e.target.onerror = null; // Prevents an infinite loop if the fallback also fails)
-                  e.target.src = process.env.REACT_APP_DEFAULT_IMG;
-                }}
-              />
+              <div className="img w-12 h-12 flex items-center justify-center border border-gray-400 rounded-full overflow-hidden">
+                {userObj.img ? (
+                  <img
+                    src={userObj.img}
+                    alt="gym user"
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = process.env.REACT_APP_DEFAULT_IMG;
+                    }}
+                  />
+                ) : (
+                  <User className="text-gray-400 w-6 h-6" />
+                )}
+              </div>
             </div>
             <div className=" pl-4 details">
               <h3 className="text-lg">{userObj.username}</h3>

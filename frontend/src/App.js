@@ -14,44 +14,45 @@ const About = lazy(() => import("./pages/website/About.jsx"));
 const AppNavbar = lazy(() => import("./pages/app/User/Navbar/Navbar.jsx"));
 const Main = lazy(() => import("./pages/app/User/SignIn/Main.jsx"));
 const LogIn = lazy(() => import("./pages/app/User/SignIn/LogIn.jsx"));
-const ForgotPassword = lazy(() =>
-  import("./pages/app/User/SignIn/ForgotPassword.jsx")
+const ForgotPassword = lazy(
+  () => import("./pages/app/User/SignIn/ForgotPassword.jsx"),
 );
 const ResetPass = lazy(() => import("./pages/app/User/SignIn/ResetPass.jsx"));
 const Home = lazy(() => import("./pages/app/User/Home/Home.jsx"));
-const BottomNavigation = lazy(() =>
-  import("./components/BottomNavigation/BottomNavigation.jsx")
+const BottomNavigation = lazy(
+  () => import("./components/BottomNavigation/BottomNavigation.jsx"),
 );
 const Calendar = lazy(() => import("./pages/app/User/Calendar/Calendar.jsx"));
-const EditWorkout = lazy(() =>
-  import("./components/workoutPlan/EditWorkout.jsx")
+const EditWorkout = lazy(
+  () => import("./components/workoutPlan/EditWorkout.jsx"),
 );
 const Scanner = lazy(() => import("./pages/app/User/Scanner/Scanner.jsx"));
 const Success = lazy(() => import("./pages/app/User/Scanner/Success.jsx"));
 const Myqr = lazy(() => import("./pages/app/User/Scanner/Myqr.jsx"));
-const ScannerProtected = lazy(() =>
-  import("./pages/app/User/Scanner/ScannerProtected.jsx")
+const ScannerProtected = lazy(
+  () => import("./pages/app/User/Scanner/ScannerProtected.jsx"),
 );
 const Profile = lazy(() => import("./pages/app/User/Profile/Profile.jsx"));
-const UpdateWrapper = lazy(() =>
-  import("./pages/app/User/Profile/UpdateWrapper.jsx")
+const UpdateWrapper = lazy(
+  () => import("./pages/app/User/Profile/UpdateWrapper.jsx"),
 );
-const PastRecords = lazy(() =>
-  import("./pages/app/User/Profile/PastRecords.jsx")
+const PastRecords = lazy(
+  () => import("./pages/app/User/Profile/PastRecords.jsx"),
 );
-const ProfileOutlet = lazy(() =>
-  import("./pages/app/User/Profile/ProfileOutlet.jsx")
+const ProfileOutlet = lazy(
+  () => import("./pages/app/User/Profile/ProfileOutlet.jsx"),
 );
 const WaitList = lazy(() => import("./pages/app/WaitList.jsx"));
 
 // Admin routes - lazy loaded
+
 const AdSignup = lazy(() => import("./pages/app/Admin/Auth/Signup.jsx"));
 const AdLogin = lazy(() => import("./pages/app/Admin/Auth/Login.jsx"));
 const AdForgot = lazy(() => import("./pages/app/Admin/Auth/ForgotPass.jsx"));
 const AdHome = lazy(() => import("./pages/app/Admin/Home/Home.jsx"));
 const AdJymQr = lazy(() => import("./pages/app/Admin/JymQr/JymQr.jsx"));
-const AdScanner = lazy(() =>
-  import("./pages/app/Admin/AdScanner/AdScanner.jsx")
+const AdScanner = lazy(
+  () => import("./pages/app/Admin/AdScanner/AdScanner.jsx"),
 );
 const Member = lazy(() => import("./pages/app/Admin/Member/Member.jsx"));
 const FeeRecord = lazy(() => import("./pages/app/Admin/Member/FeeRecord.jsx"));
@@ -158,7 +159,7 @@ function App() {
 
   const applyNavbarStyles = !EXCLUDE_PATHS_NAVBAR.includes(location.pathname);
   const applyBottomNavStyles = !EXCLUDE_PATHS_BOTTOM_NAV.includes(
-    location.pathname
+    location.pathname,
   );
 
   if (isLoading) {
