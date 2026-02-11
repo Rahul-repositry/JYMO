@@ -150,6 +150,7 @@ const jymSignin = AsyncErrorHandler(async (req, res, next) => {
       httpOnly: true,
       expires: expiryDate,
       secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
     })
     .status(200)
     .json({
