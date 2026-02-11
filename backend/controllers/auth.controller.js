@@ -286,10 +286,10 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
   const userObj = await User.findById({ _id: new ObjectId(userId) });
 
   // Default image URL from environment variable
-  const defaultImgUrl = process.env.AWSUSER_DEFAULT_IMG;
+
 
   // 1. Check if the image is the default image from the environment
-  if (imgUrl === defaultImgUrl) {
+  if (!imgUrl) {
     return next(new CustomError("Not a valid image to delete", 400));
   }
 
@@ -308,7 +308,7 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
   const key = urlParts[urlParts.length - 1];
   const s3ImageUrl = `https://${bucketName}.s3.${bucketRegion}.amazonaws.com/userProfileImg/${key}`;
 
-  if (!imgUrl.includes(`${bucketName}.s3`) || imgUrl === defaultImgUrl) {
+  if (!imgUrl.includes(`${bucketName}.s3`)) {
     return next(new CustomError("Not a valid image to delete", 400));
   }
 
@@ -331,7 +331,7 @@ const deleteObject = AsyncErrorHandler(async (req, res, next) => {
     // Check if the S3 deletion was successful by checking status code or response
     if (s3res.$metadata.httpStatusCode === 204) {
       // 6. Update the user's image field to an empty string
-      userObj.img = process.env.AWSUSER_DEFAULT_IMG; // Set image to empty
+      userObj.img = ''; // Set image to empty
       await userObj.save(); // Save the updated user object
 
       // Respond with success
