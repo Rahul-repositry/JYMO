@@ -18,6 +18,9 @@ jymoInstanceKeyPair.pem
 # Interview Guide (Local Only)
 INTERVIEW_GUIDE.md
 
+# Deployment Guide (Local Only)
+backend/DEPLOYMENT_GUIDE.md
+
 # production
 /build
 .server.js
