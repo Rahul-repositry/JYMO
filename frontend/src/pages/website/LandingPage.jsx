@@ -3,9 +3,8 @@ import Features from "../../components/LandingPage/Features/Features.jsx";
 import Footer from "../../components/LandingPage/Footer/Footer.jsx";
 import HeroSection from "../../components/LandingPage/HeroSection/HeroSection.jsx";
 import HowWorks from "../../components/LandingPage/howWorks/HowWorks.jsx";
-import MySelf from "../../components/LandingPage/MyAimBox/MySelf.jsx";
+// import MySelf from "../../components/LandingPage/MyAimBox/MySelf.jsx";
 import Testimonials from "../../components/LandingPage/Testimonails/Testimonials.jsx";
-
 
 const LandingPage = () => {
   return (
@@ -47,7 +46,7 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
-      <MySelf />
+      {/* <MySelf /> */}
       <Features />
       <HowWorks />
       <Testimonials />
