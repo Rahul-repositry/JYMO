@@ -8,11 +8,12 @@
 # testing
 /coverage
 
+
 doc.md
 .txt
 jymo
 jymo.pub
-
+resotredb.js
 jymoInstanceKeyPair.pem
 
 # Interview Guide (Local Only)

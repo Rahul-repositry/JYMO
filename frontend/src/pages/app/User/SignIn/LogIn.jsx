@@ -22,6 +22,12 @@ const LogIn = () => {
 
   const [showPassword, setShowPassword] = useState(false);
 
+  // Demo user credentials
+  const DEMO_USER = {
+    number: "9877434656",
+    password: "rahul123"
+  };
+
   const validateInput = (e) => {
     const input = formData.number;
     const phonePattern = /^[6789]\d{9}$/;
@@ -110,6 +116,19 @@ const LogIn = () => {
     setShowPassword((prevShowPassword) => !prevShowPassword);
   };
 
+  const handleDemoLogin = () => {
+    setFormData({
+      number: DEMO_USER.number,
+      password: DEMO_USER.password,
+    });
+    // Optional: Automatically submit the form after a short delay
+    // setTimeout(() => {
+    //   document.querySelector('form').dispatchEvent(
+    //     new Event('submit', { cancelable: true, bubbles: true })
+    //   );
+    // }, 100);
+  };
+
   return (
     <>
       <SignupUserDataProvider>
@@ -117,9 +136,34 @@ const LogIn = () => {
           className="signupForm max-w-md mx-auto p-6 bg-white rounded-lg"
           onSubmit={handleSubmit}
         >
-          <div className="text-customButton text-3xl my-4 font-medium  text-center">
+          <div className="text-customButton text-3xl my-4 font-medium text-center">
             Login
           </div>
+          
+          {/* Demo User Button */}
+          <div className="mb-4">
+            <button
+              type="button"
+              onClick={handleDemoLogin}
+              className="w-full bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition duration-200 ease-in-out transform hover:scale-105 flex items-center justify-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+              </svg>
+              Try Demo Account
+            </button>
+          </div>
+
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or login with your credentials</span>
+            </div>
+          </div>
+
           <div className="phone">
             <label
               htmlFor="number"
@@ -174,13 +218,13 @@ const LogIn = () => {
           <div className="flex justify-between flex-wrap gap-4">
             <Link
               to="/signup"
-              className="text-sm text-orange-500 underline  -translate-y-2"
+              className="text-sm text-orange-500 underline -translate-y-2"
             >
               Register yourself with Signup ?
             </Link>
             <Link
               to="/forgotpassword"
-              className="text-sm text-orange-500 underline  -translate-y-2"
+              className="text-sm text-orange-500 underline -translate-y-2"
             >
               Forgot Password ?
             </Link>
